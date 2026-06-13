@@ -2,6 +2,7 @@ name: id-foot
 
 services:
   db:
+    container_name: id-foot-db
     image: postgres:16-alpine
     restart: unless-stopped
     env_file:
@@ -14,6 +15,8 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - id-foot-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -22,6 +25,7 @@ services:
       start_period: 10s
 
   app:
+    profiles: ["production"]
     build:
       context: ..
       dockerfile: setup/Dockerfile
@@ -41,6 +45,13 @@ services:
         condition: service_healthy
     volumes:
       - uploads_data:/usr/src/app/public/uploads
+    networks:
+      - id-foot-network
+
+networks:
+  id-foot-network:
+    name: id-foot-network
+    driver: bridge
 
 volumes:
   postgres_data:

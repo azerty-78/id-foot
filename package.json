@@ -8,8 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "docker:up": "docker compose -f setup/compose.yaml --env-file setup/.env up --build -d",
-    "docker:down": "docker compose -f setup/compose.yaml --env-file setup/.env down",
+    "docker:up": "docker compose -f setup/compose.yaml --env-file setup/.env up db -d",
+    "docker:up:prod": "docker compose -f setup/compose.yaml --env-file setup/.env --profile production up --build -d",
+    "docker:down": "docker compose -f setup/compose.yaml --env-file setup/.env --profile production down",
     "docker:logs": "docker compose -f setup/compose.yaml --env-file setup/.env logs -f"
   },
   "dependencies": {
