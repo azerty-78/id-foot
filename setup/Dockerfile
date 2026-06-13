@@ -8,6 +8,8 @@ WORKDIR /usr/src/app
 
 FROM base AS deps
 COPY package.json package-lock.json ./
+COPY prisma ./prisma
+COPY prisma.config.ts ./
 RUN npm ci
 
 FROM base AS builder
