@@ -9,6 +9,7 @@ type RouteParams = {
 type UpdateEquipeBody = {
   nom: string;
   logo?: string | null;
+  competitionId?: string;
 };
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
@@ -37,8 +38,13 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       data: {
         nom: body.nom,
         logo: body.logo ?? null,
+        ...(body.competitionId && { competitionId: body.competitionId }),
       },
-      include: { joueurs: true },
+      include: {
+        competition: true,
+        _count: { select: { joueurs: true } },
+        joueurs: true,
+      },
     });
 
     return NextResponse.json(equipe);
