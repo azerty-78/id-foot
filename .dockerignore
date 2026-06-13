@@ -1,0 +1,16 @@
+# Docker build context (racine du projet)
+.git
+.gitignore
+.env*
+!.env.example
+**/.next
+**/node_modules
+**/npm-debug.log
+**/.vscode
+**/.cursor
+**/coverage
+**/dist
+**/build
+README.md
+setup/.env
+setup/compose.yaml

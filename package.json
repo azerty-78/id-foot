@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "docker:up": "docker compose -f setup/compose.yaml --env-file setup/.env up --build -d",
+    "docker:down": "docker compose -f setup/compose.yaml --env-file setup/.env down",
+    "docker:logs": "docker compose -f setup/compose.yaml --env-file setup/.env logs -f"
   },
   "dependencies": {
     "@prisma/client": "^7.8.0",
