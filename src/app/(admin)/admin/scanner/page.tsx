@@ -12,6 +12,7 @@ import {
   PrimaryButton,
   PrimaryLink,
   SecondaryButton,
+  StatusBadge,
 } from "@/components/admin/ui";
 
 type ScanState = "idle" | "scanning" | "loading" | "success" | "error";
