@@ -1,5 +1,6 @@
 "use client";
 
+import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import {
   AdminCard,
@@ -133,8 +134,8 @@ export default function CompetitionsPage() {
         title="Compétitions"
         description="Organisez les tournois et suivez le nombre d'équipes inscrites."
         action={
-          <PrimaryButton type="button" onClick={openCreateModal}>
-            + Créer une compétition
+          <PrimaryButton type="button" icon={Plus} onClick={openCreateModal}>
+            Créer une compétition
           </PrimaryButton>
         }
       />
@@ -168,7 +169,7 @@ export default function CompetitionsPage() {
                     <p className="mt-2 text-sm text-slate-500">{competition.lieu}</p>
                   )}
                 </div>
-                <StatusBadge tone="gold">
+                <StatusBadge tone="navy">
                   {competition._count?.equipes ?? 0} équipe
                   {(competition._count?.equipes ?? 0) > 1 ? "s" : ""}
                 </StatusBadge>
@@ -177,15 +178,17 @@ export default function CompetitionsPage() {
               <div className="flex flex-wrap gap-2">
                 <OutlineButton
                   type="button"
+                  icon={Pencil}
+                  size="sm"
                   onClick={() => openEditModal(competition)}
-                  className="px-3 py-1.5 text-xs"
                 >
                   Modifier
                 </OutlineButton>
                 <DangerButton
                   type="button"
+                  icon={Trash2}
+                  size="sm"
                   onClick={() => handleDelete(competition)}
-                  className="px-3 py-1.5 text-xs"
                 >
                   Supprimer
                 </DangerButton>
@@ -201,11 +204,12 @@ export default function CompetitionsPage() {
         onClose={closeModal}
         footer={
           <>
-            <OutlineButton type="button" onClick={closeModal}>
+            <OutlineButton type="button" icon={X} onClick={closeModal}>
               Annuler
             </OutlineButton>
             <PrimaryButton
               type="button"
+              icon={Save}
               onClick={() => void handleSubmit()}
               disabled={submitting}
             >

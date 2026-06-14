@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Home, LogIn } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AdminCard, GhostLink, PrimaryLink } from "@/components/admin/ui";
@@ -36,10 +36,10 @@ export default function SignOutPage() {
       </p>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <PrimaryLink href="/admin/signin" className="w-full sm:w-auto">
+        <PrimaryLink href="/admin/signin" icon={LogIn} className="w-full sm:w-auto">
           Se reconnecter
         </PrimaryLink>
-        <GhostLink href="/" className="w-full sm:w-auto">
+        <GhostLink href="/" icon={Home} className="w-full sm:w-auto">
           Retour à l&apos;accueil
         </GhostLink>
       </div>

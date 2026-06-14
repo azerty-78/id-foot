@@ -1,5 +1,6 @@
+import { LayoutDashboard, LogIn, QrCode } from "lucide-react";
 import { AppLogo } from "@/components/brand/AppLogo";
-import { PrimaryLink, OutlineLink, SecondaryLink } from "@/components/admin/ui";
+import { OutlineLink, PrimaryLink, SecondaryLink } from "@/components/admin/ui";
 
 export default function HomePage() {
   return (
@@ -9,10 +10,10 @@ export default function HomePage() {
           <AppLogo href="/" size="lg" />
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <SecondaryLink href="/admin/signin" className="hidden sm:inline-flex">
+            <SecondaryLink href="/admin/signin" icon={LogIn} className="hidden sm:inline-flex">
               Connexion
             </SecondaryLink>
-            <PrimaryLink href="/admin/dashboard" className="hidden sm:inline-flex">
+            <PrimaryLink href="/admin/dashboard" icon={LayoutDashboard} className="hidden sm:inline-flex">
               Administration
             </PrimaryLink>
           </div>
@@ -32,10 +33,10 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <PrimaryLink href="/admin/dashboard" className="w-full sm:w-auto">
+              <PrimaryLink href="/admin/dashboard" icon={LayoutDashboard} className="w-full sm:w-auto">
                 Accéder à l&apos;administration
               </PrimaryLink>
-              <OutlineLink href="/admin/scanner" className="w-full sm:w-auto">
+              <OutlineLink href="/admin/scanner" icon={QrCode} className="w-full sm:w-auto">
                 Scanner un QR code
               </OutlineLink>
             </div>

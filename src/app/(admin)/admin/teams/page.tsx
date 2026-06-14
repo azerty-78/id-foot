@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
@@ -210,8 +211,8 @@ export default function TeamsPage() {
         title="Équipes"
         description="Gérez les clubs, leurs logos et consultez leurs effectifs."
         action={
-          <PrimaryButton type="button" onClick={openCreateModal}>
-            + Créer une équipe
+          <PrimaryButton type="button" icon={Plus} onClick={openCreateModal}>
+            Créer une équipe
           </PrimaryButton>
         }
       />
@@ -261,7 +262,7 @@ export default function TeamsPage() {
                     {teamItem.competition?.nom}
                   </p>
                 </div>
-                <StatusBadge tone="gold">
+                <StatusBadge tone="navy">
                   {teamItem._count?.joueurs ?? 0}
                 </StatusBadge>
               </div>
@@ -272,15 +273,17 @@ export default function TeamsPage() {
               >
                 <OutlineButton
                   type="button"
+                  icon={Pencil}
+                  size="sm"
                   onClick={() => openEditModal(teamItem)}
-                  className="px-3 py-1.5 text-xs"
                 >
                   Modifier
                 </OutlineButton>
                 <DangerButton
                   type="button"
+                  icon={Trash2}
+                  size="sm"
                   onClick={() => handleDelete(teamItem)}
-                  className="px-3 py-1.5 text-xs"
                 >
                   Supprimer
                 </DangerButton>
@@ -312,8 +315,9 @@ export default function TeamsPage() {
               </div>
               <OutlineButton
                 type="button"
+                icon={X}
+                size="sm"
                 onClick={() => setSelectedTeamId(null)}
-                className="px-3 py-2"
               >
                 Fermer
               </OutlineButton>
@@ -341,7 +345,8 @@ export default function TeamsPage() {
                       </div>
                       <GhostLink
                         href={`/admin/players/${player.id}`}
-                        className="px-2 py-1 text-xs"
+                        icon={Eye}
+                        size="sm"
                       >
                         Voir
                       </GhostLink>
@@ -360,11 +365,12 @@ export default function TeamsPage() {
         onClose={closeModal}
         footer={
           <>
-            <OutlineButton type="button" onClick={closeModal}>
+            <OutlineButton type="button" icon={X} onClick={closeModal}>
               Annuler
             </OutlineButton>
             <PrimaryButton
               type="button"
+              icon={Save}
               onClick={() => void handleSubmit()}
               disabled={submitting}
             >

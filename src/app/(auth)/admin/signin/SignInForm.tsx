@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -98,12 +99,14 @@ export default function SignInForm() {
           </p>
         </div>
 
-        <PrimaryButton type="submit" disabled={submitting} className="w-full">
+        <PrimaryButton type="submit" icon={LogIn} disabled={submitting} className="w-full">
           {submitting ? "Connexion..." : "Se connecter"}
         </PrimaryButton>
 
         <div className="text-center">
-          <GhostLink href="/">Retour à l&apos;accueil</GhostLink>
+          <GhostLink href="/" icon={ArrowLeft}>
+            Retour à l&apos;accueil
+          </GhostLink>
         </div>
       </form>
     </AdminCard>

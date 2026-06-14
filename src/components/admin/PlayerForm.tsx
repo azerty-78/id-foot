@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, Save, Shield, Trophy, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
@@ -418,10 +419,10 @@ export function PlayerForm({
                   Créez d&apos;abord une compétition puis une équipe.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <GhostLink href="/admin/competitions" className="px-3 py-1.5 text-xs">
+                  <GhostLink href="/admin/competitions" icon={Trophy} size="sm">
                     Créer une compétition
                   </GhostLink>
-                  <GhostLink href="/admin/teams" className="px-3 py-1.5 text-xs">
+                  <GhostLink href="/admin/teams" icon={Shield} size="sm">
                     Créer un club
                   </GhostLink>
                 </div>
@@ -497,8 +498,14 @@ export function PlayerForm({
           </FormSection>
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            <OutlineLink href={cancelHref}>Annuler</OutlineLink>
-            <PrimaryButton type="submit" disabled={submitting || teams.length === 0}>
+            <OutlineLink href={cancelHref} icon={X}>
+              Annuler
+            </OutlineLink>
+            <PrimaryButton
+              type="submit"
+              icon={Save}
+              disabled={submitting || teams.length === 0}
+            >
               {submitting
                 ? "Enregistrement..."
                 : mode === "create"

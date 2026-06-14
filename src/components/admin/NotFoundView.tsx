@@ -1,4 +1,4 @@
-import { AppLogo } from "@/components/brand/AppLogo";
+import { ArrowLeft, LayoutDashboard } from "lucide-react";
 import { OutlineLink, PrimaryLink } from "@/components/admin/ui";
 
 type NotFoundViewProps = {
@@ -30,11 +30,11 @@ export function NotFoundView({
         <p className="mt-3 text-sm leading-6 text-slate-500">{description}</p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <PrimaryLink href={homeHref} className="w-full sm:w-auto">
+          <PrimaryLink href={homeHref} icon={LayoutDashboard} className="w-full sm:w-auto">
             {homeLabel}
           </PrimaryLink>
           {secondaryHref && secondaryLabel && (
-            <OutlineLink href={secondaryHref} className="w-full sm:w-auto">
+            <OutlineLink href={secondaryHref} icon={ArrowLeft} className="w-full sm:w-auto">
               {secondaryLabel}
             </OutlineLink>
           )}

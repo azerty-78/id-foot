@@ -192,7 +192,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   border-radius: var(--radius-md);
-  padding: 0.625rem 1rem;
+  padding: 9px 18px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.25;
@@ -204,6 +204,19 @@ body {
     border-color 0.15s ease,
     box-shadow 0.15s ease,
     color 0.15s ease;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
 }
 
 .btn:disabled {
@@ -257,6 +270,42 @@ body {
 
 .btn-danger:hover:not(:disabled) {
   background: #c93232;
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.badge-success {
+  background: var(--green-bg);
+  color: var(--green-dim);
+}
+
+.badge-navy {
+  background: rgba(13, 27, 42, 0.08);
+  color: var(--navy);
+}
+
+.badge-gray {
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.badge-danger {
+  background: #fdeaea;
+  color: var(--danger);
+}
+
+.badge-warning {
+  background: #fef4e4;
+  color: #b07500;
 }
 
 @media print {

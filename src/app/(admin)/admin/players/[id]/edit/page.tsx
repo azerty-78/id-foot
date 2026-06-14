@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import {
   AdminCard,
@@ -24,7 +25,7 @@ export default function EditPlayerPage() {
     return (
       <AdminCard className="px-6 py-10 text-center">
         <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
-        <GhostLink href="/admin/players" className="mt-4 inline-flex">
+        <GhostLink href="/admin/players" icon={ArrowLeft} className="mt-4 inline-flex">
           Retour à la liste
         </GhostLink>
       </AdminCard>

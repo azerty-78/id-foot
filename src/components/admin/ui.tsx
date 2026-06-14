@@ -1,77 +1,195 @@
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+export type ButtonSize = "default" | "sm" | "icon";
+
 const btnBase = "btn disabled:cursor-not-allowed disabled:opacity-60";
 
-const primaryClasses = `${btnBase} btn-primary`;
-const secondaryClasses = `${btnBase} btn-secondary`;
-const outlineClasses = `${btnBase} btn-outline`;
-const ghostClasses = `${btnBase} btn-ghost`;
-const dangerClasses = `${btnBase} btn-danger`;
+function iconSize(size: ButtonSize): number {
+  if (size === "sm") return 14;
+  if (size === "icon") return 18;
+  return 16;
+}
 
-export function PrimaryLink({
+function buildBtnClass(
+  variant: string,
+  size: ButtonSize = "default",
+  className = "",
+): string {
+  const sizeClass =
+    size === "sm" ? "btn-sm" : size === "icon" ? "btn-icon" : "";
+  return [btnBase, variant, sizeClass, className].filter(Boolean).join(" ");
+}
+
+function ButtonIcon({
+  icon: Icon,
+  size = "default",
+}: {
+  icon?: LucideIcon;
+  size?: ButtonSize;
+}) {
+  if (!Icon) return null;
+  return <Icon size={iconSize(size)} strokeWidth={2} className="shrink-0" aria-hidden />;
+}
+
+type ActionButtonProps = {
+  icon?: LucideIcon;
+  size?: ButtonSize;
+  className?: string;
+  children?: ReactNode;
+};
+
+type ActionLinkProps = ActionButtonProps & {
+  href: string;
+};
+
+function PrimaryLink({
   href,
+  icon,
+  size = "default",
   children,
   className = "",
-}: {
-  href: string;
-  children: ReactNode;
-  className?: string;
-}) {
+}: ActionLinkProps) {
   return (
-    <Link href={href} className={`${primaryClasses} ${className}`}>
-      {children}
+    <Link href={href} className={buildBtnClass("btn-primary", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
     </Link>
   );
 }
 
-export function SecondaryLink({
+function SecondaryLink({
   href,
+  icon,
+  size = "default",
   children,
   className = "",
-}: {
-  href: string;
-  children: ReactNode;
-  className?: string;
-}) {
+}: ActionLinkProps) {
   return (
-    <Link href={href} className={`${secondaryClasses} ${className}`}>
-      {children}
+    <Link href={href} className={buildBtnClass("btn-secondary", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
     </Link>
   );
 }
 
-export function GhostLink({
+function GhostLink({
   href,
+  icon,
+  size = "default",
   children,
   className = "",
-}: {
-  href: string;
-  children: ReactNode;
-  className?: string;
-}) {
+}: ActionLinkProps) {
   return (
-    <Link href={href} className={`${ghostClasses} ${className}`}>
-      {children}
+    <Link href={href} className={buildBtnClass("btn-ghost", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
     </Link>
   );
 }
 
-export function OutlineLink({
+function OutlineLink({
   href,
+  icon,
+  size = "default",
   children,
   className = "",
-}: {
-  href: string;
-  children: ReactNode;
-  className?: string;
-}) {
+}: ActionLinkProps) {
   return (
-    <Link href={href} className={`${outlineClasses} ${className}`}>
-      {children}
+    <Link href={href} className={buildBtnClass("btn-outline", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
     </Link>
   );
 }
+
+function PrimaryButton({
+  icon,
+  size = "default",
+  children,
+  className = "",
+  ...props
+}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={buildBtnClass("btn-primary", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
+    </button>
+  );
+}
+
+function SecondaryButton({
+  icon,
+  size = "default",
+  children,
+  className = "",
+  ...props
+}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={buildBtnClass("btn-secondary", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
+    </button>
+  );
+}
+
+function DangerButton({
+  icon,
+  size = "default",
+  children,
+  className = "",
+  ...props
+}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={buildBtnClass("btn-danger", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
+    </button>
+  );
+}
+
+function GhostButton({
+  icon,
+  size = "default",
+  children,
+  className = "",
+  ...props
+}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={buildBtnClass("btn-ghost", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
+    </button>
+  );
+}
+
+function OutlineButton({
+  icon,
+  size = "default",
+  children,
+  className = "",
+  ...props
+}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={buildBtnClass("btn-outline", size, className)}>
+      <ButtonIcon icon={icon} size={size} />
+      {size !== "icon" ? children : null}
+    </button>
+  );
+}
+
+export {
+  DangerButton,
+  GhostButton,
+  GhostLink,
+  OutlineButton,
+  OutlineLink,
+  PrimaryButton,
+  PrimaryLink,
+  SecondaryButton,
+  SecondaryLink,
+};
 
 export function PageHeader({
   title,
@@ -108,66 +226,6 @@ export function AdminCard({
     <div className={`admin-card rounded-[var(--radius-xl)] ${className}`} {...props}>
       {children}
     </div>
-  );
-}
-
-export function PrimaryButton({
-  children,
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button {...props} className={`${primaryClasses} ${className}`}>
-      {children}
-    </button>
-  );
-}
-
-export function SecondaryButton({
-  children,
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button {...props} className={`${secondaryClasses} ${className}`}>
-      {children}
-    </button>
-  );
-}
-
-export function DangerButton({
-  children,
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button {...props} className={`${dangerClasses} ${className}`}>
-      {children}
-    </button>
-  );
-}
-
-export function GhostButton({
-  children,
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button {...props} className={`${ghostClasses} ${className}`}>
-      {children}
-    </button>
-  );
-}
-
-export function OutlineButton({
-  children,
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button {...props} className={`${outlineClasses} ${className}`}>
-      {children}
-    </button>
   );
 }
 
@@ -307,25 +365,33 @@ export function LoadingState({ message = "Chargement..." }: { message?: string }
   );
 }
 
+export type BadgeTone =
+  | "success"
+  | "navy"
+  | "gray"
+  | "danger"
+  | "warning"
+  | "error"
+  | "gold"
+  | "neutral";
+
 export function StatusBadge({
   tone,
   children,
 }: {
-  tone: "success" | "error" | "neutral" | "gold";
+  tone: BadgeTone;
   children: ReactNode;
 }) {
-  const styles = {
-    success: "bg-green text-navy",
-    error: "bg-danger text-white",
-    neutral: "bg-gray-100 text-gray-600",
-    gold: "bg-green text-navy",
+  const styles: Record<BadgeTone, string> = {
+    success: "badge-success",
+    navy: "badge-navy",
+    gray: "badge-gray",
+    danger: "badge-danger",
+    warning: "badge-warning",
+    error: "badge-danger",
+    gold: "badge-navy",
+    neutral: "badge-gray",
   };
 
-  return (
-    <span
-      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${styles[tone]}`}
-    >
-      {children}
-    </span>
-  );
+  return <span className={`badge ${styles[tone]}`}>{children}</span>;
 }

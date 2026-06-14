@@ -1,5 +1,6 @@
 "use client";
 
+import { Download, Eye, Trash2, UserPlus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -116,8 +117,8 @@ export default function PlayersPage() {
         title="Joueurs"
         description="Gestion des joueurs enregistrés et de leurs licences."
         action={
-          <PrimaryLink href="/admin/players/new" className="w-full sm:w-auto">
-            + Ajouter un joueur
+          <PrimaryLink href="/admin/players/new" icon={UserPlus} className="w-full sm:w-auto">
+            Ajouter un joueur
           </PrimaryLink>
         }
       />
@@ -186,21 +187,27 @@ export default function PlayersPage() {
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   <GhostLink
                     href={`/admin/players/${player.id}`}
-                    className="col-span-1 w-full px-2 py-2 text-xs"
+                    icon={Eye}
+                    size="sm"
+                    className="col-span-1 w-full"
                   >
                     Voir
                   </GhostLink>
                   <PrimaryButton
                     type="button"
+                    icon={Download}
+                    size="sm"
                     onClick={() => handleDownloadCard(player.id)}
-                    className="w-full bg-amber-500 px-2 py-2 text-xs hover:bg-amber-600"
+                    className="w-full"
                   >
                     PDF
                   </PrimaryButton>
                   <DangerButton
                     type="button"
+                    icon={Trash2}
+                    size="sm"
                     onClick={() => handleDelete(player)}
-                    className="col-span-2 w-full px-2 py-2 text-xs sm:col-span-1"
+                    className="col-span-2 w-full sm:col-span-1"
                   >
                     Supprimer
                   </DangerButton>
@@ -270,21 +277,24 @@ export default function PlayersPage() {
                       <div className="flex items-center justify-end gap-2">
                         <GhostLink
                           href={`/admin/players/${player.id}`}
-                          className="px-3 py-1.5 text-xs"
+                          icon={Eye}
+                          size="sm"
                         >
                           Voir
                         </GhostLink>
                         <PrimaryButton
                           type="button"
+                          icon={Download}
+                          size="sm"
                           onClick={() => handleDownloadCard(player.id)}
-                          className="bg-amber-500 px-3 py-1.5 text-xs hover:bg-amber-600"
                         >
                           PDF
                         </PrimaryButton>
                         <DangerButton
                           type="button"
+                          icon={Trash2}
+                          size="sm"
                           onClick={() => handleDelete(player)}
-                          className="px-3 py-1.5 text-xs"
                         >
                           Supprimer
                         </DangerButton>

@@ -1,13 +1,18 @@
 "use client";
 
+import {
+  RotateCcw,
+  ScanLine,
+  Search,
+  Trash2,
+  UserRound,
+} from "lucide-react";
 import Image from "next/image";
 import { Html5Qrcode } from "html5-qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AdminCard,
-  DangerButton,
   FieldLabel,
-  GhostLink,
   OutlineButton,
   PageHeader,
   PrimaryButton,
@@ -234,6 +239,7 @@ export default function ScannerPage() {
               {state === "idle" && (
                 <PrimaryButton
                   type="button"
+                  icon={ScanLine}
                   onClick={() => void startScanner()}
                   className="mt-4"
                 >
@@ -257,6 +263,7 @@ export default function ScannerPage() {
               />
               <PrimaryButton
                 type="button"
+                icon={Search}
                 onClick={() => void handleManualSearch()}
                 disabled={!manualToken.trim() || state === "loading"}
                 className="mt-4"
@@ -310,10 +317,10 @@ export default function ScannerPage() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <PrimaryLink href={`/admin/players/${player.id}`}>
+                <PrimaryLink href={`/admin/players/${player.id}`} icon={UserRound}>
                   Voir la fiche complète
                 </PrimaryLink>
-                <OutlineButton type="button" onClick={() => void resetScan()}>
+                <OutlineButton type="button" icon={RotateCcw} onClick={() => void resetScan()}>
                   Nouveau scan
                 </OutlineButton>
               </div>
@@ -326,13 +333,14 @@ export default function ScannerPage() {
               <p className="mt-4 text-sm text-rose-700">
                 {errorMessage ?? "Aucun joueur correspondant à ce QR code."}
               </p>
-              <DangerButton
+              <OutlineButton
                 type="button"
+                icon={RotateCcw}
                 onClick={() => void resetScan()}
                 className="mt-6"
               >
                 Nouveau scan
-              </DangerButton>
+              </OutlineButton>
             </div>
           )}
 

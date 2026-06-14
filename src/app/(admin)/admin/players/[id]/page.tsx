@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  ArrowLeft,
+  Download,
+  Pencil,
+  Printer,
+  Trash2,
+} from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -95,7 +102,7 @@ export default function PlayerDetailPage() {
     return (
       <AdminCard className="px-6 py-10 text-center">
         <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
-        <GhostLink href="/admin/players" className="mt-4 inline-flex">
+        <GhostLink href="/admin/players" icon={ArrowLeft} className="mt-4 inline-flex">
           Retour à la liste
         </GhostLink>
       </AdminCard>
@@ -127,8 +134,8 @@ export default function PlayerDetailPage() {
   return (
     <div className="print:block">
       <div className="mb-6 print:hidden">
-        <GhostLink href="/admin/players" className="px-0">
-          ← Retour à la liste
+        <GhostLink href="/admin/players" icon={ArrowLeft} className="px-0">
+          Retour à la liste
         </GhostLink>
       </div>
 
@@ -174,13 +181,15 @@ export default function PlayerDetailPage() {
             <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-3 print:hidden">
               <PrimaryButton
                 type="button"
+                icon={Download}
                 onClick={handleDownloadCard}
-                className="w-full bg-gold text-brand-dark hover:bg-brand-hover sm:w-auto"
+                className="w-full sm:w-auto"
               >
                 Télécharger la carte PDF
               </PrimaryButton>
               <OutlineButton
                 type="button"
+                icon={Printer}
                 onClick={() => window.print()}
                 className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto"
               >
@@ -201,10 +210,10 @@ export default function PlayerDetailPage() {
               </h2>
             </div>
             <div className="flex flex-wrap gap-2 print:hidden">
-              <OutlineLink href={`/admin/players/${player.id}/edit`}>
+              <OutlineLink href={`/admin/players/${player.id}/edit`} icon={Pencil}>
                 Modifier
               </OutlineLink>
-              <DangerButton type="button" onClick={handleDelete}>
+              <DangerButton type="button" icon={Trash2} onClick={handleDelete}>
                 Supprimer
               </DangerButton>
             </div>
