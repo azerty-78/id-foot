@@ -1055,6 +1055,7 @@ body {
 
 .scanner-viewport {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   border-radius: var(--radius-xl);
   border: 1px solid var(--gray-100);
@@ -1063,6 +1064,23 @@ body {
   min-height: 280px;
   box-shadow: var(--shadow-md);
   --scan-box-size: min(78vw, 280px);
+}
+
+.scanner-viewport--camera-blocked .scanner-reader,
+.scanner-viewport--camera-blocked .scanner-frame,
+.scanner-viewport--camera-blocked .scanner-hint {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.scanner-viewport--error::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background: rgba(13, 27, 42, 0.4);
+  pointer-events: none;
 }
 
 .scanner-viewport--loading .scanner-frame {
@@ -1077,6 +1095,7 @@ body {
 .scanner-reader {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -1176,7 +1195,7 @@ body {
 .scanner-loading {
   position: absolute;
   inset: 0;
-  z-index: 4;
+  z-index: 8;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1200,13 +1219,14 @@ body {
 .scanner-camera-prompt {
   position: absolute;
   inset: 0;
-  z-index: 6;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   background: rgba(13, 27, 42, 0.88);
   backdrop-filter: blur(6px);
+  pointer-events: auto;
 }
 
 .scanner-camera-prompt-card {
@@ -1253,7 +1273,7 @@ body {
 .scanner-camera-loading {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 15;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1267,22 +1287,29 @@ body {
 
 .scan-error-toast {
   position: absolute;
-  left: 50%;
-  bottom: 18px;
-  z-index: 5;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 25;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  transform: translateX(-50%);
   border-radius: var(--radius-md);
   background: #fdeaea;
   border: 1px solid #f5c2c2;
-  padding: 10px 14px;
+  padding: 12px 14px;
   color: var(--danger);
   font-size: 13px;
   font-weight: 500;
-  box-shadow: var(--shadow-md);
+  line-height: 1.45;
+  box-shadow: var(--shadow-lg);
   animation: scan-toast-in 0.2s ease;
+  pointer-events: auto;
+}
+
+.scan-error-toast p {
+  flex: 1;
+  min-width: 0;
 }
 
 .scan-success-overlay {

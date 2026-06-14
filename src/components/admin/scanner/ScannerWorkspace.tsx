@@ -235,7 +235,6 @@ export function ScannerWorkspace() {
       markScannerCameraGranted();
     } catch {
       setCameraStatus("denied");
-      showError("Caméra inaccessible. Autorisez l'accès dans le navigateur.");
       await stopScanner();
     } finally {
       startInFlightRef.current = false;
@@ -422,7 +421,9 @@ export function ScannerWorkspace() {
           ref={viewportRef}
           className={`scanner-viewport ${
             phase === "loading" ? "scanner-viewport--loading" : ""
-          } ${phase === "success" ? "scanner-viewport--paused" : ""}`}
+          } ${phase === "success" ? "scanner-viewport--paused" : ""} ${
+            showCameraPrompt ? "scanner-viewport--camera-blocked" : ""
+          } ${phase === "error" ? "scanner-viewport--error" : ""}`}
         >
           <div id="qr-reader" className="scanner-reader" />
 
@@ -474,14 +475,14 @@ export function ScannerWorkspace() {
               <p>Vérification…</p>
             </div>
           )}
-        </div>
 
-        {phase === "error" && errorMessage && (
-          <div className="scan-error-toast" role="alert">
-            <AlertCircle size={18} aria-hidden />
-            <p>{errorMessage}</p>
-          </div>
-        )}
+          {phase === "error" && errorMessage && (
+            <div className="scan-error-toast" role="alert">
+              <AlertCircle size={18} aria-hidden />
+              <p>{errorMessage}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <RecentScansStrip scans={recentScans} />
