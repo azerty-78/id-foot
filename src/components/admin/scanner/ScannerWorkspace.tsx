@@ -383,8 +383,11 @@ export function ScannerWorkspace() {
     }
 
     document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pageshow", onVisibilityChange);
+
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pageshow", onVisibilityChange);
     };
   }, [cameraStatus, manualOpen, phase, startScanner]);
 

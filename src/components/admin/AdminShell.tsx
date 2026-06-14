@@ -67,13 +67,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   useBodyScrollLock(menuOpen);
 
-  useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
-
   return (
     <div className="admin-layout">
       {menuOpen && (
