@@ -1,5 +1,7 @@
+import { CameraOff, Shield, Trophy, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { PageHeader, StatCard } from "@/components/admin/ui";
+import { PageHeader, StatCard, type StatCardTone } from "@/components/admin/ui";
 
 type Competition = { id: string };
 type Equipe = { id: string };
@@ -10,6 +12,8 @@ type StatItem = {
   value: number;
   delta: string;
   href: string;
+  icon: LucideIcon;
+  tone?: StatCardTone;
 };
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -38,24 +42,29 @@ export default async function DashboardPage() {
       value: competitions.length,
       delta: "Tournois actifs",
       href: "/admin/competitions",
+      icon: Trophy,
     },
     {
       label: "Équipes",
       value: equipes.length,
       delta: "Clubs enregistrés",
       href: "/admin/teams",
+      icon: Shield,
     },
     {
       label: "Joueurs",
       value: joueurs.length,
       delta: "Licences actives",
       href: "/admin/players",
+      icon: Users,
     },
     {
       label: "Sans photo",
       value: joueursSansPhoto,
       delta: "Profils incomplets",
       href: "/admin/players",
+      icon: CameraOff,
+      tone: "warning",
     },
   ];
 
@@ -69,7 +78,13 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
           <Link key={stat.label} href={stat.href} className="block transition hover:-translate-y-0.5">
-            <StatCard label={stat.label} value={stat.value} delta={stat.delta} />
+            <StatCard
+              label={stat.label}
+              value={stat.value}
+              delta={stat.delta}
+              icon={stat.icon}
+              tone={stat.tone}
+            />
           </Link>
         ))}
       </div>

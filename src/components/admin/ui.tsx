@@ -315,22 +315,38 @@ export function AdminCard({
   );
 }
 
+export type StatCardTone = "default" | "warning";
+
 export function StatCard({
   label,
   value,
   delta,
+  icon: Icon,
+  tone = "default",
   className = "",
 }: {
   label: string;
   value: ReactNode;
   delta?: string;
+  icon: LucideIcon;
+  tone?: StatCardTone;
   className?: string;
 }) {
+  const iconClass =
+    tone === "warning" ? "stat-card-icon stat-card-icon--warning" : "stat-card-icon";
+  const deltaClass =
+    tone === "warning" ? "stat-card-delta stat-card-delta--warning" : "stat-card-delta";
+
   return (
     <div className={`stat-card ${className}`}>
-      <p className="stat-card-label">{label}</p>
-      <p className="stat-card-value">{value}</p>
-      {delta && <p className="stat-card-delta">{delta}</p>}
+      <div className={iconClass} aria-hidden>
+        <Icon size={22} strokeWidth={1.75} />
+      </div>
+      <div className="stat-card-body">
+        <p className="stat-card-label">{label}</p>
+        <p className="stat-card-value">{value}</p>
+        {delta && <p className={deltaClass}>{delta}</p>}
+      </div>
     </div>
   );
 }
