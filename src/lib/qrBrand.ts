@@ -5,4 +5,4 @@ export function getQrLogoSize(qrSize: number): number {
 
 export const QR_ERROR_CORRECTION = "H" as const;
 
-export const QR_LOGO_PUBLIC_PATH = "brand/logo.png";
+export const QR_LOGO_PUBLIC_PATH = "id-foot-nobg.png";

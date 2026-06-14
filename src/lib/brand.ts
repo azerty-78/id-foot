@@ -1,8 +1,9 @@
 /** Chemins publics des assets de marque ID FOOT */
 export const brandAssets = {
-  logo: "/brand/logo.png",
-  /** Logo centré dans les QR codes */
-  qrLogo: "/brand/logo.png",
+  /** Logo transparent — affichage in-app uniquement (sidebar, topbar, QR…) */
+  logo: "/id-foot-nobg.png",
+  qrLogo: "/id-foot-nobg.png",
+  /** Favicon / PWA — assets dédiés dans /brand/ */
   icon: "/brand/icon.png",
   appleTouchIcon: "/brand/apple-touch-icon.png",
   icon192: "/brand/icon-192.png",

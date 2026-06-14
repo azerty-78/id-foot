@@ -48,7 +48,7 @@ COPY setup/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh \
   && mkdir -p public/uploads/photos \
   && chown -R nextjs:nodejs public .next/static \
-  && test -f public/brand/logo.png \
+  && test -f public/id-foot-nobg.png \
   && test -f public/brand/icon.png
 
 USER nextjs

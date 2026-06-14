@@ -15,7 +15,7 @@ const sizes = {
 };
 
 /**
- * Logo servi en statique direct (/brand/logo.png) — pas via /_next/image,
+ * Logo transparent servi en statique direct (/id-foot-nobg.png) — pas via /_next/image,
  * pour garantir l'affichage en dev, Docker standalone et derrière Nginx.
  */
 export function AppLogo({ href, size = "md", className = "" }: AppLogoProps) {
