@@ -1,14 +1,27 @@
 "use client";
 
+import { Fingerprint, Home } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { AdminNav } from "@/app/(admin)/AdminNav";
-import { AppLogo } from "@/components/brand/AppLogo";
+import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
+
+function getInitials(name?: string | null, email?: string | null): string {
+  if (name) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+  if (email) return email.slice(0, 2).toUpperCase();
+  return "IF";
+}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session } = useSession();
+  const initials = getInitials(session?.user?.name, session?.user?.email);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -17,9 +30,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [menuOpen]);
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <div className="admin-shell min-h-screen">
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
         <button
           type="button"
           onClick={() => setMenuOpen(true)}
@@ -31,17 +46,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </svg>
         </button>
 
-        <Link href="/admin/dashboard" className="flex items-center">
-          <AppLogo size="sm" />
+        <Link href="/admin/dashboard" className="sidebar-brand-text">
+          <span className="sidebar-brand-id">ID </span>
+          <span className="sidebar-brand-foot">FOOT</span>
         </Link>
 
-        <Link
-          href="/"
-          className="text-secondary font-medium text-green"
-          aria-label="Accueil"
-        >
-          Accueil
-        </Link>
+        <span className="user-avatar" aria-hidden>
+          {initials}
+        </span>
       </header>
 
       {menuOpen && (
@@ -49,84 +61,66 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           type="button"
           className="fixed inset-0 z-40 bg-navy/50 backdrop-blur-[2px] lg:hidden"
           aria-label="Fermer le menu"
-          onClick={() => setMenuOpen(false)}
+          onClick={closeMenu}
         />
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(100vw-3rem,18rem)] flex-col border-r border-green/20 bg-gradient-to-b from-navy via-navy-800 to-black text-white shadow-[var(--shadow-lg)] transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
+        className={`sidebar fixed left-0 top-0 z-50 flex h-screen flex-col text-white transition-transform duration-300 lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 lg:px-6 lg:py-6">
-          <Link href="/admin/dashboard" className="block" onClick={() => setMenuOpen(false)}>
-            <AppLogo size="sm" />
+        <div className="sidebar-brand">
+          <Link
+            href="/admin/dashboard"
+            onClick={closeMenu}
+            className="flex min-w-0 flex-1 items-center gap-10px gap-[10px]"
+          >
+            <span className="sidebar-brand-icon">
+              <Fingerprint size={18} strokeWidth={2.5} />
+            </span>
+            <span className="sidebar-brand-text">
+              <span className="sidebar-brand-id">ID </span>
+              <span className="sidebar-brand-foot">FOOT</span>
+            </span>
           </Link>
 
           <button
             type="button"
-            onClick={() => setMenuOpen(false)}
-            className="rounded-lg p-2 text-white/70 hover:bg-white/10 lg:hidden"
+            onClick={closeMenu}
+            className="rounded-[var(--radius-sm)] p-2 text-white/60 hover:bg-white/10 lg:hidden"
             aria-label="Fermer le menu"
           >
             ✕
           </button>
         </div>
 
-        <AdminNav onNavigate={() => setMenuOpen(false)} />
+        <AdminNav onNavigate={closeMenu} />
 
-        <div className="mt-auto border-t border-white/10 px-4 py-4">
+        <div className="mt-auto border-t border-white/[0.08] px-4 py-4">
           {session?.user?.email && (
-            <p className="mb-3 truncate px-3 text-xs text-white/50">
-              {session.user.email}
-            </p>
+            <div className="mb-3 flex items-center gap-2 px-3">
+              <span className="user-avatar">{initials}</span>
+              <p className="min-w-0 truncate text-[11px] text-white/45">
+                {session.user.email}
+              </p>
+            </div>
           )}
 
-          <Link
-            href="/admin/signout"
-            onClick={() => setMenuOpen(false)}
-            className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-              />
-            </svg>
-            Déconnexion
-          </Link>
+          <SidebarSignOut onNavigate={closeMenu} />
 
           <Link
             href="/"
-            onClick={() => setMenuOpen(false)}
-            className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+            onClick={closeMenu}
+            className="sidebar-nav-item mt-1"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-              />
-            </svg>
+            <Home strokeWidth={2} size={16} />
             Retour à l&apos;accueil
           </Link>
         </div>
       </aside>
 
-      <main className="min-h-screen px-4 py-6 lg:ml-64 lg:px-10 lg:py-8">
+      <main className="min-h-screen px-4 py-6 lg:ml-[240px] lg:px-8 lg:py-8">
         <div className="mx-auto max-w-7xl">{children}</div>
       </main>
     </div>

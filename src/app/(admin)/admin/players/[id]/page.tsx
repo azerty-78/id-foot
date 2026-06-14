@@ -7,12 +7,12 @@ import {
   Printer,
   Trash2,
 } from "lucide-react";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { QRCodeSVG } from "qrcode.react";
 import { usePlayer } from "@/hooks/useApi";
+import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import {
   AdminCard,
+  AdminTable,
   DangerButton,
   GhostLink,
   LoadingState,
@@ -140,66 +140,37 @@ export default function PlayerDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-        <AdminCard className="pitch-pattern overflow-hidden bg-gradient-to-br from-brand to-brand-dark p-6 text-white shadow-lg print:shadow-none">
-          <div className="flex flex-col items-center text-center">
-            {player.photo ? (
-              <Image
-                src={player.photo}
-                alt={`${player.prenom} ${player.nom}`}
-                width={120}
-                height={120}
-                className="h-28 w-28 rounded-2xl border-4 border-white/20 object-cover shadow-lg"
-              />
-            ) : (
-              <div className="flex h-28 w-28 items-center justify-center rounded-2xl border-4 border-white/20 bg-white/10 text-3xl font-bold">
-                {getInitials(player.prenom, player.nom)}
-              </div>
-            )}
+        <div className="space-y-4 print:hidden">
+          <PlayerIdentityCard
+            prenom={player.prenom}
+            nom={player.nom}
+            numero={player.numero}
+            poste={player.poste}
+            equipe={player.equipe.nom}
+            photo={player.photo}
+            qrValue={qrValue}
+          />
 
-            <h1 className="mt-5 text-2xl font-bold">
-              {player.prenom} {player.nom}
-            </h1>
-
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <span className="rounded-full bg-gold px-3 py-1 text-sm font-bold text-brand-dark">
-                #{player.numero}
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-1 text-sm font-medium">
-                {player.poste}
-              </span>
-            </div>
-
-            <p className="mt-4 text-sm text-white/80">{player.equipe.nom}</p>
-            <p className="text-sm text-white/60">
-              {player.equipe.competition.nom} ({player.equipe.competition.annee})
-            </p>
-
-            <div className="mt-6 rounded-2xl bg-white p-4 shadow-md">
-              <QRCodeSVG value={qrValue} size={140} level="M" />
-            </div>
-
-            <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-3 print:hidden">
-              <PrimaryButton
-                type="button"
-                icon={Download}
-                onClick={handleDownloadCard}
-                className="w-full sm:w-auto"
-              >
-                Télécharger la carte PDF
-              </PrimaryButton>
-              <OutlineButton
-                type="button"
-                icon={Printer}
-                onClick={() => window.print()}
-                className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto"
-              >
-                Imprimer
-              </OutlineButton>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <PrimaryButton
+              type="button"
+              icon={Download}
+              onClick={handleDownloadCard}
+              className="w-full sm:w-auto"
+            >
+              Télécharger la carte PDF
+            </PrimaryButton>
+            <OutlineButton
+              type="button"
+              icon={Printer}
+              onClick={() => window.print()}
+            >
+              Imprimer
+            </OutlineButton>
           </div>
-        </AdminCard>
+        </div>
 
-        <AdminCard className="p-6 print:shadow-none">
+        <AdminCard className="print:shadow-none">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/60">
@@ -219,21 +190,19 @@ export default function PlayerDetailPage() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-slate-100">
-            <table className="min-w-full divide-y divide-slate-100">
-              <tbody className="divide-y divide-slate-100">
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-gray-100">
+            <AdminTable>
+              <tbody>
                 {details.map((row) => (
-                  <tr key={row.label} className="transition hover:bg-brand-light/30">
-                    <th className="w-1/3 bg-slate-50/80 px-4 py-3 text-left text-sm font-medium text-slate-500">
+                  <tr key={row.label}>
+                    <th className="w-1/3 bg-gray-50 font-medium text-gray-600">
                       {row.label}
                     </th>
-                    <td className="break-all px-4 py-3 text-sm text-slate-900">
-                      {row.value}
-                    </td>
+                    <td className="break-all">{row.value}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </AdminTable>
           </div>
         </AdminCard>
       </div>

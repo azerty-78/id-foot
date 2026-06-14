@@ -3,6 +3,7 @@
 import { ArrowLeft, Save, Shield, Trophy, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import {
   AdminCard,
   FieldHint,
@@ -517,65 +518,29 @@ export function PlayerForm({
       </AdminCard>
 
       <aside className="order-1 xl:sticky xl:top-8 xl:order-2 xl:self-start">
-        <AdminCard className="overflow-hidden">
-          <div className="bg-gradient-to-br from-brand to-brand-dark px-6 py-5 text-white">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
-              Aperçu licence
-            </p>
-            <h3 className="mt-2 text-lg font-bold">
-              {values.prenom || values.nom
-                ? `${values.prenom} ${values.nom}`.trim()
-                : "Nouveau joueur"}
-            </h3>
-          </div>
+        <div className="space-y-4">
+          <PlayerIdentityCard
+            prenom={values.prenom}
+            nom={values.nom}
+            numero={values.numeroMaillot || "—"}
+            poste={values.poste}
+            equipe={selectedTeam?.nom ?? "—"}
+            photo={displayPhoto}
+          />
 
-          <div className="flex flex-col items-center px-6 py-6">
-            {displayPhoto ? (
-              <Image
-                src={displayPhoto}
-                alt="Aperçu joueur"
-                width={112}
-                height={112}
-                unoptimized
-                className="h-28 w-28 rounded-2xl object-cover ring-4 ring-brand/10"
-              />
-            ) : (
-              <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-brand text-3xl font-bold text-white">
-                {values.prenom || values.nom
-                  ? getInitials(values.prenom || "?", values.nom || "?")
-                  : "?"}
-              </div>
-            )}
-
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {values.numeroMaillot && (
-                <span className="rounded-full bg-gold px-3 py-1 text-sm font-bold text-brand-dark">
-                  #{values.numeroMaillot}
-                </span>
-              )}
-              {values.poste && (
-                <span className="rounded-full bg-brand-light px-3 py-1 text-sm font-medium text-brand">
-                  {values.poste}
-                </span>
-              )}
-            </div>
-
-            <div className="mt-5 w-full space-y-2 text-sm text-slate-600">
-              <p>
-                <span className="font-medium text-slate-800">Club :</span>{" "}
-                {selectedTeam?.nom ?? "—"}
-              </p>
-              <p>
-                <span className="font-medium text-slate-800">Compétition :</span>{" "}
+          <AdminCard>
+            <div className="space-y-2 text-sm">
+              <p className="text-body">
+                <span className="font-medium text-navy">Compétition :</span>{" "}
                 {selectedTeam?.competition?.nom ?? "—"}
               </p>
-              <p>
-                <span className="font-medium text-slate-800">Téléphone :</span>{" "}
+              <p className="text-body">
+                <span className="font-medium text-navy">Téléphone :</span>{" "}
                 {values.telephone || "—"}
               </p>
             </div>
-          </div>
-        </AdminCard>
+          </AdminCard>
+        </div>
       </aside>
     </div>
   );

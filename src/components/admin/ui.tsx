@@ -50,9 +50,14 @@ function PrimaryLink({
   size = "default",
   children,
   className = "",
-}: ActionLinkProps) {
+  ...props
+}: ActionLinkProps & Omit<React.ComponentProps<typeof Link>, "href" | "className">) {
   return (
-    <Link href={href} className={buildBtnClass("btn-primary", size, className)}>
+    <Link
+      href={href}
+      className={buildBtnClass("btn-primary", size, className)}
+      {...props}
+    >
       <ButtonIcon icon={icon} size={size} />
       {size !== "icon" ? children : null}
     </Link>
@@ -80,9 +85,14 @@ function GhostLink({
   size = "default",
   children,
   className = "",
-}: ActionLinkProps) {
+  ...props
+}: ActionLinkProps & Omit<React.ComponentProps<typeof Link>, "href" | "className">) {
   return (
-    <Link href={href} className={buildBtnClass("btn-ghost", size, className)}>
+    <Link
+      href={href}
+      className={buildBtnClass("btn-ghost", size, className)}
+      {...props}
+    >
       <ButtonIcon icon={icon} size={size} />
       {size !== "icon" ? children : null}
     </Link>
@@ -214,18 +224,150 @@ export function PageHeader({
   );
 }
 
-export function AdminCard({
+export function PageToolbar({
+  title,
+  subtitle,
+  search,
+  onSearchChange,
+  searchPlaceholder = "Rechercher...",
+  action,
+  userInitials = "IF",
+}: {
+  title: string;
+  subtitle?: string;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+  action?: ReactNode;
+  userInitials?: string;
+}) {
+  return (
+    <div className="page-toolbar">
+      <div className="min-w-0">
+        <p className="page-toolbar-title">{title}</p>
+        {subtitle && <p className="page-toolbar-subtitle">{subtitle}</p>}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        {onSearchChange !== undefined && (
+          <input
+            type="search"
+            value={search ?? ""}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            className="admin-input page-toolbar-search"
+          />
+        )}
+        {action}
+        <span className="user-avatar" aria-hidden>
+          {userInitials}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export type CardVariant = "default" | "navy" | "accent";
+
+const cardVariantClass: Record<CardVariant, string> = {
+  default: "card-default",
+  navy: "card-navy",
+  accent: "card-accent",
+};
+
+export function Card({
+  variant = "default",
   children,
   className = "",
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & {
+  variant?: CardVariant;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <div className={`admin-card rounded-[var(--radius-xl)] ${className}`} {...props}>
+    <div className={`${cardVariantClass[variant]} ${className}`} {...props}>
       {children}
     </div>
+  );
+}
+
+export function AdminCard({
+  children,
+  variant = "default",
+  className = "",
+  padded = false,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  children: ReactNode;
+  variant?: CardVariant;
+  className?: string;
+  padded?: boolean;
+}) {
+  return (
+    <div
+      className={`${cardVariantClass[variant]} ${padded ? "" : ""} ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function StatCard({
+  label,
+  value,
+  delta,
+  className = "",
+}: {
+  label: string;
+  value: ReactNode;
+  delta?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`stat-card ${className}`}>
+      <p className="stat-card-label">{label}</p>
+      <p className="stat-card-value">{value}</p>
+      {delta && <p className="stat-card-delta">{delta}</p>}
+    </div>
+  );
+}
+
+export function AdminTable({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`overflow-x-auto ${className}`}>
+      <table className="admin-table">{children}</table>
+    </div>
+  );
+}
+
+export function InputWithIcon({
+  icon: Icon,
+  children,
+}: {
+  icon: LucideIcon;
+  children: ReactNode;
+}) {
+  return (
+    <div className="input-icon-wrap">
+      <Icon className="input-icon" size={16} strokeWidth={2} aria-hidden />
+      {children}
+    </div>
+  );
+}
+
+export function UserAvatar({ initials }: { initials: string }) {
+  return (
+    <span className="user-avatar" aria-hidden>
+      {initials}
+    </span>
   );
 }
 
@@ -246,7 +388,7 @@ export function AdminModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4 backdrop-blur-sm">
-      <div className="admin-card w-full max-w-lg overflow-hidden rounded-[var(--radius-xl)]">
+      <div className="admin-card w-full max-w-lg overflow-hidden rounded-[var(--radius-lg)]">
         <div className="border-b border-gray-100 px-6 py-5">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -280,7 +422,7 @@ export function FieldLabel({
   children: ReactNode;
 }) {
   return (
-    <label htmlFor={htmlFor} className="text-h3 mb-2 block">
+    <label htmlFor={htmlFor} className="field-label">
       {children}
     </label>
   );
@@ -305,8 +447,8 @@ export function FormSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[var(--radius-lg)] border border-gray-100 bg-gray-50 p-5">
-      <div className="mb-5">
+    <section className="card-default space-y-5">
+      <div>
         <h2 className="text-h2">{title}</h2>
         {description && <p className="text-body mt-1">{description}</p>}
       </div>

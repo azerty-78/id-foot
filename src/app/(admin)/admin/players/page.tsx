@@ -5,14 +5,15 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   AdminCard,
+  AdminTable,
   DangerButton,
   EmptyState,
-  LoadingState,
-  PageHeader,
   GhostLink,
-  OutlineLink,
+  LoadingState,
+  PageToolbar,
   PrimaryButton,
   PrimaryLink,
+  StatusBadge,
 } from "@/components/admin/ui";
 import { usePlayers, useTeams, type Player } from "@/hooks/useApi";
 
@@ -113,29 +114,33 @@ export default function PlayersPage() {
 
   return (
     <div>
-      <PageHeader
+      <PageToolbar
         title="Joueurs"
-        description="Gestion des joueurs enregistrés et de leurs licences."
+        subtitle={
+          loading
+            ? "Chargement..."
+            : `${players.length} licence${players.length !== 1 ? "s" : ""}`
+        }
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Rechercher un joueur..."
         action={
-          <PrimaryLink href="/admin/players/new" icon={UserPlus} className="w-full sm:w-auto">
-            Ajouter un joueur
+          <PrimaryLink href="/admin/players/new" icon={UserPlus}>
+            Nouveau
           </PrimaryLink>
         }
       />
 
-      <AdminCard className="mb-6 flex flex-col gap-4 p-4 sm:flex-row">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher par nom ou prénom..."
-          className="admin-input flex-1"
-        />
+      <AdminCard className="mb-6 p-4">
+        <label htmlFor="equipe-filter" className="field-label">
+          Filtrer par équipe
+        </label>
         <select
+          id="equipe-filter"
           value={equipeId}
           onChange={(e) => setEquipeId(e.target.value)}
           disabled={teamsLoading}
-          className="admin-input sm:min-w-56"
+          className="admin-select sm:max-w-xs"
         >
           <option value="">Toutes les équipes</option>
           {teams.map((team) => (
@@ -170,13 +175,9 @@ export default function PlayersPage() {
                     <p className="mt-1 text-sm text-slate-500">
                       {player.equipe.nom} · {player.equipe.competition.nom}
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      <span className="rounded-full bg-gold px-2.5 py-1 font-bold text-brand-dark">
-                        #{player.numero}
-                      </span>
-                      <span className="rounded-full bg-brand-light px-2.5 py-1 font-medium text-brand">
-                        {player.poste}
-                      </span>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <StatusBadge tone="navy">#{player.numero}</StatusBadge>
+                      <StatusBadge tone="navy">{player.poste}</StatusBadge>
                     </div>
                     {player.telephone && (
                       <p className="mt-2 text-sm text-slate-600">{player.telephone}</p>
@@ -184,128 +185,93 @@ export default function PlayersPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="mt-4 flex items-center justify-end gap-2">
                   <GhostLink
                     href={`/admin/players/${player.id}`}
                     icon={Eye}
-                    size="sm"
-                    className="col-span-1 w-full"
-                  >
-                    Voir
-                  </GhostLink>
+                    size="icon"
+                    aria-label={`Voir ${player.prenom} ${player.nom}`}
+                  />
                   <PrimaryButton
                     type="button"
                     icon={Download}
-                    size="sm"
+                    size="icon"
+                    aria-label="Télécharger PDF"
                     onClick={() => handleDownloadCard(player.id)}
-                    className="w-full"
-                  >
-                    PDF
-                  </PrimaryButton>
+                  />
                   <DangerButton
                     type="button"
                     icon={Trash2}
-                    size="sm"
+                    size="icon"
+                    aria-label="Supprimer"
                     onClick={() => handleDelete(player)}
-                    className="col-span-2 w-full sm:col-span-1"
-                  >
-                    Supprimer
-                  </DangerButton>
+                  />
                 </div>
               </AdminCard>
             ))}
           </div>
 
-          <AdminCard className="hidden overflow-hidden lg:block">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-100">
-              <thead className="bg-slate-50/80">
+          <AdminCard className="hidden overflow-hidden p-0 lg:block">
+            <AdminTable>
+              <thead>
                 <tr>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Photo
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Nom complet
-                  </th>
-                <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Maillot
-                </th>
-                <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Téléphone
-                </th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Poste
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Équipe
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Compétition
-                  </th>
-                  <th className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Actions
-                  </th>
+                  <th>Photo</th>
+                  <th>Nom complet</th>
+                  <th>Maillot</th>
+                  <th>Téléphone</th>
+                  <th>Poste</th>
+                  <th>Équipe</th>
+                  <th>Compétition</th>
+                  <th className="text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {players.map((player) => (
-                  <tr key={player.id} className="transition hover:bg-brand-light/40">
-                    <td className="px-5 py-4">
+                  <tr key={player.id}>
+                    <td>
                       <PlayerAvatar player={player} />
                     </td>
-                    <td className="px-5 py-4 text-sm font-semibold text-slate-900">
+                    <td className="font-medium">
                       {player.prenom} {player.nom}
                     </td>
-                    <td className="px-5 py-4">
-                      <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-gold px-2.5 py-1 text-xs font-bold text-brand-dark">
-                        {player.numero}
-                      </span>
+                    <td>
+                      <StatusBadge tone="navy">#{player.numero}</StatusBadge>
                     </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">
-                      {player.telephone ?? "—"}
+                    <td>{player.telephone ?? "—"}</td>
+                    <td>
+                      <StatusBadge tone="navy">{player.poste}</StatusBadge>
                     </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">
-                      {player.poste}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">
-                      {player.equipe.nom}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">
-                      {player.equipe.competition.nom}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                    <td>{player.equipe.nom}</td>
+                    <td>{player.equipe.competition.nom}</td>
+                    <td>
+                      <div className="flex items-center justify-end gap-1">
                         <GhostLink
                           href={`/admin/players/${player.id}`}
                           icon={Eye}
-                          size="sm"
-                        >
-                          Voir
-                        </GhostLink>
+                          size="icon"
+                          aria-label={`Voir ${player.prenom} ${player.nom}`}
+                        />
                         <PrimaryButton
                           type="button"
                           icon={Download}
-                          size="sm"
+                          size="icon"
+                          aria-label="Télécharger PDF"
                           onClick={() => handleDownloadCard(player.id)}
-                        >
-                          PDF
-                        </PrimaryButton>
+                        />
                         <DangerButton
                           type="button"
                           icon={Trash2}
-                          size="sm"
+                          size="icon"
+                          aria-label="Supprimer"
                           onClick={() => handleDelete(player)}
-                        >
-                          Supprimer
-                        </DangerButton>
+                        />
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
-        </AdminCard>
+            </AdminTable>
+          </AdminCard>
         </>
       )}
     </div>
