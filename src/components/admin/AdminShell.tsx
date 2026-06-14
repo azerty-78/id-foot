@@ -15,7 +15,7 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
@@ -25,6 +25,15 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 
 const SIDEBAR_COLLAPSED_KEY = "id-foot-sidebar-collapsed";
+
+function readSidebarCollapsed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
 
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) {
@@ -63,7 +72,7 @@ function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed);
   const pathname = usePathname();
   const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
@@ -72,14 +81,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const initials = getInitials(session?.user?.name, session?.user?.email);
   const topbarBrand = getMobileTopbarBrand(pathname);
   const TopbarIcon = topbarBrand.icon;
-
-  useEffect(() => {
-    try {
-      setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
@@ -115,7 +116,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         className={`sidebar ${sidebarCollapsed ? "sidebar--collapsed" : ""} fixed left-0 top-0 z-50 flex h-screen flex-col text-white transition-transform duration-300 lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        aria-expanded={!sidebarCollapsed}
       >
         <div className="sidebar-brand">
           <Link

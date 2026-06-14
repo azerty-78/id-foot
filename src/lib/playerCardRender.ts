@@ -2,6 +2,11 @@ import path from "path";
 import type sharp from "sharp";
 import { buildPlayerCardSvg, type CardRenderPlayer } from "@/lib/playerCardSvg";
 
+/** DPI Sharp pour le SVG → PNG (coordonnées composées = unités SVG × scale). */
+const RENDER_DENSITY = 144;
+const SVG_BASE_DPI = 72;
+const RENDER_SCALE = RENDER_DENSITY / SVG_BASE_DPI;
+
 let sharpModule: typeof sharp | null = null;
 
 async function getSharp(): Promise<typeof sharp> {
@@ -39,31 +44,34 @@ export async function renderPlayerCardPng(
   const renderer = await getSharp();
 
   try {
+    const qrPixelSize = Math.round(layout.qrInner * RENDER_SCALE);
+    const photoPixelSize = Math.round(layout.photoSize * RENDER_SCALE);
+
     const qrLayer = await renderer(qrPng)
-      .resize(layout.qrInner, layout.qrInner)
+      .resize(qrPixelSize, qrPixelSize)
       .png()
       .toBuffer();
 
     const photoLayer =
       photoPng != null
-        ? await roundPhoto(photoPng, layout.photoSize, 16)
+        ? await roundPhoto(photoPng, photoPixelSize, Math.round(16 * RENDER_SCALE))
         : null;
 
-    return await renderer(Buffer.from(svg), { density: 144 })
+    return await renderer(Buffer.from(svg), { density: RENDER_DENSITY })
       .composite([
         ...(photoLayer
           ? [
               {
                 input: photoLayer,
-                left: Math.round(layout.photoX),
-                top: Math.round(layout.photoY),
+                left: Math.round(layout.photoX * RENDER_SCALE),
+                top: Math.round(layout.photoY * RENDER_SCALE),
               },
             ]
           : []),
         {
           input: qrLayer,
-          left: Math.round(layout.qrLeft),
-          top: Math.round(layout.qrTop),
+          left: Math.round(layout.qrLeft * RENDER_SCALE),
+          top: Math.round(layout.qrTop * RENDER_SCALE),
         },
       ])
       .png({ compressionLevel: 4, effort: 1 })

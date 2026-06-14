@@ -47,7 +47,6 @@ function computeLayout(): PlayerCardLayout {
   const H = CARD_RENDER_HEIGHT;
   const pad = 16;
   const headerH = 40;
-  const footerH = 35;
   const mainPadY = 12;
   const contentTop = headerH + mainPadY;
   const gap = 24;

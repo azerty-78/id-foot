@@ -2999,8 +2999,8 @@ body {
 }
 
 .player-license-card--compact .player-license-card-photo {
-  width: min(100%, 24cqi);
-  border-radius: 12px;
+  width: min(100%, 32cqi);
+  border-radius: 14px;
 }
 
 .player-license-card--compact .player-license-card-qr {
