@@ -147,7 +147,7 @@ export function PlayerForm({
   const [values, setValues] = useState<PlayerFormValues>(initialFormState.values);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const photoBlobUrl = useBlobObjectUrl(photoFile);
-  const [currentPhotoUrl, setCurrentPhotoUrl] = useState<string | null>(
+  const [currentPhotoUrl] = useState<string | null>(
     initialFormState.currentPhotoUrl,
   );
   const [errors, setErrors] = useState<FormErrors>({});

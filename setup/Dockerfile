@@ -1,9 +1,11 @@
 # syntax=docker/dockerfile:1
+# Build : docker build -f setup/Dockerfile .
+# Le contexte DOIT être la racine du repo (voir setup/.dockerignore).
 
 ARG NODE_VERSION=22.15.0
 
 FROM node:${NODE_VERSION}-alpine AS base
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl wget
 WORKDIR /usr/src/app
 
 FROM base AS deps
@@ -13,11 +15,16 @@ COPY prisma.config.ts ./
 RUN npm ci
 
 FROM base AS builder
-ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+ARG NEXT_PUBLIC_APP_URL=https://id-foot.kobecorporation.com
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+# Valeurs factices pour le build (runtime injecté via --env-file sur le VPS)
+ENV DATABASE_URL=postgresql://build:build@localhost:5432/build?schema=public
+ENV NEXTAUTH_SECRET=build-time-placeholder-not-for-production
+ENV NEXTAUTH_URL=https://id-foot.kobecorporation.com
+
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx prisma generate
 RUN npm run build
 
@@ -25,6 +32,7 @@ FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
@@ -45,5 +53,8 @@ RUN chmod +x ./entrypoint.sh \
 USER nextjs
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["./entrypoint.sh"]
