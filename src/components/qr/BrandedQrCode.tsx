@@ -17,7 +17,7 @@ export function BrandedQrCode({
   className = "",
 }: BrandedQrCodeProps) {
   const logoSize = getQrLogoSize(size);
-  const [logoSrc, setLogoSrc] = useState(brandAssets.qrLogo);
+  const [logoSrc, setLogoSrc] = useState<string>(brandAssets.qrLogo);
 
   useEffect(() => {
     setLogoSrc(getBrandAssetUrl(brandAssets.qrLogo));
