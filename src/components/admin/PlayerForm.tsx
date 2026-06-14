@@ -14,7 +14,6 @@ import {
   FormSubmitOverlay,
   GhostLink,
   OutlineButton,
-  OutlineLink,
   PrimaryButton,
 } from "@/components/admin/ui";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -592,6 +591,7 @@ export function PlayerForm({
             description="Poste et numéro de maillot (facultatifs)."
             open={sportOpen}
             onOpenChange={setSportOpen}
+            disabled={submitting}
           >
             <FormInput
               id="numeroMaillot"
@@ -640,17 +640,20 @@ export function PlayerForm({
             </div>
           </CollapsibleFormSection>
 
-          </fieldset>
-
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            <OutlineLink href={cancelHref} icon={X}>
+            <OutlineButton
+              type="button"
+              icon={X}
+              disabled={submitting}
+              onClick={() => router.push(cancelHref)}
+            >
               Annuler
-            </OutlineLink>
+            </OutlineButton>
             <PrimaryButton
               type="submit"
               icon={Save}
               loading={submitting}
-              disabled={teams.length === 0}
+              disabled={teams.length === 0 || submitting}
             >
               {submitting
                 ? "Enregistrement…"
@@ -659,10 +662,17 @@ export function PlayerForm({
                   : "Enregistrer les modifications"}
             </PrimaryButton>
           </div>
+
+          </fieldset>
         </form>
+        <FormSubmitOverlay visible={submitting} message={submitMessage} />
       </AdminCard>
 
-      <aside className="order-1 xl:sticky xl:top-8 xl:order-2 xl:self-start">
+      <aside
+        className={`order-1 xl:sticky xl:top-8 xl:order-2 xl:self-start transition-opacity ${
+          submitting ? "pointer-events-none opacity-60" : ""
+        }`}
+      >
         <div className="space-y-4">
           <PlayerIdentityCard
             prenom={values.prenom}
