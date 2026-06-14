@@ -8,9 +8,8 @@ import {
   UserRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
+import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, OutlineLink, PrimaryButton } from "@/components/admin/ui";
-import { PlayerCardPreview } from "./PlayerCardPreview";
 import type { ValidatedPlayer } from "./types";
 
 type ScanSuccessOverlayProps = {

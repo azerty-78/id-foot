@@ -17,6 +17,10 @@ export function useAdminBackPath(): string | null {
     return null;
   }
 
+  if (pathname === "/admin/players/cards") {
+    return "/admin/players";
+  }
+
   const playerEditMatch = pathname.match(/^\/admin\/players\/([^/]+)\/edit$/);
   if (playerEditMatch) {
     return `/admin/players/${playerEditMatch[1]}`;

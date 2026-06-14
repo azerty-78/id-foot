@@ -2300,6 +2300,230 @@ body {
   }
 }
 
+/* ── Joueurs : sous-navigation & cartes licences ── */
+
+.page-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-section-nav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  background: var(--gray-100);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.player-section-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.player-section-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+  min-width: max-content;
+  padding: 10px 16px;
+  border-radius: calc(var(--radius-lg) - 4px);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-600);
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.player-section-nav-item:hover {
+  color: var(--navy);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.player-section-nav-item--active {
+  color: var(--navy);
+  background: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.player-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 20px;
+}
+
+.player-license-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(145deg, var(--green), var(--navy));
+  color: white;
+  box-shadow: var(--shadow-green);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.player-license-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(26, 71, 42, 0.28);
+}
+
+.player-license-card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.player-license-card-header p {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.player-license-card-body {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+}
+
+.player-license-card-photo {
+  display: flex;
+  height: 72px;
+  width: 72px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.player-license-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.player-license-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.player-license-card-numero {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.player-license-card-team {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.player-license-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.1);
+  padding: 12px 14px;
+}
+
+.player-license-card-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.player-license-card-qr-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.player-license-card-qr {
+  border-radius: var(--radius-sm);
+  background: white;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.player-license-card-id {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.player-license-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.player-license-card-actions .btn {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.player-license-card-actions .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.player-cards-bulk-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 16px 18px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--gray-200);
+  background: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.player-cards-bulk-bar p {
+  font-size: 14px;
+  color: var(--gray-600);
+}
+
+@media (min-width: 640px) {
+  .player-cards-bulk-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
 @media print {
   body {
     background: white;

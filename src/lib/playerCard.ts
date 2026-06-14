@@ -1,18 +1,32 @@
 import path from "path";
-import { jsPDF, GState } from "jspdf";
+import { jsPDF, GState, type jsPDF as JsPDFType } from "jspdf";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { generateQRCode } from "@/lib/qrcode";
 
-const CARD_WIDTH = 85;
-const CARD_HEIGHT = 54;
+export const CARD_WIDTH = 85;
+export const CARD_HEIGHT = 54;
+
+type JoueurForCard = {
+  id: string;
+  nom: string;
+  prenom: string;
+  numero: number;
+  poste: string;
+  photo: string | null;
+  qrToken: string;
+  equipe: {
+    nom: string;
+    competition: { nom: string };
+  };
+};
 
 async function loadPhotoDataUrl(relativePath: string): Promise<string | null> {
   try {
     const filepath = path.join(
       process.cwd(),
       "public",
-      relativePath.replace(/^\//, "")
+      relativePath.replace(/^\//, ""),
     );
     const pngBuffer = await sharp(filepath).png().toBuffer();
 
@@ -22,27 +36,12 @@ async function loadPhotoDataUrl(relativePath: string): Promise<string | null> {
   }
 }
 
-export async function generatePlayerCard(joueurId: string): Promise<Buffer> {
-  const joueur = await prisma.joueur.findUnique({
-    where: { id: joueurId },
-    include: { equipe: { include: { competition: true } } },
-  });
-
-  if (!joueur) {
-    throw new Error("Joueur introuvable");
-  }
-
-  const qrCodeDataUrl = await generateQRCode(joueur.qrToken);
-  const photoDataUrl = joueur.photo
-    ? await loadPhotoDataUrl(joueur.photo)
-    : null;
-
-  const doc = new jsPDF({
-    orientation: "landscape",
-    unit: "mm",
-    format: [CARD_WIDTH, CARD_HEIGHT],
-  });
-
+function drawPlayerCardOnDoc(
+  doc: JsPDFType,
+  joueur: JoueurForCard,
+  qrCodeDataUrl: string,
+  photoDataUrl: string | null,
+): void {
   doc.setFillColor(26, 71, 42);
   doc.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, "F");
 
@@ -96,8 +95,71 @@ export async function generatePlayerCard(joueurId: string): Promise<Buffer> {
     CARD_WIDTH - qrSize - 4,
     CARD_HEIGHT - qrSize - 4,
     qrSize,
-    qrSize
+    qrSize,
   );
+}
+
+async function prepareCardAssets(joueur: JoueurForCard) {
+  const [qrCodeDataUrl, photoDataUrl] = await Promise.all([
+    generateQRCode(joueur.qrToken),
+    joueur.photo ? loadPhotoDataUrl(joueur.photo) : Promise.resolve(null),
+  ]);
+
+  return { qrCodeDataUrl, photoDataUrl };
+}
+
+export async function generatePlayerCard(joueurId: string): Promise<Buffer> {
+  const joueur = await prisma.joueur.findUnique({
+    where: { id: joueurId },
+    include: { equipe: { include: { competition: true } } },
+  });
+
+  if (!joueur) {
+    throw new Error("Joueur introuvable");
+  }
+
+  const { qrCodeDataUrl, photoDataUrl } = await prepareCardAssets(joueur);
+
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: [CARD_WIDTH, CARD_HEIGHT],
+  });
+
+  drawPlayerCardOnDoc(doc, joueur, qrCodeDataUrl, photoDataUrl);
+
+  return Buffer.from(doc.output("arraybuffer"));
+}
+
+export async function generateAllPlayerCardsPdf(options?: {
+  equipeId?: string;
+}): Promise<Buffer> {
+  const joueurs = await prisma.joueur.findMany({
+    where: options?.equipeId ? { equipeId: options.equipeId } : undefined,
+    include: { equipe: { include: { competition: true } } },
+    orderBy: [{ equipe: { nom: "asc" } }, { nom: "asc" }, { prenom: "asc" }],
+  });
+
+  if (joueurs.length === 0) {
+    throw new Error("Aucun joueur trouvé");
+  }
+
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: [CARD_WIDTH, CARD_HEIGHT],
+  });
+
+  for (let index = 0; index < joueurs.length; index += 1) {
+    const joueur = joueurs[index];
+    const { qrCodeDataUrl, photoDataUrl } = await prepareCardAssets(joueur);
+
+    if (index > 0) {
+      doc.addPage([CARD_WIDTH, CARD_HEIGHT], "landscape");
+    }
+
+    drawPlayerCardOnDoc(doc, joueur, qrCodeDataUrl, photoDataUrl);
+  }
 
   return Buffer.from(doc.output("arraybuffer"));
 }

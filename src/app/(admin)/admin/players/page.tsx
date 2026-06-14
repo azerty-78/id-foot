@@ -1,13 +1,16 @@
 "use client";
 
-import { Download, Eye, Trash2, UserPlus } from "lucide-react";
+import { CreditCard, Download, Eye, Trash2, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { PlayerSectionNav } from "@/components/admin/PlayerSectionNav";
 import {
   AdminCard,
   AdminTable,
   DangerButton,
   EmptyState,
   GhostLink,
+  LoadingState,
+  OutlineLink,
   LoadingState,
   PageToolbar,
   PlayerAvatar,
@@ -103,11 +106,19 @@ export default function PlayersPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Rechercher un joueur..."
         action={
-          <PrimaryLink href="/admin/players/new" icon={UserPlus}>
-            Nouveau
-          </PrimaryLink>
+          <div className="page-toolbar-actions">
+            <OutlineLink href="/admin/players/cards" icon={CreditCard} size="sm">
+              <span className="hidden sm:inline">Cartes licences</span>
+              <span className="sm:hidden">Cartes</span>
+            </OutlineLink>
+            <PrimaryLink href="/admin/players/new" icon={UserPlus}>
+              Nouveau
+            </PrimaryLink>
+          </div>
         }
       />
+
+      <PlayerSectionNav />
 
       <AdminCard className="mb-6 p-4">
         <label htmlFor="equipe-filter" className="field-label">
