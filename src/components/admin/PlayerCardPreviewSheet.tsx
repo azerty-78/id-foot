@@ -1,11 +1,11 @@
 "use client";
 
 import { Download, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, PrimaryButton } from "@/components/admin/ui";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
-import { buildPreviewCardFilename } from "@/lib/playerCardFilename";
+import { buildPreviewCardFilename, parseContentDispositionFilename } from "@/lib/playerCardFilename";
 import { PREVIEW_PLAYER_LICENSE } from "@/lib/playerCardMock";
 
 type PlayerCardPreviewSheetProps = {
@@ -34,22 +34,44 @@ export function PlayerCardPreviewSheet({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
-  if (!open) return null;
-
-  async function handleDownload() {
+  const handleDownload = useCallback(async () => {
     setDownloading(true);
 
     try {
-      await downloadPdfFromApi(
-        "/api/players/card/preview",
-        buildPreviewCardFilename(),
+      const fallbackFilename = buildPreviewCardFilename();
+      const res = await fetch("/api/players/card/preview");
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as {
+          detail?: string;
+          error?: string;
+        } | null;
+        throw new Error(
+          data?.detail ?? data?.error ?? "Erreur lors du téléchargement du PDF.",
+        );
+      }
+
+      const filename = parseContentDispositionFilename(
+        res.headers.get("Content-Disposition"),
+        fallbackFilename,
       );
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
     } catch (error) {
       console.error("[PlayerCardPreviewSheet] download failed", error);
     } finally {
       setDownloading(false);
     }
-  }
+  }, []);
+
+  if (!open) return null;
 
   return (
     <div

@@ -1,3 +1,5 @@
+"use client";
+
 import { parseContentDispositionFilename } from "@/lib/playerCardFilename";
 
 export async function downloadPdfFromApi(
