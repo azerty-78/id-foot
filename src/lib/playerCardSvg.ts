@@ -89,12 +89,6 @@ export function buildPlayerCardSvg(
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     ${fontFaceStyles ? `<style><![CDATA[${fontFaceStyles}]]></style>` : ""}
-    <filter id="photoShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="#000000" flood-opacity="0.22"/>
-    </filter>
-    <filter id="qrShadow" x="-15%" y="-10%" width="130%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000000" flood-opacity="0.28"/>
-    </filter>
     <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${CARD_COLORS.greenDark}"/>
       <stop offset="58%" stop-color="${CARD_COLORS.navy}"/>
@@ -126,7 +120,7 @@ export function buildPlayerCardSvg(
   <line x1="${sepX}" y1="${contentTop}" x2="${sepX}" y2="${bodyBottom - mainPadY}" stroke="${CARD_COLORS.divider}" stroke-width="1"/>
 
   <!-- Photo -->
-  <g filter="url(#photoShadow)">
+  <g>
     <rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoBg}" stroke="${CARD_COLORS.photoBorder}" stroke-width="2"/>
     ${photoBlock}
   </g>
@@ -143,7 +137,7 @@ export function buildPlayerCardSvg(
   <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
 
   <!-- QR -->
-  <g filter="url(#qrShadow)">
+  <g>
     <rect x="${qrX}" y="${qrY}" width="${qrBox}" height="${qrBox}" rx="10" fill="${CARD_COLORS.white}" stroke="${CARD_COLORS.green}" stroke-width="2"/>
   </g>
   <image href="${toDataUri(qrPng)}" x="${qrX + qrQuiet}" y="${qrY + qrQuiet}" width="${qrInner}" height="${qrInner}" preserveAspectRatio="xMidYMid meet"/>
