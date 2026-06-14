@@ -11,6 +11,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isNavItemActive } from "@/hooks/useAdminBackPath";
 
 type NavItem = {
   href: string;
@@ -58,7 +59,7 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   function isActive(href: string) {
-    return pathname === href || pathname.startsWith(`${href}/`);
+    return isNavItemActive(pathname, href);
   }
 
   return (

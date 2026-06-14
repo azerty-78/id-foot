@@ -202,6 +202,7 @@ export default function CompetitionsPage() {
         open={isModalOpen}
         title={editingId ? "Modifier la compétition" : "Nouvelle compétition"}
         onClose={closeModal}
+        historyKey="competition-form"
         footer={
           <>
             <OutlineButton type="button" icon={X} size="sm" onClick={closeModal}>

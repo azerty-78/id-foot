@@ -4,6 +4,7 @@ import { AlertCircle, Search, ShieldCheck } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GhostButton } from "@/components/admin/ui";
+import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 import { extractToken } from "./extractToken";
 import { ManualPlayerSearchPanel } from "./ManualPlayerSearchPanel";
 import { playErrorTone, playSuccessChime } from "./playScanSound";
@@ -176,11 +177,8 @@ export function ScannerWorkspace() {
   }, [lookupToken, showError, stopScanner]);
 
   const handleNextScan = useCallback(() => {
-    clearErrorTimer();
-    setPlayer(null);
-    setErrorMessage(null);
-    unlockScanner();
-  }, [clearErrorTimer, unlockScanner]);
+    closeSuccess();
+  }, [closeSuccess]);
 
   const handleManualSelect = useCallback(
     (selected: ValidatedPlayer) => {
@@ -188,6 +186,28 @@ export function ScannerWorkspace() {
     },
     [validatePlayer],
   );
+
+  const closeManual = useCallback(() => setManualOpen(false), []);
+  const closeSuccess = useCallback(() => {
+    clearErrorTimer();
+    setPlayer(null);
+    setErrorMessage(null);
+    unlockScanner();
+  }, [clearErrorTimer, unlockScanner]);
+
+  useHistoryOverlay(manualOpen, closeManual, "scan-manual");
+  useHistoryOverlay(phase === "success", closeSuccess, "scan-success");
+
+  useEffect(() => {
+    const shouldLock = manualOpen || phase === "success";
+    if (!shouldLock) return;
+
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [manualOpen, phase]);
 
   useEffect(() => {
     void startScanner();
@@ -285,14 +305,14 @@ export function ScannerWorkspace() {
       {manualOpen && (
         <div
           className="scan-manual-backdrop"
-          onClick={() => setManualOpen(false)}
+          onClick={closeManual}
           role="presentation"
         />
       )}
 
       <ManualPlayerSearchPanel
         open={manualOpen}
-        onClose={() => setManualOpen(false)}
+        onClose={closeManual}
         onSelectPlayer={handleManualSelect}
       />
     </div>

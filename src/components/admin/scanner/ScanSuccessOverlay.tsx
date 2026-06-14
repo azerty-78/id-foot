@@ -116,6 +116,8 @@ export function ScanSuccessOverlay({
           {validatedCount} joueur{validatedCount > 1 ? "s" : ""} validé
           {validatedCount > 1 ? "s" : ""} cette session
         </p>
+
+        <p className="scan-success-back-hint">Retour système · glisser pour fermer</p>
       </div>
     </div>
   );

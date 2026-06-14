@@ -363,6 +363,7 @@ export default function TeamsPage() {
         open={isModalOpen}
         title={editingId ? "Modifier l'équipe" : "Nouvelle équipe"}
         onClose={closeModal}
+        historyKey="team-form"
         footer={
           <>
             <OutlineButton type="button" icon={X} size="sm" onClick={closeModal}>
