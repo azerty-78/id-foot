@@ -16,7 +16,6 @@ export function BrandedQrCode({
   className = "",
 }: BrandedQrCodeProps) {
   const logoSize = getQrLogoSize(size);
-  const logoSrc = size < 72 ? brandAssets.icon : brandAssets.qrLogo;
 
   return (
     <QRCodeSVG
@@ -27,7 +26,7 @@ export function BrandedQrCode({
       fgColor="#000000"
       className={className}
       imageSettings={{
-        src: logoSrc,
+        src: brandAssets.qrLogo,
         height: logoSize,
         width: logoSize,
         excavate: true,

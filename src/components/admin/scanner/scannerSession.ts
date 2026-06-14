@@ -87,7 +87,7 @@ export function subscribeCameraPermission(
   onChange: (state: CameraPermissionState) => void,
 ): () => void {
   if (typeof navigator === "undefined" || !navigator.permissions?.query) {
-    return () => undefined;
+    return () => {};
   }
 
   let status: PermissionStatus | null = null;
