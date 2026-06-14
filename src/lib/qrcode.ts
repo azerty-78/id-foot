@@ -29,7 +29,7 @@ async function composeBrandedQr(
   const logoBuffer = await sharp(logoPath)
     .resize(logoSize, logoSize, {
       fit: "contain",
-      background: { r: 255, g: 255, 255, alpha: 0 },
+      background: { r: 255, g: 255, b: 255, alpha: 0 },
     })
     .png()
     .toBuffer();
