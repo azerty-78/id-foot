@@ -6,7 +6,7 @@ export default function HomePage() {
     <div className="admin-shell flex min-h-screen flex-col">
       <header className="border-b border-slate-200/80 bg-white/80 px-4 py-4 backdrop-blur-sm sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <AppLogo href="/" size="md" />
+          <AppLogo href="/" size="lg" />
 
           <div className="flex items-center gap-2 sm:gap-3">
             <SecondaryLink href="/admin/signin" className="hidden sm:inline-flex">

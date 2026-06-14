@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 const primaryClasses =
-  "inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-brand-dark shadow-[0_8px_24px_var(--brand-glow)] transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-brand-dark shadow-[0_8px_28px_var(--brand-glow)] transition hover:bg-brand-hover hover:shadow-[0_10px_32px_var(--brand-glow)] disabled:cursor-not-allowed disabled:opacity-60";
 
 const secondaryClasses =
   "inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-brand/30 hover:bg-brand-light disabled:opacity-60";

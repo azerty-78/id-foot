@@ -54,7 +54,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(100vw-3rem,18rem)] flex-col border-r border-brand/20 bg-gradient-to-b from-brand-dark via-[#0d1219] to-black text-white shadow-[20px_0_60px_rgba(74,222,128,0.08)] transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(100vw-3rem,18rem)] flex-col border-r border-brand/25 bg-gradient-to-b from-brand-dark via-[#0d1219] to-black text-white shadow-[20px_0_60px_var(--brand-glow)] transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

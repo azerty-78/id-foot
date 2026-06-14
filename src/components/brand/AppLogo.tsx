@@ -3,14 +3,15 @@ import Link from "next/link";
 
 type AppLogoProps = {
   href?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 };
 
 const sizes = {
-  sm: { height: 36, width: 108 },
-  md: { height: 44, width: 132 },
-  lg: { height: 56, width: 168 },
+  sm: { height: 42, width: 126 },
+  md: { height: 54, width: 162 },
+  lg: { height: 72, width: 216 },
+  xl: { height: 88, width: 264 },
 };
 
 export function AppLogo({ href, size = "md", className = "" }: AppLogoProps) {
