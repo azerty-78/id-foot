@@ -4,6 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Html5Qrcode } from "html5-qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  AdminCard,
+  DangerButton,
+  FieldLabel,
+  PageHeader,
+  PrimaryButton,
+  SecondaryButton,
+  StatusBadge,
+} from "@/components/admin/ui";
 
 type ScanState = "idle" | "scanning" | "loading" | "success" | "error";
 type ScanMode = "camera" | "manual";
@@ -169,23 +178,21 @@ export default function ScannerPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-900">Scanner QR</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Identifiez un joueur via QR code ou token manuel
-        </p>
-      </div>
+      <PageHeader
+        title="Scanner QR"
+        description="Identifiez un joueur via caméra ou saisie manuelle du token."
+      />
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 inline-flex rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
         <button
           type="button"
           onClick={() => {
             void resetScan().then(() => setMode("camera"));
           }}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+          className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
             mode === "camera"
-              ? "bg-[#1a472a] text-white"
-              : "bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50"
+              ? "bg-brand text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-50"
           }`}
         >
           Scan caméra
@@ -195,10 +202,10 @@ export default function ScannerPage() {
           onClick={() => {
             void resetScan().then(() => setMode("manual"));
           }}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+          className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
             mode === "manual"
-              ? "bg-[#1a472a] text-white"
-              : "bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50"
+              ? "bg-brand text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-50"
           }`}
         >
           Saisie manuelle
@@ -206,79 +213,71 @@ export default function ScannerPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-        <section className="rounded-xl bg-white p-6 shadow-sm">
+        <AdminCard className="p-6">
           {mode === "camera" ? (
             <div>
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-zinc-900">
-                  Scan caméra
-                </h2>
+                <h2 className="text-lg font-bold text-slate-900">Scan caméra</h2>
                 {state === "scanning" && (
-                  <span className="text-sm font-medium text-[#1a472a]">
-                    Scan en cours...
+                  <span className="flex items-center gap-2 text-sm font-medium text-brand">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
+                    Scan en cours
                   </span>
                 )}
               </div>
 
-              <div className="mx-auto flex max-w-md items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[#1a472a]/30 bg-zinc-50 p-4">
+              <div className="mx-auto flex max-w-md items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-brand/20 bg-brand-light/40 p-4">
                 <div id="qr-reader" className="w-full" />
               </div>
 
               {state === "idle" && (
-                <button
+                <PrimaryButton
                   type="button"
                   onClick={() => void startScanner()}
-                  className="mt-4 rounded-lg bg-[#1a472a] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#153d24]"
+                  className="mt-4"
                 >
                   Démarrer le scan
-                </button>
+                </PrimaryButton>
               )}
             </div>
           ) : (
             <div>
-              <h2 className="mb-4 text-lg font-semibold text-zinc-900">
+              <h2 className="mb-4 text-lg font-bold text-slate-900">
                 Saisie manuelle
               </h2>
-              <label
-                htmlFor="manualToken"
-                className="mb-1.5 block text-sm font-medium text-zinc-700"
-              >
-                Token UUID
-              </label>
+              <FieldLabel htmlFor="manualToken">Token UUID</FieldLabel>
               <input
                 id="manualToken"
                 type="text"
                 value={manualToken}
                 onChange={(e) => setManualToken(e.target.value)}
                 placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-[#1a472a] focus:ring-2 focus:ring-[#1a472a]/20"
+                className="admin-input"
               />
-              <button
+              <PrimaryButton
                 type="button"
                 onClick={() => void handleManualSearch()}
                 disabled={!manualToken.trim() || state === "loading"}
-                className="mt-4 rounded-lg bg-[#1a472a] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#153d24] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-4"
               >
                 Rechercher
-              </button>
+              </PrimaryButton>
             </div>
           )}
 
           {state === "loading" && (
-            <p className="mt-4 text-sm font-medium text-zinc-500">
+            <p className="mt-4 text-sm font-medium text-slate-500">
               Identification en cours...
             </p>
           )}
-        </section>
+        </AdminCard>
 
-        <section className="rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-zinc-900">Résultat</h2>
+        <AdminCard className="p-6">
+          <h2 className="mb-4 text-lg font-bold text-slate-900">Résultat</h2>
 
           {state === "success" && player && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-              <span className="inline-flex rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">
-                ✓ Joueur identifié
-              </span>
+            <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5">
+              <StatusBadge tone="success">Joueur identifié</StatusBadge>
 
               <div className="mt-5 flex items-start gap-4">
                 {player.photo ? (
@@ -287,74 +286,65 @@ export default function ScannerPage() {
                     alt={`${player.prenom} ${player.nom}`}
                     width={72}
                     height={72}
-                    className="h-[72px] w-[72px] rounded-full object-cover"
+                    className="h-[72px] w-[72px] rounded-2xl object-cover ring-2 ring-emerald-200"
                   />
                 ) : (
-                  <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#1a472a] text-lg font-bold text-white">
+                  <div className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl bg-brand text-lg font-bold text-white">
                     {getInitials(player.prenom, player.nom)}
                   </div>
                 )}
 
                 <div>
-                  <p className="text-xl font-bold text-zinc-900">
+                  <p className="text-xl font-bold text-slate-900">
                     {player.prenom} {player.nom}
                   </p>
-                  <p className="mt-1 text-sm text-zinc-600">
+                  <p className="mt-1 text-sm text-slate-600">
                     #{player.numero} · {player.poste}
                   </p>
-                  <p className="mt-2 text-sm text-zinc-600">{player.equipe.nom}</p>
-                  <p className="text-sm text-zinc-500">
+                  <p className="mt-2 text-sm text-slate-600">{player.equipe.nom}</p>
+                  <p className="text-sm text-slate-500">
                     {player.equipe.competition.nom} ({player.equipe.competition.annee})
                   </p>
                 </div>
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  href={`/admin/players/${player.id}`}
-                  className="rounded-lg bg-[#1a472a] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#153d24]"
-                >
-                  Voir la fiche complète
+                <Link href={`/admin/players/${player.id}`}>
+                  <PrimaryButton type="button">Voir la fiche complète</PrimaryButton>
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => void resetScan()}
-                  className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-                >
+                <SecondaryButton type="button" onClick={() => void resetScan()}>
                   Nouveau scan
-                </button>
+                </SecondaryButton>
               </div>
             </div>
           )}
 
           {state === "error" && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-5">
-              <span className="inline-flex rounded-full bg-rose-600 px-3 py-1 text-xs font-semibold text-white">
-                ✗ QR Code invalide
-              </span>
+            <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-5">
+              <StatusBadge tone="error">QR Code invalide</StatusBadge>
               <p className="mt-4 text-sm text-rose-700">
                 {errorMessage ?? "Aucun joueur correspondant à ce QR code."}
               </p>
-              <button
+              <DangerButton
                 type="button"
                 onClick={() => void resetScan()}
-                className="mt-6 rounded-lg border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100"
+                className="mt-6"
               >
                 Nouveau scan
-              </button>
+              </DangerButton>
             </div>
           )}
 
           {(state === "idle" || state === "scanning" || state === "loading") &&
             !player &&
             state !== "error" && (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm leading-6 text-slate-500">
                 {mode === "camera"
                   ? "Placez un QR code devant la caméra pour identifier un joueur."
                   : "Saisissez un token UUID puis cliquez sur Rechercher."}
               </p>
             )}
-        </section>
+        </AdminCard>
       </div>
     </div>
   );

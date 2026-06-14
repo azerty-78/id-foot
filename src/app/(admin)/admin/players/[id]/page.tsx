@@ -5,6 +5,14 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { usePlayer } from "@/hooks/useApi";
+import {
+  AdminCard,
+  DangerButton,
+  GhostButton,
+  LoadingState,
+  PrimaryButton,
+  SecondaryButton,
+} from "@/components/admin/ui";
 
 function getInitials(prenom: string, nom: string): string {
   return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
@@ -80,26 +88,17 @@ export default function PlayerDetailPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center text-sm text-zinc-500">
-        Chargement du joueur...
-      </div>
-    );
+    return <LoadingState message="Chargement du joueur..." />;
   }
 
   if (error || !player) {
     return (
-      <div className="rounded-xl border border-rose-200 bg-rose-50 px-6 py-8 text-center">
-        <p className="text-sm text-rose-700">
-          {error ?? "Joueur introuvable."}
-        </p>
-        <Link
-          href="/admin/players"
-          className="mt-4 inline-block text-sm font-medium text-[#1a472a] hover:underline"
-        >
-          Retour à la liste
+      <AdminCard className="px-6 py-10 text-center">
+        <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
+        <Link href="/admin/players" className="mt-4 inline-block">
+          <GhostButton>Retour à la liste</GhostButton>
         </Link>
-      </div>
+      </AdminCard>
     );
   }
 
@@ -127,16 +126,13 @@ export default function PlayerDetailPage() {
   return (
     <div className="print:block">
       <div className="mb-6 print:hidden">
-        <Link
-          href="/admin/players"
-          className="text-sm font-medium text-[#1a472a] hover:underline"
-        >
-          ← Retour à la liste
+        <Link href="/admin/players">
+          <GhostButton className="px-0">← Retour à la liste</GhostButton>
         </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-        <section className="rounded-xl bg-[#1a472a] p-6 text-white shadow-sm print:shadow-none">
+        <AdminCard className="pitch-pattern overflow-hidden bg-gradient-to-br from-brand to-brand-dark p-6 text-white shadow-lg print:shadow-none">
           <div className="flex flex-col items-center text-center">
             {player.photo ? (
               <Image
@@ -144,10 +140,10 @@ export default function PlayerDetailPage() {
                 alt={`${player.prenom} ${player.nom}`}
                 width={120}
                 height={120}
-                className="h-28 w-28 rounded-full border-4 border-white/20 object-cover"
+                className="h-28 w-28 rounded-2xl border-4 border-white/20 object-cover shadow-lg"
               />
             ) : (
-              <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-3xl font-bold">
+              <div className="flex h-28 w-28 items-center justify-center rounded-2xl border-4 border-white/20 bg-white/10 text-3xl font-bold">
                 {getInitials(player.prenom, player.nom)}
               </div>
             )}
@@ -157,7 +153,7 @@ export default function PlayerDetailPage() {
             </h1>
 
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <span className="rounded-full bg-[#FFD700] px-3 py-1 text-sm font-bold text-[#1a472a]">
+              <span className="rounded-full bg-gold px-3 py-1 text-sm font-bold text-brand-dark">
                 #{player.numero}
               </span>
               <span className="rounded-full bg-white/10 px-3 py-1 text-sm font-medium">
@@ -170,65 +166,58 @@ export default function PlayerDetailPage() {
               {player.equipe.competition.nom} ({player.equipe.competition.annee})
             </p>
 
-            <div className="mt-6 rounded-xl bg-white p-4">
+            <div className="mt-6 rounded-2xl bg-white p-4 shadow-md">
               <QRCodeSVG value={qrValue} size={140} level="M" />
             </div>
 
             <div className="mt-6 flex flex-wrap justify-center gap-3 print:hidden">
-              <button
+              <PrimaryButton
                 type="button"
                 onClick={handleDownloadCard}
-                className="rounded-lg bg-[#FFD700] px-4 py-2.5 text-sm font-semibold text-[#1a472a] transition hover:bg-[#e6c200]"
+                className="bg-gold text-brand-dark hover:bg-[#e6c200]"
               >
                 Télécharger la carte PDF
-              </button>
-              <button
+              </PrimaryButton>
+              <SecondaryButton
                 type="button"
                 onClick={() => window.print()}
-                className="rounded-lg border border-white/30 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+                className="border-white/30 bg-transparent text-white hover:bg-white/10"
               >
                 Imprimer
-              </button>
+              </SecondaryButton>
             </div>
           </div>
-        </section>
+        </AdminCard>
 
-        <section className="rounded-xl bg-white p-6 shadow-sm print:shadow-none">
+        <AdminCard className="p-6 print:shadow-none">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-bold text-zinc-900">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/60">
+                Fiche joueur
+              </p>
+              <h2 className="mt-1 text-xl font-bold text-slate-900">
                 Informations détaillées
               </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Fiche complète du joueur
-              </p>
             </div>
             <div className="flex flex-wrap gap-2 print:hidden">
-              <Link
-                href={`/admin/players/${player.id}/edit`}
-                className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
-              >
-                Modifier
+              <Link href={`/admin/players/${player.id}/edit`}>
+                <SecondaryButton>Modifier</SecondaryButton>
               </Link>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
-              >
+              <DangerButton type="button" onClick={handleDelete}>
                 Supprimer
-              </button>
+              </DangerButton>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-zinc-200">
-            <table className="min-w-full divide-y divide-zinc-200">
-              <tbody className="divide-y divide-zinc-100">
+          <div className="overflow-hidden rounded-xl border border-slate-100">
+            <table className="min-w-full divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100">
                 {details.map((row) => (
-                  <tr key={row.label}>
-                    <th className="w-1/3 bg-zinc-50 px-4 py-3 text-left text-sm font-medium text-zinc-500">
+                  <tr key={row.label} className="transition hover:bg-brand-light/30">
+                    <th className="w-1/3 bg-slate-50/80 px-4 py-3 text-left text-sm font-medium text-slate-500">
                       {row.label}
                     </th>
-                    <td className="px-4 py-3 text-sm text-zinc-900 break-all">
+                    <td className="break-all px-4 py-3 text-sm text-slate-900">
                       {row.value}
                     </td>
                   </tr>
@@ -236,7 +225,7 @@ export default function PlayerDetailPage() {
               </tbody>
             </table>
           </div>
-        </section>
+        </AdminCard>
       </div>
     </div>
   );

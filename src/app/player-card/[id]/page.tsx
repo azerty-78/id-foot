@@ -87,21 +87,21 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
         }
       `}</style>
 
-      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-100 p-8">
+      <div className="admin-shell flex min-h-screen flex-col items-center justify-center p-8">
         <PrintButton />
 
         <article
           id="player-card"
-          className="flex w-[85.6mm] flex-col overflow-hidden rounded-xl bg-[#1a472a] text-white shadow-lg"
+          className="pitch-pattern flex w-[85.6mm] flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_24px_60px_rgba(26,71,42,0.35)] ring-1 ring-white/10"
           style={{ minHeight: "53.98mm" }}
         >
-          <header className="border-b border-white/10 px-3 py-1.5 text-center">
-            <p className="truncate text-[10px] font-bold uppercase tracking-wide">
+          <header className="border-b border-white/10 bg-black/10 px-3 py-2 text-center">
+            <p className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
               {player.equipe.competition.nom}
             </p>
           </header>
 
-          <div className="flex flex-1 gap-3 px-3 py-2">
+          <div className="flex flex-1 gap-3 px-3 py-2.5">
             <div className="shrink-0">
               {player.photo ? (
                 <Image
@@ -109,10 +109,10 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
                   alt={`${player.prenom} ${player.nom}`}
                   width={80}
                   height={80}
-                  className="h-20 w-20 rounded-lg object-cover"
+                  className="h-20 w-20 rounded-xl object-cover ring-2 ring-white/20"
                 />
               ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-white/10 text-xl font-bold">
+                <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-white/10 text-xl font-bold ring-2 ring-white/20">
                   {getInitials(player.prenom, player.nom)}
                 </div>
               )}
@@ -122,21 +122,21 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
               <p className="truncate text-sm font-bold leading-tight">
                 {player.nom} {player.prenom}
               </p>
-              <p className="mt-1 text-lg font-bold leading-none text-[#FFD700]">
+              <p className="mt-1 text-lg font-black leading-none text-gold">
                 #{player.numero}
-                <span className="ml-2 text-xs font-medium text-[#FFD700]/90">
+                <span className="ml-2 text-xs font-semibold text-gold/90">
                   {player.poste}
                 </span>
               </p>
-              <p className="mt-2 truncate text-[10px] text-white/80">
+              <p className="mt-2 truncate text-[10px] text-white/75">
                 {player.equipe.nom}
               </p>
             </div>
           </div>
 
-          <footer className="flex items-end justify-between border-t border-white/10 px-3 py-2">
-            <p className="text-[9px] text-zinc-300">ID: {shortId}</p>
-            <div className="rounded bg-white p-1">
+          <footer className="flex items-end justify-between border-t border-white/10 bg-black/10 px-3 py-2">
+            <p className="text-[9px] font-medium text-white/50">ID: {shortId}</p>
+            <div className="rounded-lg bg-white p-1 shadow-sm">
               <PlayerCardQr token={player.qrToken} size={70} />
             </div>
           </footer>

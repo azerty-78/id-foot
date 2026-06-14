@@ -7,23 +7,32 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-screen bg-zinc-100">
-      <aside className="fixed left-0 top-0 flex h-screen w-60 flex-col bg-[#1a472a] text-white">
-        <div className="border-b border-white/10 px-6 py-5">
+    <div className="admin-shell flex min-h-screen">
+      <aside className="fixed left-0 top-0 z-30 flex h-screen w-64 flex-col border-r border-white/10 bg-gradient-to-b from-brand to-brand-dark text-white shadow-[20px_0_60px_rgba(26,71,42,0.18)]">
+        <div className="border-b border-white/10 px-6 py-6">
           <Link href="/admin/dashboard" className="block">
-            <span className="text-lg font-bold tracking-tight">Football ID</span>
-            <span className="mt-0.5 block text-xs text-white/60">
-              Administration
-            </span>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-lg font-black text-gold">
+                ID
+              </div>
+              <div>
+                <span className="block text-lg font-bold tracking-tight">
+                  Football ID
+                </span>
+                <span className="mt-0.5 block text-xs text-white/60">
+                  Administration
+                </span>
+              </div>
+            </div>
           </Link>
         </div>
 
         <AdminNav />
 
-        <div className="mt-auto border-t border-white/10 px-3 py-4">
+        <div className="mt-auto border-t border-white/10 px-4 py-4">
           <Link
             href="/api/auth/signout"
-            className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
           >
             <svg
               className="h-5 w-5"
@@ -43,7 +52,9 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      <main className="ml-60 min-h-screen flex-1 p-8">{children}</main>
+      <main className="ml-64 min-h-screen flex-1 px-6 py-8 lg:px-10">
+        <div className="mx-auto max-w-7xl">{children}</div>
+      </main>
     </div>
   );
 }

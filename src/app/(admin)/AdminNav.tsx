@@ -63,7 +63,7 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
+    <nav className="flex flex-1 flex-col gap-1.5 px-4 py-5">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -72,13 +72,19 @@ export function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-3 rounded-r-md px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all ${
               isActive
-                ? "border-l-4 border-white bg-white/10 text-white"
-                : "border-l-4 border-transparent text-white/80 hover:bg-white/5 hover:text-white"
+                ? "bg-white/14 text-white shadow-inner ring-1 ring-white/10"
+                : "text-white/75 hover:bg-white/8 hover:text-white"
             }`}
           >
-            {item.icon}
+            <span
+              className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                isActive ? "bg-white/10 text-gold" : "bg-white/5"
+              }`}
+            >
+              {item.icon}
+            </span>
             {item.label}
           </Link>
         );
