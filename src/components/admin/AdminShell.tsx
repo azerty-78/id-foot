@@ -1,6 +1,7 @@
 "use client";
 
 import { Fingerprint, Home, Menu, QrCode } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -10,6 +11,7 @@ import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
+import { brandAssets } from "@/lib/brand";
 
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) {
@@ -145,9 +147,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </Link>
           )}
 
-          <span className="user-avatar touch-target" aria-hidden>
-            {initials}
-          </span>
+          <Link
+            href="/admin/dashboard"
+            className="admin-topbar-logo touch-target"
+            aria-label="ID FOOT"
+          >
+            <Image
+              src={brandAssets.logo}
+              alt=""
+              width={96}
+              height={36}
+              priority
+              className="admin-topbar-logo-image"
+            />
+          </Link>
         </header>
 
         <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>

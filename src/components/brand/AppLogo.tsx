@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { brandAssets } from "@/lib/brand";
 
 type AppLogoProps = {
   href?: string;
@@ -19,7 +20,7 @@ export function AppLogo({ href, size = "md", className = "" }: AppLogoProps) {
 
   const image = (
     <Image
-      src="/logo.png"
+      src={brandAssets.logo}
       alt="ID FOOT"
       width={dim.width}
       height={dim.height}

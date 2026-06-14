@@ -417,6 +417,27 @@ body {
   color: var(--green);
 }
 
+.admin-topbar-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-topbar-logo-image {
+  height: 32px;
+  width: auto;
+  max-width: 88px;
+  object-fit: contain;
+}
+
+@media (min-width: 640px) {
+  .admin-topbar-logo-image {
+    height: 36px;
+    max-width: 96px;
+  }
+}
+
 /* Avatar joueur (tableau) */
 .player-avatar {
   display: inline-flex;
