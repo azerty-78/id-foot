@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { handlePrismaError } from "@/lib/api/http";
 
 type RouteParams = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 type UpdateJoueurBody = {
@@ -23,8 +23,9 @@ const joueurInclude = {
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const joueur = await prisma.joueur.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: joueurInclude,
     });
 
@@ -40,6 +41,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const body = (await req.json()) as UpdateJoueurBody;
     const numero = Number.parseInt(String(body.numero), 10);
     const dateNaissance = new Date(body.dateNaissance);
@@ -52,7 +54,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const joueur = await prisma.joueur.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         nom: body.nom,
         prenom: body.prenom,
@@ -74,8 +76,9 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     await prisma.joueur.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

@@ -8,6 +8,7 @@ export type Competition = {
   annee: number;
   lieu: string | null;
   createdAt: string;
+  _count?: { equipes: number };
 };
 
 export type Team = {

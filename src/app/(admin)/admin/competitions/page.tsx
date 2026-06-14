@@ -14,16 +14,8 @@ import {
   SecondaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
-import { useCompetitions } from "@/hooks/useApi";
+import { useCompetitions, type Competition } from "@/hooks/useApi";
 import { validateCompetition } from "@/lib/validators";
-
-type CompetitionItem = {
-  id: string;
-  nom: string;
-  annee: number;
-  lieu: string | null;
-  _count: { equipes: number };
-};
 
 type FormState = {
   nom: string;
@@ -48,7 +40,7 @@ export default function CompetitionsPage() {
     setIsModalOpen(true);
   }
 
-  function openEditModal(competition: CompetitionItem) {
+  function openEditModal(competition: Competition) {
     setEditingId(competition.id);
     setForm({
       nom: competition.nom,
@@ -110,7 +102,7 @@ export default function CompetitionsPage() {
     }
   }
 
-  async function handleDelete(competition: CompetitionItem) {
+  async function handleDelete(competition: Competition) {
     if (
       !window.confirm(
         `Supprimer la compétition "${competition.nom}" ?`
@@ -155,11 +147,11 @@ export default function CompetitionsPage() {
 
       {loading ? (
         <LoadingState />
-      ) : (competitions as CompetitionItem[]).length === 0 ? (
+      ) : competitions.length === 0 ? (
         <EmptyState message="Aucune compétition enregistrée pour le moment." />
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {(competitions as CompetitionItem[]).map((competition) => (
+          {competitions.map((competition) => (
             <AdminCard
               key={competition.id}
               className="group p-6 transition hover:-translate-y-0.5 hover:shadow-lg"

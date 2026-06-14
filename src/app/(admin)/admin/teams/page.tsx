@@ -21,13 +21,14 @@ import {
   useCompetitions,
   usePlayers,
   useTeams,
+  type Competition,
   type Team,
 } from "@/hooks/useApi";
 import { validateEquipe } from "@/lib/validators";
 
 type TeamItem = Team & {
   _count: { joueurs: number };
-  competition: NonNullable<Team["competition"]>;
+  competition: Competition;
 };
 
 type FormState = {
@@ -63,9 +64,9 @@ export default function TeamsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const selectedTeam = (teams as TeamItem[]).find(
-    (team) => team.id === selectedTeamId
-  );
+  const selectedTeam = teams.find((team) => team.id === selectedTeamId) as
+    | TeamItem
+    | undefined;
 
   useEffect(() => {
     if (!logoFile) {
@@ -224,17 +225,18 @@ export default function TeamsPage() {
 
       {loading ? (
         <LoadingState />
-      ) : (teams as TeamItem[]).length === 0 ? (
+      ) : teams.length === 0 ? (
         <EmptyState message="Aucune équipe enregistrée pour le moment." />
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {(teams as TeamItem[]).map((team) => (
+          {teams.map((team) => {
+            const teamItem = team as TeamItem;
+
+            return (
             <AdminCard
               key={team.id}
               className={`cursor-pointer p-6 transition hover:-translate-y-0.5 hover:shadow-lg ${
-                selectedTeamId === team.id
-                  ? "ring-2 ring-brand/30"
-                  : ""
+                selectedTeamId === team.id ? "ring-2 ring-brand/30" : ""
               }`}
               onClick={() => setSelectedTeamId(team.id)}
             >
@@ -257,11 +259,11 @@ export default function TeamsPage() {
                     {team.nom}
                   </h2>
                   <p className="truncate text-sm text-slate-500">
-                    {team.competition?.nom}
+                    {teamItem.competition?.nom}
                   </p>
                 </div>
                 <StatusBadge tone="gold">
-                  {team._count?.joueurs ?? 0}
+                  {teamItem._count?.joueurs ?? 0}
                 </StatusBadge>
               </div>
 
@@ -271,21 +273,22 @@ export default function TeamsPage() {
               >
                 <SecondaryButton
                   type="button"
-                  onClick={() => openEditModal(team)}
+                  onClick={() => openEditModal(teamItem)}
                   className="px-3 py-1.5 text-xs"
                 >
                   Modifier
                 </SecondaryButton>
                 <DangerButton
                   type="button"
-                  onClick={() => handleDelete(team)}
+                  onClick={() => handleDelete(teamItem)}
                   className="px-3 py-1.5 text-xs"
                 >
                   Supprimer
                 </DangerButton>
               </div>
             </AdminCard>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { generatePlayerCard } from "@/lib/playerCard";
 
 type RouteParams = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
-    const buffer = await generatePlayerCard(params.id);
+    const { id } = await params;
+    const buffer = await generatePlayerCard(id);
 
     return new Response(buffer, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="carte-joueur-${params.id}.pdf"`,
+        "Content-Disposition": `attachment; filename="carte-joueur-${id}.pdf"`,
       },
     });
   } catch (error) {

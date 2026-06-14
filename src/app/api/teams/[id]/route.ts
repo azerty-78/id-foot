@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { handlePrismaError } from "@/lib/api/http";
 
 type RouteParams = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 type UpdateEquipeBody = {
@@ -14,8 +14,9 @@ type UpdateEquipeBody = {
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const equipe = await prisma.equipe.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { joueurs: true },
     });
 
@@ -31,10 +32,11 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const body = (await req.json()) as UpdateEquipeBody;
 
     const equipe = await prisma.equipe.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         nom: body.nom,
         logo: body.logo ?? null,
@@ -55,8 +57,9 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     await prisma.equipe.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

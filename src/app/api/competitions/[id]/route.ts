@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { handlePrismaError } from "@/lib/api/http";
 
 type RouteParams = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 type UpdateCompetitionBody = {
@@ -14,8 +14,9 @@ type UpdateCompetitionBody = {
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const competition = await prisma.competition.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: { select: { equipes: true } },
         equipes: true,
@@ -37,6 +38,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const body = (await req.json()) as UpdateCompetitionBody;
     const annee = Number.parseInt(String(body.annee), 10);
 
@@ -48,7 +50,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const competition = await prisma.competition.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         nom: body.nom.trim(),
         annee,
@@ -67,8 +69,9 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     await prisma.competition.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
