@@ -282,6 +282,7 @@ export function PageToolbar({
   searchPlaceholder = "Rechercher...",
   action,
   userInitials = "IF",
+  onAvatarClick,
 }: {
   title: string;
   subtitle?: string;
@@ -290,6 +291,7 @@ export function PageToolbar({
   searchPlaceholder?: string;
   action?: ReactNode;
   userInitials?: string;
+  onAvatarClick?: () => void;
 }) {
   return (
     <div className="page-toolbar">
@@ -309,9 +311,20 @@ export function PageToolbar({
           />
         )}
         {action}
-        <span className="user-avatar hidden sm:inline-flex" aria-hidden>
-          {userInitials}
-        </span>
+        {onAvatarClick ? (
+          <button
+            type="button"
+            className="user-avatar user-avatar--interactive inline-flex"
+            aria-label="Aperçu carte joueur (temporaire)"
+            onClick={onAvatarClick}
+          >
+            {userInitials}
+          </button>
+        ) : (
+          <span className="user-avatar hidden sm:inline-flex" aria-hidden>
+            {userInitials}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { CreditCard, Download, Eye, Trash2, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { PlayerCardPreviewSheet } from "@/components/admin/PlayerCardPreviewSheet";
 import {
   AdminCard,
   AdminTable,
@@ -23,6 +24,7 @@ export default function PlayersPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [equipeId, setEquipeId] = useState("");
+  const [cardPreviewOpen, setCardPreviewOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -103,6 +105,7 @@ export default function PlayersPage() {
         search={search}
         onSearchChange={setSearch}
         searchPlaceholder="Rechercher un joueur..."
+        onAvatarClick={() => setCardPreviewOpen(true)}
         action={
           <div className="page-toolbar-actions">
             <OutlineLink href="/admin/players/cards" icon={CreditCard} size="sm">
@@ -279,6 +282,11 @@ export default function PlayersPage() {
           </AdminCard>
         </>
       )}
+
+      <PlayerCardPreviewSheet
+        open={cardPreviewOpen}
+        onClose={() => setCardPreviewOpen(false)}
+      />
     </div>
   );
 }
