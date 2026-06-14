@@ -12,20 +12,36 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const equipeId = searchParams.get("equipeId");
-    const nom = searchParams.get("nom");
+    const q = searchParams.get("q") ?? searchParams.get("nom");
+    const terms = q?.trim().split(/\s+/).filter(Boolean) ?? [];
+
+    const nameFilter =
+      terms.length === 0
+        ? undefined
+        : terms.length === 1
+          ? {
+              OR: [
+                { nom: { contains: terms[0], mode: "insensitive" as const } },
+                { prenom: { contains: terms[0], mode: "insensitive" as const } },
+              ],
+            }
+          : {
+              AND: terms.map((term) => ({
+                OR: [
+                  { nom: { contains: term, mode: "insensitive" as const } },
+                  { prenom: { contains: term, mode: "insensitive" as const } },
+                ],
+              })),
+            };
 
     const joueurs = await prisma.joueur.findMany({
       where: {
         ...(equipeId && { equipeId }),
-        ...(nom && {
-          OR: [
-            { nom: { contains: nom, mode: "insensitive" } },
-            { prenom: { contains: nom, mode: "insensitive" } },
-          ],
-        }),
+        ...(nameFilter && nameFilter),
       },
       include: joueurInclude,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ nom: "asc" }, { prenom: "asc" }],
+      take: q ? 20 : undefined,
     });
 
     return NextResponse.json(joueurs);
