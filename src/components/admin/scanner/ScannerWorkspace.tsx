@@ -453,11 +453,9 @@ export function ScannerWorkspace() {
                   type="button"
                   icon={Camera}
                   className="scanner-camera-prompt-btn w-full"
-                  onClick={handleCameraPromptClick}
+                  onClick={requestCameraAccess}
                 >
-                  {cameraStatus === "denied"
-                    ? "Réessayer (preview succès)"
-                    : "Activer la caméra"}
+                  {cameraStatus === "denied" ? "Réessayer" : "Activer la caméra"}
                 </PrimaryButton>
               </div>
             </div>
