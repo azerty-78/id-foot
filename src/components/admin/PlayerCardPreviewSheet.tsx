@@ -42,7 +42,14 @@ export function PlayerCardPreviewSheet({
       const res = await fetch("/api/players/card/preview");
 
       if (!res.ok) {
-        throw new Error("Erreur lors du téléchargement du PDF.");
+        let message = "Erreur lors du téléchargement du PDF.";
+        try {
+          const body = (await res.json()) as { detail?: string; error?: string };
+          message = body.detail ?? body.error ?? message;
+        } catch {
+          /* réponse non JSON */
+        }
+        throw new Error(message);
       }
 
       const blob = await res.blob();
@@ -54,6 +61,8 @@ export function PlayerCardPreviewSheet({
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("[PlayerCardPreviewSheet] download failed", error);
     } finally {
       setDownloading(false);
     }

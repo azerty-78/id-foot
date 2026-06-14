@@ -19,9 +19,15 @@ export async function renderPlayerCardPng(
   const svg = buildPlayerCardSvg(joueur, qrPng, photoPng);
   const renderer = await getSharp();
 
-  return renderer(Buffer.from(svg), { density: 72 })
-    .png({ compressionLevel: 4, effort: 1 })
-    .toBuffer();
+  try {
+    return await renderer(Buffer.from(svg), { density: 96 })
+      .png({ compressionLevel: 4, effort: 1 })
+      .toBuffer();
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Rendu PNG carte impossible";
+    throw new Error(`Rendu carte joueur échoué : ${message}`);
+  }
 }
 
 export async function loadPlayerPhotoBuffer(

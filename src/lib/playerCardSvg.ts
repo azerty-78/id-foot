@@ -83,16 +83,17 @@ export function buildPlayerCardSvg(
        <text x="${photoX + photoSize / 2}" y="${photoY + photoSize / 2 + 7}" text-anchor="middle" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="22" font-weight="700">${escapeXml(getInitials(joueur.prenom, joueur.nom))}</text>`;
 
   const rowY = fieldY + 28;
+  const fontFaceStyles = getInterFontFaceDefs();
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
-    <style><![CDATA[${getInterFontFaceDefs()}]]></style>
+    ${fontFaceStyles ? `<style><![CDATA[${fontFaceStyles}]]></style>` : ""}
     <filter id="photoShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(0,0,0,0.22)"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="#000000" flood-opacity="0.22"/>
     </filter>
     <filter id="qrShadow" x="-15%" y="-10%" width="130%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="rgba(0,0,0,0.28)"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000000" flood-opacity="0.28"/>
     </filter>
     <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${CARD_COLORS.greenDark}"/>
