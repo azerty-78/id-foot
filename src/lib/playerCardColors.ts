@@ -21,4 +21,9 @@ export const CARD_COLORS = {
 export const CARD_RENDER_WIDTH = 500;
 export const CARD_RENDER_HEIGHT = 330;
 
+/** Zone QR carte (alignée PlayerLicenseCard + globals.css) */
+export const CARD_QR_BOX = 250;
+export const CARD_QR_QUIET = 16;
+export const CARD_QR_INNER = CARD_QR_BOX - CARD_QR_QUIET * 2;
+
 export const CARD_FONT = "'Inter', Inter, 'Segoe UI', system-ui, Arial, sans-serif";

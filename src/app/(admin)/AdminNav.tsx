@@ -35,22 +35,30 @@ function NavLink({
   isActive,
   onNavigate,
   collapsed = false,
-  className = "",
+  variant = "default",
 }: {
   item: NavItem;
   isActive: boolean;
   onNavigate?: () => void;
   collapsed?: boolean;
-  className?: string;
+  variant?: "default" | "scanner";
 }) {
   const Icon = item.icon;
+  const isScanner = variant === "scanner";
 
   return (
     <Link
       href={item.href}
       onClick={onNavigate}
       title={collapsed ? item.label : undefined}
-      className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""} ${className}`}
+      className={[
+        "sidebar-nav-item",
+        isScanner ? "sidebar-nav-item-scanner" : "",
+        isScanner && isActive ? "sidebar-nav-item-scanner-active" : "",
+        !isScanner && isActive ? "sidebar-nav-item-active" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       <Icon strokeWidth={2} />
       <span className="sidebar-nav-text">{item.label}</span>
@@ -92,7 +100,7 @@ export function AdminNav({
           isActive={isActive(item.href)}
           onNavigate={onNavigate}
           collapsed={collapsed}
-          className={item.href === "/admin/scanner" ? "sidebar-nav-item-scanner" : undefined}
+          variant="scanner"
         />
       ))}
     </nav>
