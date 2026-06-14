@@ -35,6 +35,10 @@
 public/uploads/photos/*
 !public/uploads/photos/.gitkeep
 
+# Ne pas exclure les assets de marque
+!public/brand/**
+!public/id-foot-nobg.png
+
 # Docs et fichiers temporaires
 docs
 *.md

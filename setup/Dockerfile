@@ -36,7 +36,7 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
-COPY --from=builder /usr/src/app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /usr/src/app/public ./public
 COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /usr/src/app/package.json ./package.json
@@ -47,7 +47,9 @@ COPY setup/entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x ./entrypoint.sh \
   && mkdir -p public/uploads/photos \
-  && chown -R nextjs:nodejs public/uploads
+  && chown -R nextjs:nodejs public .next/static \
+  && test -f public/brand/logo.png \
+  && test -f public/brand/icon.png
 
 USER nextjs
 

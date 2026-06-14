@@ -34,11 +34,13 @@ function NavLink({
   item,
   isActive,
   onNavigate,
+  collapsed = false,
   className = "",
 }: {
   item: NavItem;
   isActive: boolean;
   onNavigate?: () => void;
+  collapsed?: boolean;
   className?: string;
 }) {
   const Icon = item.icon;
@@ -47,15 +49,22 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
+      title={collapsed ? item.label : undefined}
       className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""} ${className}`}
     >
       <Icon strokeWidth={2} />
-      {item.label}
+      <span className="sidebar-nav-text">{item.label}</span>
     </Link>
   );
 }
 
-export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
+export function AdminNav({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -71,6 +80,7 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
           item={item}
           isActive={isActive(item.href)}
           onNavigate={onNavigate}
+          collapsed={collapsed}
         />
       ))}
 
@@ -81,6 +91,7 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
           item={item}
           isActive={isActive(item.href)}
           onNavigate={onNavigate}
+          collapsed={collapsed}
           className={item.href === "/admin/scanner" ? "sidebar-nav-item-scanner" : undefined}
         />
       ))}
@@ -88,15 +99,22 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function SidebarSignOut({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarSignOut({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) {
   return (
     <Link
       href="/admin/signout"
       onClick={onNavigate}
+      title={collapsed ? "Déconnexion" : undefined}
       className="sidebar-nav-item sidebar-signout"
     >
       <LogOut strokeWidth={2} />
-      Déconnexion
+      <span className="sidebar-nav-text">Déconnexion</span>
     </Link>
   );
 }

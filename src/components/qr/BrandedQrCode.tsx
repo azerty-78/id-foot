@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { brandAssets } from "@/lib/brand";
+import { brandAssets, getBrandAssetUrl } from "@/lib/brand";
 import { getQrLogoSize, QR_ERROR_CORRECTION } from "@/lib/qrBrand";
 
 type BrandedQrCodeProps = {
@@ -16,6 +17,11 @@ export function BrandedQrCode({
   className = "",
 }: BrandedQrCodeProps) {
   const logoSize = getQrLogoSize(size);
+  const [logoSrc, setLogoSrc] = useState(brandAssets.qrLogo);
+
+  useEffect(() => {
+    setLogoSrc(getBrandAssetUrl(brandAssets.qrLogo));
+  }, []);
 
   return (
     <QRCodeSVG
@@ -26,7 +32,7 @@ export function BrandedQrCode({
       fgColor="#000000"
       className={className}
       imageSettings={{
-        src: brandAssets.qrLogo,
+        src: logoSrc,
         height: logoSize,
         width: logoSize,
         excavate: true,

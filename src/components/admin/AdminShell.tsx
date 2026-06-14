@@ -1,19 +1,30 @@
 "use client";
 
-import { Fingerprint, Home, LayoutDashboard, Menu, QrCode, Shield, Trophy, Users } from "lucide-react";
+import {
+  Home,
+  LayoutDashboard,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  QrCode,
+  Shield,
+  Trophy,
+  Users,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
+import { AppLogo } from "@/components/brand/AppLogo";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
-import { brandAssets } from "@/lib/brand";
+
+const SIDEBAR_COLLAPSED_KEY = "id-foot-sidebar-collapsed";
 
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) {
@@ -52,6 +63,7 @@ function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
@@ -61,14 +73,35 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const topbarBrand = getMobileTopbarBrand(pathname);
   const TopbarIcon = topbarBrand.icon;
 
+  useEffect(() => {
+    try {
+      setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
-  useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
+  useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
   useBodyScrollLock(menuOpen);
 
   return (
-    <div className="admin-layout">
+    <div
+      className={`admin-layout ${sidebarCollapsed ? "admin-layout--sidebar-collapsed" : ""}`}
+    >
       {menuOpen && (
         <button
           type="button"
@@ -79,24 +112,37 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       )}
 
       <aside
-        className={`sidebar fixed left-0 top-0 z-50 flex h-screen flex-col text-white transition-transform duration-300 lg:translate-x-0 ${
+        className={`sidebar ${sidebarCollapsed ? "sidebar--collapsed" : ""} fixed left-0 top-0 z-50 flex h-screen flex-col text-white transition-transform duration-300 lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        aria-expanded={!sidebarCollapsed}
       >
         <div className="sidebar-brand">
           <Link
             href="/admin/dashboard"
             onClick={closeMenu}
-            className="flex min-w-0 flex-1 items-center gap-[10px]"
+            className="sidebar-brand-link flex min-w-0 flex-1 items-center gap-[10px]"
+            title="ID FOOT"
           >
-            <span className="sidebar-brand-icon">
-              <Fingerprint size={18} strokeWidth={2.5} />
-            </span>
-            <span className="sidebar-brand-text">
+            <AppLogo size="sm" className="sidebar-brand-logo rounded-md" />
+            <span className="sidebar-brand-text hidden min-[380px]:inline">
               <span className="sidebar-brand-id">ID </span>
               <span className="sidebar-brand-foot">FOOT</span>
             </span>
           </Link>
+
+          <button
+            type="button"
+            onClick={toggleSidebarCollapsed}
+            className="sidebar-toggle hidden lg:inline-flex"
+            aria-label={sidebarCollapsed ? "Ouvrir la barre latérale" : "Réduire la barre latérale"}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen size={18} strokeWidth={2} />
+            ) : (
+              <PanelLeftClose size={18} strokeWidth={2} />
+            )}
+          </button>
 
           <button
             type="button"
@@ -108,32 +154,33 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <AdminNav onNavigate={closeMenu} />
+        <AdminNav onNavigate={closeMenu} collapsed={sidebarCollapsed} />
 
-        <div className="mt-auto border-t border-white/[0.08] px-4 py-4">
+        <div className="sidebar-footer mt-auto border-t border-white/[0.08] px-4 py-4">
           {session?.user?.email && (
-            <div className="mb-3 flex items-center gap-2 px-3">
+            <div className="sidebar-user mb-3 flex items-center gap-2 px-3">
               <span className="user-avatar">{initials}</span>
-              <p className="min-w-0 truncate text-[11px] text-white/45">
+              <p className="sidebar-user-email min-w-0 truncate text-[11px] text-white/45">
                 {session.user.email}
               </p>
             </div>
           )}
 
-          <SidebarSignOut onNavigate={closeMenu} />
+          <SidebarSignOut onNavigate={closeMenu} collapsed={sidebarCollapsed} />
 
           <Link
             href="/"
             onClick={closeMenu}
             className="sidebar-nav-item mt-1"
+            title={sidebarCollapsed ? "Retour à l'accueil" : undefined}
           >
             <Home strokeWidth={2} size={16} />
-            Retour à l&apos;accueil
+            <span className="sidebar-nav-text">Retour à l&apos;accueil</span>
           </Link>
         </div>
       </aside>
 
-      <div className={`admin-main lg:ml-[240px] ${isScannerPage ? "admin-main--scanner" : ""}`}>
+      <div className={`admin-main ${isScannerPage ? "admin-main--scanner" : ""}`}>
         <header className="admin-topbar-sticky flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 lg:hidden">
           {backPath ? (
             <AdminBackButton className="admin-back-btn--on-dark" />
@@ -166,16 +213,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             className="admin-topbar-logo touch-target"
             aria-label="ID FOOT"
           >
-            <Image
-              src={brandAssets.logo}
-              alt=""
-              width={44}
-              height={44}
-              priority
-              unoptimized
-              className="admin-topbar-logo-image"
-            />
+            <AppLogo size="sm" className="admin-topbar-logo-image" />
           </Link>
+        </header>
+
+        <header className="admin-desktop-bar">
+          <button
+            type="button"
+            onClick={toggleSidebarCollapsed}
+            className="btn btn-ghost btn-icon admin-desktop-bar-toggle"
+            aria-label={sidebarCollapsed ? "Ouvrir la barre latérale" : "Réduire la barre latérale"}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen size={18} strokeWidth={2} />
+            ) : (
+              <PanelLeftClose size={18} strokeWidth={2} />
+            )}
+          </button>
         </header>
 
         <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>

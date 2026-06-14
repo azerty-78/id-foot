@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { brandAssets } from "@/lib/brand";
 
@@ -9,24 +8,30 @@ type AppLogoProps = {
 };
 
 const sizes = {
-  sm: { height: 42, width: 126 },
-  md: { height: 54, width: 162 },
-  lg: { height: 72, width: 216 },
-  xl: { height: 88, width: 264 },
+  sm: 42,
+  md: 54,
+  lg: 72,
+  xl: 88,
 };
 
+/**
+ * Logo servi en statique direct (/brand/logo.png) — pas via /_next/image,
+ * pour garantir l'affichage en dev, Docker standalone et derrière Nginx.
+ */
 export function AppLogo({ href, size = "md", className = "" }: AppLogoProps) {
   const dim = sizes[size];
 
   const image = (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src={brandAssets.logo}
       alt="ID FOOT"
-      width={dim.width}
-      height={dim.height}
-      priority
-      className={`h-auto w-auto object-contain ${className}`}
-      style={{ maxHeight: dim.height }}
+      width={dim}
+      height={dim}
+      decoding="async"
+      loading="eager"
+      className={`block shrink-0 object-contain ${className}`}
+      style={{ width: dim, height: dim }}
     />
   );
 
