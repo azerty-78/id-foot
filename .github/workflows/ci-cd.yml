@@ -375,9 +375,6 @@ jobs:
         github.ref == 'refs/heads/master' ||
         github.ref == 'refs/heads/main'
       )
-    environment:
-      name: production
-      url: ${{ vars.NEXT_PUBLIC_SITE_URL }}
     permissions:
       contents: read
     steps:

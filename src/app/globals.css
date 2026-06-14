@@ -422,19 +422,25 @@ body {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  background: transparent;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
 }
 
 .admin-topbar-logo-image {
-  height: 32px;
+  display: block;
+  height: 44px;
   width: auto;
-  max-width: 88px;
+  max-width: 120px;
   object-fit: contain;
+  background: transparent;
 }
 
 @media (min-width: 640px) {
   .admin-topbar-logo-image {
-    height: 36px;
-    max-width: 96px;
+    height: 48px;
+    max-width: 132px;
   }
 }
 

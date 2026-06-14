@@ -149,15 +149,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/dashboard"
-            className="admin-topbar-logo touch-target"
+            className="admin-topbar-logo"
             aria-label="ID FOOT"
           >
             <Image
               src={brandAssets.logo}
               alt=""
-              width={96}
-              height={36}
+              width={140}
+              height={48}
               priority
+              unoptimized
               className="admin-topbar-logo-image"
             />
           </Link>

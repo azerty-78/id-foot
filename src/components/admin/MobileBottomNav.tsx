@@ -20,7 +20,7 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/admin/dashboard", label: "Accueil", icon: LayoutDashboard },
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/competitions", label: "Compétitions", icon: Trophy },
   { href: "/admin/scanner", label: "Scanner", icon: QrCode, highlight: true },
   { href: "/admin/players", label: "Joueurs", icon: Users },
