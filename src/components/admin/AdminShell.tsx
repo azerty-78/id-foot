@@ -11,6 +11,7 @@ import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 import { brandAssets } from "@/lib/brand";
 
@@ -63,6 +64,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
   useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
+
+  useBodyScrollLock(menuOpen);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
