@@ -86,7 +86,7 @@ export function ScanSuccessOverlay({
             type="button"
             icon={ScanLine}
             onClick={onNextScan}
-            className="w-full"
+            className="scan-next-btn w-full"
           >
             Scanner le suivant
             <kbd className="scan-kbd">Entrée</kbd>
@@ -97,16 +97,16 @@ export function ScanSuccessOverlay({
               type="button"
               icon={CreditCard}
               onClick={() => setShowCard((value) => !value)}
-              className="flex-1"
+              className="scan-action-btn flex-1"
             >
-              {showCard ? "Vue identité" : "Afficher la carte"}
+              {showCard ? "Identité" : "Carte"}
             </GhostButton>
             <OutlineLink
               href={`/admin/players/${player.id}`}
               icon={UserRound}
-              className="flex-1"
+              className="scan-action-btn flex-1"
             >
-              Fiche complète
+              Fiche
             </OutlineLink>
           </div>
         </div>

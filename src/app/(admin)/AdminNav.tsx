@@ -33,10 +33,12 @@ function NavLink({
   item,
   isActive,
   onNavigate,
+  className = "",
 }: {
   item: NavItem;
   isActive: boolean;
   onNavigate?: () => void;
+  className?: string;
 }) {
   const Icon = item.icon;
 
@@ -44,7 +46,7 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""}`}
+      className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""} ${className}`}
     >
       <Icon strokeWidth={2} />
       {item.label}
@@ -78,6 +80,7 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
           item={item}
           isActive={isActive(item.href)}
           onNavigate={onNavigate}
+          className={item.href === "/admin/scanner" ? "sidebar-nav-item-scanner" : undefined}
         />
       ))}
     </nav>

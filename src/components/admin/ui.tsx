@@ -244,12 +244,12 @@ export function PageToolbar({
 }) {
   return (
     <div className="page-toolbar">
-      <div className="min-w-0">
+      <div className="page-toolbar-heading min-w-0">
         <p className="page-toolbar-title">{title}</p>
         {subtitle && <p className="page-toolbar-subtitle">{subtitle}</p>}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="page-toolbar-controls">
         {onSearchChange !== undefined && (
           <input
             type="search"
@@ -260,7 +260,7 @@ export function PageToolbar({
           />
         )}
         {action}
-        <span className="user-avatar" aria-hidden>
+        <span className="user-avatar hidden sm:inline-flex" aria-hidden>
           {userInitials}
         </span>
       </div>

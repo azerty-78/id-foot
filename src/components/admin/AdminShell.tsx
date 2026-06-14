@@ -1,10 +1,12 @@
 "use client";
 
-import { Fingerprint, Home, Menu } from "lucide-react";
+import { Fingerprint, Home, Menu, QrCode } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
+import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
 
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) {
@@ -20,6 +22,8 @@ function getInitials(name?: string | null, email?: string | null): string {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
   const { data: session } = useSession();
   const initials = getInitials(session?.user?.name, session?.user?.email);
 
@@ -98,30 +102,44 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="admin-main lg:ml-[240px]">
-        <header className="admin-topbar-sticky flex items-center justify-between px-4 py-3 lg:hidden">
+      <div className={`admin-main lg:ml-[240px] ${isScannerPage ? "admin-main--scanner" : ""}`}>
+        <header className="admin-topbar-sticky flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 lg:hidden">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
-            className="btn btn-ghost btn-icon"
+            className="btn btn-ghost btn-icon touch-target"
             aria-label="Ouvrir le menu"
           >
             <Menu size={18} strokeWidth={2} />
           </button>
 
-          <Link href="/admin/dashboard" className="text-[15px] font-bold tracking-wide">
-            <span className="text-navy">ID </span>
-            <span className="text-green">FOOT</span>
-          </Link>
+          {isScannerPage ? (
+            <Link href="/admin/scanner" className="scanner-topbar-brand flex items-center gap-1.5 text-[14px] font-bold tracking-wide">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-green/20 text-green">
+                <QrCode size={14} strokeWidth={2.5} aria-hidden />
+              </span>
+              <span className="text-white">Scan </span>
+              <span className="text-green">QR</span>
+            </Link>
+          ) : (
+            <Link href="/admin/dashboard" className="text-[15px] font-bold tracking-wide">
+              <span className="text-navy">ID </span>
+              <span className="text-green">FOOT</span>
+            </Link>
+          )}
 
-          <span className="user-avatar" aria-hidden>
+          <span className="user-avatar touch-target" aria-hidden>
             {initials}
           </span>
         </header>
 
-        <div className="admin-content-area">
-          <div className="mx-auto max-w-7xl">{children}</div>
+        <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>
+          <div className={`mx-auto max-w-7xl ${isScannerPage ? "h-full max-w-none" : ""}`}>
+            {children}
+          </div>
         </div>
+
+        <MobileBottomNav onOpenMenu={() => setMenuOpen(true)} />
       </div>
     </div>
   );

@@ -147,15 +147,20 @@ export function ScannerWorkspace() {
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
 
-      const viewportWidth = Math.min(window.innerWidth - 48, 520);
-      const boxSize = Math.max(220, Math.min(320, viewportWidth - 40));
+      const isMobile = window.innerWidth < 1024;
+      const viewportWidth = window.innerWidth - (isMobile ? 16 : 48);
+      const boxSize = Math.max(
+        isMobile ? 200 : 220,
+        Math.min(isMobile ? 280 : 320, viewportWidth - 32),
+      );
 
       await scanner.start(
         { facingMode: "environment" },
         {
-          fps: 16,
+          fps: isMobile ? 20 : 16,
           qrbox: { width: boxSize, height: boxSize },
           aspectRatio: 1,
+          disableFlip: false,
         },
         (decodedText) => {
           void lookupToken(decodedText);
@@ -204,27 +209,28 @@ export function ScannerWorkspace() {
   }, [manualOpen, phase, startScanner, stopScanner]);
 
   return (
-    <div className="scanner-workspace">
+    <div className="scanner-workspace scanner-workspace--mobile">
       <header className="scanner-toolbar">
-        <div>
-          <p className="scanner-toolbar-title">Contrôle d&apos;accès</p>
+        <div className="scanner-toolbar-copy">
+          <p className="scanner-toolbar-title">Scan en cours</p>
           <p className="scanner-toolbar-subtitle">
-            Scannez le QR code — validation instantanée
+            Pointez le QR code du joueur
           </p>
         </div>
 
         <div className="scanner-toolbar-actions">
           <span className="scanner-session-badge">
             <ShieldCheck size={16} aria-hidden />
-            {validatedCount} validé{validatedCount > 1 ? "s" : ""}
+            {validatedCount}
           </span>
           <GhostButton
             type="button"
             icon={Search}
             size="sm"
             onClick={() => setManualOpen(true)}
+            className="scanner-rescue-btn"
           >
-            Secours
+            <span className="scanner-rescue-label">Secours</span>
           </GhostButton>
         </div>
       </header>

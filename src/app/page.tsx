@@ -2,74 +2,98 @@ import { LayoutDashboard, LogIn, QrCode } from "lucide-react";
 import { AppLogo } from "@/components/brand/AppLogo";
 import { OutlineLink, PrimaryLink, SecondaryLink } from "@/components/admin/ui";
 
-export default function HomePage() {
-  return (
-    <div className="admin-shell flex min-h-screen flex-col">
-      <header className="border-b border-gray-200 bg-white/90 px-4 py-4 backdrop-blur-sm sm:px-8">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <AppLogo href="/" size="lg" />
+const footerLinks = [
+  { label: "Administration", href: "/admin/dashboard" },
+  { label: "Scanner QR", href: "/admin/scanner" },
+  { label: "Joueurs", href: "/admin/players" },
+  { label: "Compétitions", href: "/admin/competitions" },
+];
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <SecondaryLink href="/admin/signin" icon={LogIn} className="hidden sm:inline-flex">
+const featureCards = [
+  {
+    title: "Scanner QR",
+    text: "Contrôle d'accès rapide en compétition — validez chaque joueur en un scan.",
+    href: "/admin/scanner",
+    featured: true,
+  },
+  {
+    title: "Joueurs",
+    text: "Fiches complètes, photo, téléphone et numéro de maillot.",
+    href: "/admin/players",
+  },
+  {
+    title: "Clubs",
+    text: "Équipes rattachées aux compétitions avec effectifs.",
+    href: "/admin/teams",
+  },
+  {
+    title: "Compétitions",
+    text: "Organisation des tournois et saisons.",
+    href: "/admin/competitions",
+  },
+  {
+    title: "Cartes licence",
+    text: "PDF imprimable et QR code par joueur.",
+    href: "/admin/players/new",
+  },
+];
+
+export default function HomePage() {
+  const year = new Date().getFullYear();
+
+  return (
+    <div className="home-shell flex min-h-[100dvh] flex-col">
+      <header className="home-header">
+        <div className="home-header-inner">
+          <AppLogo href="/" size="md" className="sm:hidden" />
+          <AppLogo href="/" size="lg" className="hidden sm:block" />
+
+          <div className="home-header-actions">
+            <SecondaryLink href="/admin/signin" icon={LogIn} size="sm" className="hidden sm:inline-flex">
               Connexion
             </SecondaryLink>
-            <PrimaryLink href="/admin/dashboard" icon={LayoutDashboard} className="hidden sm:inline-flex">
-              Administration
+            <PrimaryLink href="/admin/scanner" icon={QrCode} size="sm" className="home-scan-cta">
+              Scanner
             </PrimaryLink>
           </div>
         </div>
       </header>
 
-      <main className="flex flex-1 items-center">
-        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 lg:grid-cols-2 lg:items-center lg:px-8">
-          <div>
+      <main className="home-main flex-1">
+        <div className="home-hero">
+          <div className="home-hero-content">
             <p className="text-section-label">KOBE Corporation</p>
-            <h1 className="text-h1 mt-4 max-w-xl">
-              Gérez les licences de vos joueurs en toute simplicité
+            <h1 className="text-h1 home-hero-title">
+              Licences joueurs & contrôle QR en compétition
             </h1>
-            <p className="text-body mt-5 max-w-xl">
-              Enregistrez les joueurs, générez leurs cartes PDF, scannez les QR codes
-              et administrez compétitions, clubs et effectifs depuis une interface unique.
+            <p className="text-body home-hero-text">
+              Scannez les QR codes à l&apos;entrée du terrain, validez les joueurs
+              instantanément et gérez compétitions, clubs et effectifs.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <PrimaryLink href="/admin/dashboard" icon={LayoutDashboard} className="w-full sm:w-auto">
-                Accéder à l&apos;administration
+            <div className="home-hero-actions">
+              <PrimaryLink href="/admin/scanner" icon={QrCode} className="w-full sm:w-auto">
+                Lancer le scanner QR
               </PrimaryLink>
-              <OutlineLink href="/admin/scanner" icon={QrCode} className="w-full sm:w-auto">
-                Scanner un QR code
+              <OutlineLink href="/admin/dashboard" icon={LayoutDashboard} className="w-full sm:w-auto">
+                Administration
               </OutlineLink>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {[
-              {
-                title: "Joueurs",
-                text: "Fiches complètes, photo, téléphone et numéro de maillot.",
-                href: "/admin/players",
-              },
-              {
-                title: "Clubs",
-                text: "Équipes rattachées aux compétitions avec effectifs.",
-                href: "/admin/teams",
-              },
-              {
-                title: "Compétitions",
-                text: "Organisation des tournois et saisons.",
-                href: "/admin/competitions",
-              },
-              {
-                title: "Cartes licence",
-                text: "PDF imprimable et QR code par joueur.",
-                href: "/admin/players/new",
-              },
-            ].map((item) => (
+          <div className="home-feature-grid">
+            {featureCards.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="admin-card block rounded-[var(--radius-xl)] p-5 transition hover:-translate-y-0.5 hover:border-green/30 hover:shadow-lg"
+                className={`home-feature-card ${item.featured ? "home-feature-card--scan" : ""}`}
               >
+                {item.featured && (
+                  <span className="home-feature-badge">
+                    <QrCode size={12} aria-hidden />
+                    Priorité terrain
+                  </span>
+                )}
                 <h2 className="text-h3">{item.title}</h2>
                 <p className="text-body mt-2">{item.text}</p>
               </a>
@@ -77,6 +101,31 @@ export default function HomePage() {
           </div>
         </div>
       </main>
+
+      <footer className="site-footer">
+        <div className="site-footer-inner">
+          <div className="site-footer-brand">
+            <AppLogo size="sm" />
+            <p className="site-footer-tagline">
+              Système d&apos;identification et de gestion des licences joueurs.
+            </p>
+          </div>
+
+          <nav className="site-footer-nav" aria-label="Navigation pied de page">
+            {footerLinks.map((link) => (
+              <a key={link.href} href={link.href} className="site-footer-link">
+                {link.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="site-footer-meta">
+            <p className="site-footer-copy">
+              © {year} KOBE Corporation · ID FOOT — Tous droits réservés
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
