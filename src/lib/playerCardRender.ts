@@ -55,15 +55,15 @@ export async function renderPlayerCardPng(
           ? [
               {
                 input: photoLayer,
-                left: layout.photoX,
-                top: layout.photoY,
+                left: Math.round(layout.photoX),
+                top: Math.round(layout.photoY),
               },
             ]
           : []),
         {
           input: qrLayer,
-          left: layout.qrLeft,
-          top: layout.qrTop,
+          left: Math.round(layout.qrLeft),
+          top: Math.round(layout.qrTop),
         },
       ])
       .png({ compressionLevel: 4, effort: 1 })

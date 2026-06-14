@@ -71,11 +71,11 @@ function computeLayout(): PlayerCardLayout {
   return {
     width: W,
     height: H,
-    photoX,
-    photoY,
+    photoX: Math.round(photoX),
+    photoY: Math.round(photoY),
     photoSize,
-    qrLeft: qrX + qrQuiet,
-    qrTop: qrY + qrQuiet,
+    qrLeft: Math.round(qrX + qrQuiet),
+    qrTop: Math.round(qrY + qrQuiet),
     qrInner,
   };
 }
