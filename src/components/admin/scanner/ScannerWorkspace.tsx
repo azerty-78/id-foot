@@ -8,7 +8,7 @@ import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 import { extractToken } from "./extractToken";
 import { ManualPlayerSearchPanel } from "./ManualPlayerSearchPanel";
 import { playErrorTone, playSuccessChime } from "./playScanSound";
-import { queryCameraPermission, markScannerCameraGranted } from "./scannerSession";
+import { queryCameraPermission, markScannerCameraGranted, subscribeCameraPermission, isCameraPermissionDeniedError, shouldAttemptCameraAutoStart } from "./scannerSession";
 import { RecentScansStrip } from "./RecentScansStrip";
 import { ScanSuccessOverlay } from "./ScanSuccessOverlay";
 import type { RecentScan, ScanPhase, ValidatedPlayer } from "./types";
@@ -22,6 +22,14 @@ const SCAN_BOX_MAX_DESKTOP = 300;
 const RESIZE_RESTART_DELTA = 48;
 
 type CameraStatus = "idle" | "needs-gesture" | "starting" | "active" | "denied";
+
+function waitForViewportPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
+}
 
 function computeScanBoxSize(
   viewfinderWidth: number,
@@ -87,6 +95,11 @@ export function ScannerWorkspace() {
   const startInFlightRef = useRef(false);
   const lastViewportSizeRef = useRef({ width: 0, height: 0 });
   const autoStartAttemptedRef = useRef(false);
+  const manualOpenRef = useRef(manualOpen);
+
+  useEffect(() => {
+    manualOpenRef.current = manualOpen;
+  }, [manualOpen]);
 
   const clearErrorTimer = useCallback(() => {
     if (errorTimerRef.current !== null) {
@@ -191,8 +204,8 @@ export function ScannerWorkspace() {
     }
   }, []);
 
-  const startScanner = useCallback(async () => {
-    if (scannerRef.current || startInFlightRef.current || manualOpen) return;
+  const startScanner = useCallback(async (): Promise<boolean> => {
+    if (scannerRef.current || startInFlightRef.current || manualOpen) return false;
 
     startInFlightRef.current = true;
     setCameraStatus("starting");
@@ -234,13 +247,21 @@ export function ScannerWorkspace() {
 
       setCameraStatus("active");
       markScannerCameraGranted();
-    } catch {
-      setCameraStatus("denied");
+      return true;
+    } catch (error) {
       await stopScanner();
+
+      const permission = await queryCameraPermission();
+      if (isCameraPermissionDeniedError(error) || permission === "denied") {
+        setCameraStatus(permission === "denied" ? "denied" : "needs-gesture");
+      } else {
+        setCameraStatus("needs-gesture");
+      }
+      return false;
     } finally {
       startInFlightRef.current = false;
     }
-  }, [lookupToken, manualOpen, showError, stopScanner]);
+  }, [lookupToken, manualOpen, stopScanner]);
 
   const requestCameraAccess = useCallback(() => {
     void startScanner();
@@ -283,20 +304,49 @@ export function ScannerWorkspace() {
     if (!sessionReady || autoStartAttemptedRef.current) return;
     autoStartAttemptedRef.current = true;
 
+    let unsubscribePermission = () => undefined;
+
     void (async () => {
+      await waitForViewportPaint();
+
       const permission = await queryCameraPermission();
-      const canAutoStart =
-        permission === "granted" ||
-        (wasCameraGrantedBefore() && permission !== "denied");
+
+      if (permission === "denied") {
+        setCameraStatus("denied");
+        return;
+      }
+
+      const grantedBefore = wasCameraGrantedBefore();
+      const canAutoStart = shouldAttemptCameraAutoStart(
+        permission,
+        grantedBefore,
+      );
 
       if (canAutoStart) {
-        void startScanner();
-      } else if (permission === "denied") {
-        setCameraStatus("denied");
+        const started = await startScanner();
+        if (!started) {
+          setCameraStatus("needs-gesture");
+        }
       } else {
         setCameraStatus("needs-gesture");
       }
+
+      unsubscribePermission = subscribeCameraPermission((state) => {
+        if (state !== "granted") return;
+        if (
+          scannerRef.current ||
+          startInFlightRef.current ||
+          manualOpenRef.current
+        ) {
+          return;
+        }
+        void startScanner();
+      });
     })();
+
+    return () => {
+      unsubscribePermission();
+    };
   }, [sessionReady, startScanner, wasCameraGrantedBefore]);
 
   useEffect(() => {
@@ -306,23 +356,22 @@ export function ScannerWorkspace() {
     }
 
     if (
+      sessionReady &&
       phase === "scanning" &&
       !scannerRef.current &&
       !startInFlightRef.current &&
-      (cameraStatus === "active" ||
-        cameraStatus === "idle" ||
-        cameraStatus === "starting")
+      cameraStatus === "active"
     ) {
       void startScanner();
     }
-  }, [manualOpen, phase, cameraStatus, startScanner, stopScanner]);
+  }, [manualOpen, phase, cameraStatus, sessionReady, startScanner, stopScanner]);
 
   useEffect(() => {
     function onVisibilityChange() {
       if (document.visibilityState !== "visible") return;
       if (manualOpen || phase !== "scanning") return;
-      if (cameraStatus === "needs-gesture" || cameraStatus === "denied") return;
-      if (!scannerRef.current) {
+      if (cameraStatus === "denied") return;
+      if (!scannerRef.current && !startInFlightRef.current) {
         void startScanner();
       }
     }

@@ -8,6 +8,12 @@ export type ScannerSessionSnapshot = {
   recentScans: RecentScan[];
 };
 
+export type CameraPermissionState =
+  | "granted"
+  | "denied"
+  | "prompt"
+  | "unknown";
+
 export function loadScannerSession(): ScannerSessionSnapshot {
   if (typeof window === "undefined") {
     return { validatedCount: 0, recentScans: [] };
@@ -43,6 +49,7 @@ export function markScannerCameraGranted(): void {
 
   try {
     sessionStorage.setItem(CAMERA_GRANTED_KEY, "1");
+    localStorage.setItem(CAMERA_GRANTED_KEY, "1");
   } catch {
     // ignore
   }
@@ -51,12 +58,17 @@ export function markScannerCameraGranted(): void {
 export function wasScannerCameraGranted(): boolean {
   if (typeof window === "undefined") return false;
 
-  return sessionStorage.getItem(CAMERA_GRANTED_KEY) === "1";
+  try {
+    return (
+      sessionStorage.getItem(CAMERA_GRANTED_KEY) === "1" ||
+      localStorage.getItem(CAMERA_GRANTED_KEY) === "1"
+    );
+  } catch {
+    return false;
+  }
 }
 
-export async function queryCameraPermission(): Promise<
-  "granted" | "denied" | "prompt" | "unknown"
-> {
+export async function queryCameraPermission(): Promise<CameraPermissionState> {
   if (typeof navigator === "undefined" || !navigator.permissions?.query) {
     return "unknown";
   }
@@ -69,4 +81,50 @@ export async function queryCameraPermission(): Promise<
   } catch {
     return "unknown";
   }
+}
+
+export function subscribeCameraPermission(
+  onChange: (state: CameraPermissionState) => void,
+): () => void {
+  if (typeof navigator === "undefined" || !navigator.permissions?.query) {
+    return () => undefined;
+  }
+
+  let status: PermissionStatus | null = null;
+  const handler = () => onChange(status?.state ?? "unknown");
+
+  void navigator.permissions
+    .query({ name: "camera" as PermissionName })
+    .then((result) => {
+      status = result;
+      result.addEventListener("change", handler);
+      onChange(result.state);
+    })
+    .catch(() => undefined);
+
+  return () => {
+    status?.removeEventListener("change", handler);
+  };
+}
+
+export function isCameraPermissionDeniedError(error: unknown): boolean {
+  if (!(error instanceof DOMException)) return false;
+
+  return (
+    error.name === "NotAllowedError" ||
+    error.name === "PermissionDeniedError" ||
+    error.name === "SecurityError"
+  );
+}
+
+export function shouldAttemptCameraAutoStart(
+  permission: CameraPermissionState,
+  wasGrantedBefore: boolean,
+): boolean {
+  if (permission === "denied") return false;
+  if (permission === "granted") return true;
+  if (wasGrantedBefore) return true;
+
+  // iOS / Android renvoient souvent "prompt" ou "unknown" même après accord.
+  return permission === "prompt" || permission === "unknown";
 }
