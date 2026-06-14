@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handlePrismaError, jsonError } from "@/lib/api/http";
+import { toJoueurDbFields, validateJoueur } from "@/lib/validators";
 import { parseCreateJoueurInput } from "@/types/player";
 
 const joueurInclude = {
@@ -60,26 +61,13 @@ export async function POST(req: NextRequest) {
       return jsonError("Données invalides.");
     }
 
-    const numero = Number.parseInt(String(input.numero), 10);
-    const dateNaissance = new Date(input.dateNaissance);
-
-    if (Number.isNaN(numero) || Number.isNaN(dateNaissance.getTime())) {
-      return jsonError("Numéro ou date de naissance invalide.");
+    const validation = validateJoueur(input);
+    if (!validation.valid) {
+      return jsonError(validation.errors[0] ?? "Données invalides.");
     }
 
     const joueur = await prisma.joueur.create({
-      data: {
-        nom: input.nom,
-        prenom: input.prenom,
-        dateNaissance,
-        nationalite: input.nationalite,
-        sexe: input.sexe,
-        telephone: input.telephone,
-        numero,
-        poste: input.poste,
-        photo: input.photo ?? null,
-        equipeId: input.equipeId,
-      },
+      data: toJoueurDbFields(input),
       include: { equipe: true },
     });
 

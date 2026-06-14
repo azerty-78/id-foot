@@ -9,8 +9,8 @@ export type PlayerLicenseCardPlayer = {
   id: string;
   nom: string;
   prenom: string;
-  numero: number;
-  poste: string;
+  numero: number | null;
+  poste: string | null;
   photo: string | null;
   qrToken: string;
   equipe: {
@@ -67,8 +67,10 @@ export function PlayerLicenseCard({
             {player.prenom} {player.nom}
           </p>
           <p className="player-license-card-meta">
-            <span className="player-license-card-numero">#{player.numero}</span>
-            <span>{player.poste}</span>
+            {player.numero != null && (
+              <span className="player-license-card-numero">#{player.numero}</span>
+            )}
+            {player.poste && <span>{player.poste}</span>}
           </p>
           <p className="player-license-card-team">{player.equipe.nom}</p>
         </div>

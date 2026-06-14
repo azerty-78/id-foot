@@ -2,8 +2,8 @@ export type ValidatedPlayer = {
   id: string;
   nom: string;
   prenom: string;
-  numero: number;
-  poste: string;
+  numero: number | null;
+  poste: string | null;
   photo: string | null;
   qrToken: string;
   equipe: {

@@ -54,18 +54,30 @@ export function validateJoueur(data: unknown): ValidationResult {
     errors.push("Le prénom est requis (minimum 2 caractères).");
   }
 
-  const dateNaissanceRaw = data.dateNaissance;
-  const dateNaissance =
-    typeof dateNaissanceRaw === "string" || dateNaissanceRaw instanceof Date
-      ? new Date(dateNaissanceRaw)
-      : null;
+  if (!isValidUuid(data.equipeId)) {
+    errors.push("Veuillez sélectionner un club (équipe).");
+  }
 
-  if (!dateNaissance || Number.isNaN(dateNaissance.getTime())) {
-    errors.push("La date de naissance est requise et doit être valide.");
-  } else {
-    const age = calculateAge(dateNaissance);
-    if (age < 5 || age > 99) {
-      errors.push("La date de naissance doit correspondre à un âge entre 5 et 99 ans.");
+  const dateNaissanceRaw = data.dateNaissance;
+  if (
+    dateNaissanceRaw !== null &&
+    dateNaissanceRaw !== undefined &&
+    dateNaissanceRaw !== ""
+  ) {
+    const dateNaissance =
+      typeof dateNaissanceRaw === "string" || dateNaissanceRaw instanceof Date
+        ? new Date(dateNaissanceRaw)
+        : null;
+
+    if (!dateNaissance || Number.isNaN(dateNaissance.getTime())) {
+      errors.push("La date de naissance doit être valide.");
+    } else {
+      const age = calculateAge(dateNaissance);
+      if (age < 5 || age > 99) {
+        errors.push(
+          "La date de naissance doit correspondre à un âge entre 5 et 99 ans.",
+        );
+      }
     }
   }
 
@@ -75,24 +87,26 @@ export function validateJoueur(data: unknown): ValidationResult {
   }
 
   const numeroRaw = data.numero;
-  const numero =
-    typeof numeroRaw === "number"
-      ? numeroRaw
-      : typeof numeroRaw === "string" && numeroRaw.trim()
-        ? Number.parseInt(numeroRaw, 10)
-        : Number.NaN;
+  if (
+    numeroRaw !== null &&
+    numeroRaw !== undefined &&
+    numeroRaw !== ""
+  ) {
+    const numero =
+      typeof numeroRaw === "number"
+        ? numeroRaw
+        : typeof numeroRaw === "string" && numeroRaw.trim()
+          ? Number.parseInt(numeroRaw, 10)
+          : Number.NaN;
 
-  if (!Number.isInteger(numero) || numero < 1 || numero > 99) {
-    errors.push("Le numéro de maillot est requis (entier entre 1 et 99).");
+    if (!Number.isInteger(numero) || numero < 1 || numero > 99) {
+      errors.push("Le numéro de maillot doit être un entier entre 1 et 99.");
+    }
   }
 
   const poste = getString(data.poste);
-  if (!poste || !POSTES.includes(poste as (typeof POSTES)[number])) {
-    errors.push("Le poste est requis (Gardien, Défenseur, Milieu ou Attaquant).");
-  }
-
-  if (!isValidUuid(data.equipeId)) {
-    errors.push("Veuillez sélectionner un club (équipe).");
+  if (poste && !POSTES.includes(poste as (typeof POSTES)[number])) {
+    errors.push("Le poste doit être Gardien, Défenseur, Milieu ou Attaquant.");
   }
 
   return { valid: errors.length === 0, errors };
@@ -148,4 +162,51 @@ export function validateCompetition(data: unknown): ValidationResult {
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+function parseOptionalNumero(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+
+  const numero =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim()
+        ? Number.parseInt(value, 10)
+        : Number.NaN;
+
+  return Number.isInteger(numero) ? numero : null;
+}
+
+function parseOptionalDate(value: unknown): Date | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "string") return null;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function toJoueurDbFields(input: {
+  nom: string;
+  prenom: string;
+  dateNaissance?: string | null;
+  nationalite?: string | null;
+  sexe?: string | null;
+  telephone?: string | null;
+  numero?: number | string | null;
+  poste?: string | null;
+  photo?: string | null;
+  equipeId: string;
+}) {
+  return {
+    nom: input.nom,
+    prenom: input.prenom,
+    dateNaissance: parseOptionalDate(input.dateNaissance),
+    nationalite: input.nationalite ?? null,
+    sexe: input.sexe ?? null,
+    telephone: input.telephone ?? null,
+    numero: parseOptionalNumero(input.numero),
+    poste: input.poste?.trim() || null,
+    photo: input.photo ?? null,
+    equipeId: input.equipeId,
+  };
 }

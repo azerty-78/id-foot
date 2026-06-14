@@ -2,7 +2,6 @@
 
 import { CreditCard, Download, Eye, Trash2, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { PlayerSectionNav } from "@/components/admin/PlayerSectionNav";
 import {
   AdminCard,
   AdminTable,
@@ -117,8 +116,6 @@ export default function PlayersPage() {
         }
       />
 
-      <PlayerSectionNav />
-
       <AdminCard className="mb-6 p-4">
         <label htmlFor="equipe-filter" className="field-label">
           Filtrer par équipe
@@ -168,8 +165,12 @@ export default function PlayersPage() {
                       {player.equipe.nom} · {player.equipe.competition.nom}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      <StatusBadge tone="navy">#{player.numero}</StatusBadge>
-                      <StatusBadge tone="navy">{player.poste}</StatusBadge>
+                      {player.numero != null && (
+                        <StatusBadge tone="navy">#{player.numero}</StatusBadge>
+                      )}
+                      {player.poste && (
+                        <StatusBadge tone="navy">{player.poste}</StatusBadge>
+                      )}
                     </div>
                     {player.telephone && (
                       <p className="mt-2 text-sm text-slate-600">{player.telephone}</p>
@@ -231,11 +232,19 @@ export default function PlayersPage() {
                       {player.prenom} {player.nom}
                     </td>
                     <td>
-                      <StatusBadge tone="navy">#{player.numero}</StatusBadge>
+                      {player.numero != null ? (
+                        <StatusBadge tone="navy">#{player.numero}</StatusBadge>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td>{player.telephone ?? "—"}</td>
                     <td>
-                      <StatusBadge tone="navy">{player.poste}</StatusBadge>
+                      {player.poste ? (
+                        <StatusBadge tone="navy">{player.poste}</StatusBadge>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td>{player.equipe.nom}</td>
                     <td>{player.equipe.competition.nom}</td>

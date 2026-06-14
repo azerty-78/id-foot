@@ -25,19 +25,19 @@ model Equipe {
 }
 
 model Joueur {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   nom           String
   prenom        String
-  dateNaissance DateTime
+  dateNaissance DateTime?
   nationalite   String?
   sexe          String?
   telephone     String?
-  numero        Int
-  poste         String
+  numero        Int?
+  poste         String?
   photo         String?
-  qrToken       String   @unique @default(uuid())
+  qrToken       String    @unique @default(uuid())
   equipeId      String
-  equipe        Equipe   @relation(fields: [equipeId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  equipe        Equipe    @relation(fields: [equipeId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

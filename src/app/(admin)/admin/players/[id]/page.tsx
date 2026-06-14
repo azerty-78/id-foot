@@ -21,7 +21,8 @@ import {
   PrimaryButton,
 } from "@/components/admin/ui";
 
-function formatDate(value: string): string {
+function formatDate(value: string | null): string {
+  if (!value) return "—";
   return new Date(value).toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "long",
@@ -115,8 +116,8 @@ export default function PlayerDetailPage() {
     { label: "Nationalité", value: player.nationalite ?? "—" },
     { label: "Sexe", value: player.sexe ?? "—" },
     { label: "Téléphone", value: player.telephone ?? "—" },
-    { label: "Numéro de maillot", value: String(player.numero) },
-    { label: "Poste", value: player.poste },
+    { label: "Numéro de maillot", value: player.numero != null ? String(player.numero) : "—" },
+    { label: "Poste", value: player.poste ?? "—" },
     { label: "Photo", value: player.photo ?? "—" },
     { label: "QR Token", value: player.qrToken },
     { label: "Équipe", value: player.equipe.nom },
@@ -140,8 +141,8 @@ export default function PlayerDetailPage() {
           <PlayerIdentityCard
             prenom={player.prenom}
             nom={player.nom}
-            numero={player.numero}
-            poste={player.poste}
+            numero={player.numero ?? ""}
+            poste={player.poste ?? ""}
             equipe={player.equipe.nom}
             photo={player.photo}
             qrValue={qrValue}

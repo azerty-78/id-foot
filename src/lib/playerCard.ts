@@ -1,6 +1,5 @@
 import path from "path";
 import { jsPDF, GState, type jsPDF as JsPDFType } from "jspdf";
-import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { generateQRCode } from "@/lib/qrcode";
 
@@ -11,8 +10,8 @@ type JoueurForCard = {
   id: string;
   nom: string;
   prenom: string;
-  numero: number;
-  poste: string;
+  numero: number | null;
+  poste: string | null;
   photo: string | null;
   qrToken: string;
   equipe: {
@@ -28,6 +27,7 @@ async function loadPhotoDataUrl(relativePath: string): Promise<string | null> {
       "public",
       relativePath.replace(/^\//, ""),
     );
+    const sharp = (await import("sharp")).default;
     const pngBuffer = await sharp(filepath).png().toBuffer();
 
     return `data:image/png;base64,${pngBuffer.toString("base64")}`;
@@ -49,9 +49,11 @@ function drawPlayerCardOnDoc(
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(52);
-  doc.text(String(joueur.numero), CARD_WIDTH / 2, CARD_HEIGHT / 2, {
-    align: "center",
-  });
+  if (joueur.numero != null) {
+    doc.text(String(joueur.numero), CARD_WIDTH / 2, CARD_HEIGHT / 2, {
+      align: "center",
+    });
+  }
   doc.setGState(new GState({ opacity: 1 }));
 
   doc.setFont("helvetica", "bold");
@@ -83,7 +85,13 @@ function drawPlayerCardOnDoc(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(255, 215, 0);
-  doc.text(`#${joueur.numero} · ${joueur.poste}`, textX, 24);
+  const metaParts = [
+    joueur.numero != null ? `#${joueur.numero}` : null,
+    joueur.poste,
+  ].filter(Boolean);
+  if (metaParts.length > 0) {
+    doc.text(metaParts.join(" · "), textX, 24);
+  }
 
   doc.setTextColor(255, 255, 255);
   doc.text(joueur.equipe.nom, textX, 30);

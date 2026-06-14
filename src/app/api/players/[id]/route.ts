@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handlePrismaError } from "@/lib/api/http";
+import { handlePrismaError, jsonError } from "@/lib/api/http";
+import { toJoueurDbFields, validateJoueur } from "@/lib/validators";
+import { parseCreateJoueurInput } from "@/types/player";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
-};
-
-type UpdateJoueurBody = {
-  nom: string;
-  prenom: string;
-  dateNaissance: string;
-  nationalite?: string | null;
-  sexe?: string | null;
-  telephone?: string | null;
-  numero: number | string;
-  poste: string;
-  photo?: string | null;
-  equipeId: string;
 };
 
 const joueurInclude = {
@@ -44,31 +33,21 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const body = (await req.json()) as UpdateJoueurBody;
-    const numero = Number.parseInt(String(body.numero), 10);
-    const dateNaissance = new Date(body.dateNaissance);
+    const body = await req.json();
+    const input = parseCreateJoueurInput(body);
 
-    if (Number.isNaN(numero) || Number.isNaN(dateNaissance.getTime())) {
-      return NextResponse.json(
-        { error: "Numéro ou date de naissance invalide." },
-        { status: 400 }
-      );
+    if (!input) {
+      return jsonError("Données invalides.");
+    }
+
+    const validation = validateJoueur(input);
+    if (!validation.valid) {
+      return jsonError(validation.errors[0] ?? "Données invalides.");
     }
 
     const joueur = await prisma.joueur.update({
       where: { id },
-      data: {
-        nom: body.nom,
-        prenom: body.prenom,
-        dateNaissance,
-        nationalite: body.nationalite ?? null,
-        sexe: body.sexe ?? null,
-        telephone: body.telephone ?? null,
-        numero,
-        poste: body.poste,
-        photo: body.photo ?? null,
-        equipeId: body.equipeId,
-      },
+      data: toJoueurDbFields(input),
       include: joueurInclude,
     });
 

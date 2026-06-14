@@ -3,7 +3,6 @@
 import { Download, FileDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
-import { PlayerSectionNav } from "@/components/admin/PlayerSectionNav";
 import {
   AdminCard,
   EmptyState,
@@ -120,8 +119,6 @@ export default function PlayerCardsPage() {
           </PrimaryButton>
         }
       />
-
-      <PlayerSectionNav />
 
       <AdminCard className="mb-6 p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

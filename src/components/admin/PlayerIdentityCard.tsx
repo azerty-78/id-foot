@@ -4,8 +4,8 @@ import { QRCodeSVG } from "qrcode.react";
 type PlayerIdentityCardProps = {
   prenom: string;
   nom: string;
-  numero: number | string;
-  poste: string;
+  numero: number | string | null;
+  poste: string | null;
   equipe: string;
   photo?: string | null;
   qrValue?: string;
@@ -27,7 +27,7 @@ export function PlayerIdentityCard({
   className = "",
 }: PlayerIdentityCardProps) {
   const displayName = [prenom, nom].filter(Boolean).join(" ").trim() || "Joueur";
-  const numeroStr = String(numero);
+  const numeroStr = numero != null && numero !== "" ? String(numero) : "";
 
   return (
     <div className={`card-navy relative overflow-hidden ${className}`}>

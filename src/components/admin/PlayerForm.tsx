@@ -105,11 +105,13 @@ export function PlayerForm({
     setValues({
       prenom: initialPlayer.prenom,
       nom: initialPlayer.nom,
-      dateNaissance: toDateInputValue(initialPlayer.dateNaissance),
+      dateNaissance: initialPlayer.dateNaissance
+        ? toDateInputValue(initialPlayer.dateNaissance)
+        : "",
       nationalite: initialPlayer.nationalite ?? "",
       sexe: initialPlayer.sexe ?? "",
       telephone: initialPlayer.telephone ?? "",
-      numeroMaillot: String(initialPlayer.numero),
+      numeroMaillot: initialPlayer.numero != null ? String(initialPlayer.numero) : "",
       poste: initialPlayer.poste,
       equipeId: initialPlayer.equipeId,
     });
@@ -179,12 +181,14 @@ export function PlayerForm({
     const payload = {
       prenom: values.prenom.trim(),
       nom: values.nom.trim(),
-      dateNaissance: values.dateNaissance,
+      dateNaissance: values.dateNaissance.trim() || null,
       nationalite: values.nationalite.trim() || null,
       sexe: values.sexe.trim() || null,
       telephone: values.telephone.trim() || null,
-      numero: Number.parseInt(values.numeroMaillot, 10),
-      poste: values.poste,
+      numero: values.numeroMaillot.trim()
+        ? Number.parseInt(values.numeroMaillot, 10)
+        : null,
+      poste: values.poste.trim() || null,
       equipeId: values.equipeId,
     };
 
@@ -312,7 +316,7 @@ export function PlayerForm({
               <FormInput
                 id="dateNaissance"
                 label="Date de naissance"
-                required
+                hint="Optionnel."
                 error={errors.dateNaissance}
               >
                 <input
@@ -391,9 +395,8 @@ export function PlayerForm({
             <FormInput
               id="numeroMaillot"
               label="Numéro de maillot"
-              required
               error={errors.numeroMaillot}
-              hint="Numéro sur le dos du maillot (1 à 99)."
+              hint="Optionnel — numéro sur le dos du maillot (1 à 99)."
             >
               <input
                 id="numeroMaillot"
@@ -408,7 +411,9 @@ export function PlayerForm({
             </FormInput>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-slate-700">Poste *</p>
+              <p className="mb-2 text-sm font-medium text-slate-700">
+                Poste <span className="font-normal text-slate-400">(optionnel)</span>
+              </p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {POSTES.map((item) => {
                   const active = values.poste === item;

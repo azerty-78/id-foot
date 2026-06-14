@@ -25,12 +25,12 @@ export type Player = {
   id: string;
   nom: string;
   prenom: string;
-  dateNaissance: string;
+  dateNaissance: string | null;
   nationalite: string | null;
   sexe: string | null;
   telephone: string | null;
-  numero: number;
-  poste: string;
+  numero: number | null;
+  poste: string | null;
   photo: string | null;
   qrToken: string;
   equipeId: string;

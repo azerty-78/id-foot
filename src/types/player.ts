@@ -6,12 +6,12 @@ export type Poste = (typeof POSTES)[number];
 export type CreateJoueurInput = {
   nom: string;
   prenom: string;
-  dateNaissance: string;
+  dateNaissance?: string | null;
   nationalite?: string | null;
   sexe?: string | null;
   telephone?: string | null;
-  numero: number | string;
-  poste: string;
+  numero?: number | string | null;
+  poste?: string | null;
   photo?: string | null;
   equipeId: string;
 };
@@ -20,26 +20,27 @@ export function parseCreateJoueurInput(body: unknown): CreateJoueurInput | null 
   if (!body || typeof body !== "object") return null;
 
   const data = body as Record<string, unknown>;
-  const { nom, prenom, dateNaissance, numero, poste, equipeId } = data;
+  const { nom, prenom, equipeId } = data;
 
   if (
     typeof nom !== "string" ||
     typeof prenom !== "string" ||
-    typeof dateNaissance !== "string" ||
-    typeof poste !== "string" ||
-    typeof equipeId !== "string" ||
-    (typeof numero !== "number" && typeof numero !== "string")
+    typeof equipeId !== "string"
   ) {
     return null;
   }
 
+  const dateRaw = data.dateNaissance;
+  const numeroRaw = data.numero;
+  const posteRaw = data.poste;
   const sexeRaw = data.sexe;
   const telephoneRaw = data.telephone;
 
   return {
     nom: nom.trim(),
     prenom: prenom.trim(),
-    dateNaissance,
+    dateNaissance:
+      typeof dateRaw === "string" && dateRaw.trim() ? dateRaw.trim() : null,
     nationalite:
       typeof data.nationalite === "string" && data.nationalite.trim()
         ? data.nationalite.trim()
@@ -50,8 +51,12 @@ export function parseCreateJoueurInput(body: unknown): CreateJoueurInput | null 
       typeof telephoneRaw === "string" && telephoneRaw.trim()
         ? telephoneRaw.trim()
         : null,
-    numero,
-    poste: poste.trim(),
+    numero:
+      typeof numeroRaw === "number" || typeof numeroRaw === "string"
+        ? numeroRaw
+        : null,
+    poste:
+      typeof posteRaw === "string" && posteRaw.trim() ? posteRaw.trim() : null,
     photo: typeof data.photo === "string" ? data.photo : null,
     equipeId,
   };
