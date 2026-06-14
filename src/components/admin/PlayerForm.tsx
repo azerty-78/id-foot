@@ -195,19 +195,19 @@ export function PlayerForm({
 
     submitLockRef.current = true;
     setSubmitting(true);
-    setSubmitMessage("Vérification des données…");
+    setSubmitMessage(photoFile ? "Envoi de la photo…" : (
+      mode === "create" ? "Création du joueur…" : "Mise à jour du joueur…"
+    ));
 
     try {
       let photoUrl = currentPhotoUrl;
 
       if (photoFile) {
-        setSubmitMessage("Envoi de la photo…");
         photoUrl = await uploadPhoto(photoFile);
+        setSubmitMessage(
+          mode === "create" ? "Création du joueur…" : "Mise à jour du joueur…",
+        );
       }
-
-      setSubmitMessage(
-        mode === "create" ? "Création du joueur…" : "Mise à jour du joueur…",
-      );
 
       const url =
         mode === "create" ? "/api/players" : `/api/players/${playerId}`;
@@ -519,17 +519,20 @@ export function PlayerForm({
             )}
           </FormSection>
 
+          </fieldset>
+
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            <OutlineLink href={cancelHref} icon={X}>
+            <OutlineLink href={cancelHref} icon={X} tabIndex={submitting ? -1 : undefined}>
               Annuler
             </OutlineLink>
             <PrimaryButton
               type="submit"
               icon={Save}
-              disabled={submitting || teams.length === 0}
+              loading={submitting}
+              disabled={teams.length === 0}
             >
               {submitting
-                ? "Enregistrement..."
+                ? "Enregistrement…"
                 : mode === "create"
                   ? "Enregistrer le joueur"
                   : "Enregistrer les modifications"}

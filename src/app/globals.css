@@ -543,6 +543,7 @@ body {
 
 .form-card-busy {
   position: relative;
+  overflow: hidden;
 }
 
 .form-card-busy fieldset:disabled {
