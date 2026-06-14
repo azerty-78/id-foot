@@ -42,7 +42,7 @@ export default function HomePage() {
   const year = new Date().getFullYear();
 
   return (
-    <div className="home-shell flex min-h-[100dvh] flex-col">
+    <div className="home-shell flex flex-col">
       <header className="home-header">
         <div className="home-header-inner">
           <AppLogo href="/" size="md" className="sm:hidden" />
