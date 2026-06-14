@@ -67,7 +67,7 @@
   --color-brand-dark: var(--brand-dark);
   --color-brand-light: var(--brand-light);
   --color-gold: var(--gold);
-  --font-sans: var(--font-inter);
+  --font-sans: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 /* ── Typographie ── */
@@ -116,7 +116,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.7;
   color: var(--gray-600);
