@@ -31,6 +31,8 @@
   --mobile-topbar-h: 52px;
   --mobile-bottomnav-h: calc(64px + env(safe-area-inset-bottom, 0px));
   --admin-content-padding-mobile: 12px;
+  --app-height: 100vh;
+  --app-height: 100dvh;
 
   /* Alias rétrocompatibilité composants existants */
   --background: var(--gray-50);
@@ -72,6 +74,35 @@
   --color-brand-light: var(--brand-light);
   --color-gold: var(--gold);
   --font-sans: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ── Compatibilité Chrome / Safari / Firefox ── */
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100vh;
+  min-height: var(--app-height);
+  min-height: -webkit-fill-available;
+  background: var(--background);
+  color: var(--gray-600);
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 1023px) {
+  .admin-input,
+  .admin-select,
+  .admin-textarea,
+  .page-toolbar-search,
+  .scan-manual-input {
+    font-size: 16px;
+  }
 }
 
 /* ── Typographie ── */
@@ -131,17 +162,6 @@
   box-shadow: inset 0 0 0 1px rgba(57, 231, 95, 0.22);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--gray-600);
-  -webkit-tap-highlight-color: transparent;
-  text-size-adjust: 100%;
-}
-
 /* ── Layout admin ── */
 .admin-shell {
   background: var(--gray-50);
@@ -150,12 +170,14 @@ body {
 .admin-layout {
   display: flex;
   min-height: 100vh;
+  min-height: var(--app-height);
   background: var(--gray-50);
 }
 
 .admin-main {
   display: flex;
   min-height: 100vh;
+  min-height: var(--app-height);
   flex: 1;
   flex-direction: column;
 }
@@ -591,6 +613,7 @@ body {
   gap: 12px;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   padding: 24px;
   text-align: center;
@@ -1278,6 +1301,7 @@ body {
   justify-content: center;
   padding: 20px;
   background: rgba(13, 27, 42, 0.88);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   pointer-events: auto;
 }
@@ -1910,6 +1934,7 @@ body {
   border-top: 1px solid var(--gray-200);
   background: rgba(255, 255, 255, 0.96);
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: 0 -4px 20px rgba(13, 27, 42, 0.08);
 }
@@ -2049,6 +2074,9 @@ body {
 }
 
 .home-shell {
+  min-height: 100vh;
+  min-height: var(--app-height);
+  min-height: -webkit-fill-available;
   background: var(--gray-50);
 }
 
@@ -2060,6 +2088,7 @@ body {
   background: rgba(255, 255, 255, 0.94);
   padding: 10px 12px;
   padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
@@ -2152,6 +2181,7 @@ body {
 .scanner-page {
   display: flex;
   height: 100%;
+  min-height: calc(100vh - var(--mobile-topbar-h) - var(--mobile-bottomnav-h));
   min-height: calc(100dvh - var(--mobile-topbar-h) - var(--mobile-bottomnav-h));
   flex-direction: column;
 }
@@ -2181,6 +2211,7 @@ body {
 }
 
 .scanner-viewport {
+  height: calc(100vh - var(--mobile-topbar-h) - var(--mobile-bottomnav-h) - 120px);
   height: calc(100dvh - var(--mobile-topbar-h) - var(--mobile-bottomnav-h) - 120px);
   min-height: 280px;
   border-radius: var(--radius-lg);
@@ -2205,6 +2236,7 @@ body {
 
 .scan-success-panel {
   max-width: none;
+  max-height: 88vh;
   max-height: 88dvh;
   overflow-y: auto;
   border-bottom-left-radius: 0;
@@ -2236,6 +2268,7 @@ body {
 }
 
 .scan-manual-panel {
+  max-height: min(85vh, 640px);
   max-height: min(85dvh, 640px);
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
@@ -2561,13 +2594,18 @@ body {
 }
 
 .player-license-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--radius-xl);
-  background: linear-gradient(145deg, var(--green), var(--navy));
+  background: linear-gradient(135deg, #1a472a 0%, var(--navy) 58%, #0d1b2a 100%);
   color: white;
-  box-shadow: var(--shadow-green);
+  box-shadow:
+    0 4px 24px rgba(13, 27, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  aspect-ratio: 85 / 54;
+  min-width: min(100%, 320px);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -2575,110 +2613,185 @@ body {
 
 .player-license-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(26, 71, 42, 0.28);
+  box-shadow:
+    0 12px 36px rgba(26, 71, 42, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.player-license-card-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(4rem, 18vw, 6.5rem);
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  user-select: none;
 }
 
 .player-license-card-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.12);
-  padding: 10px 14px;
-  text-align: center;
-}
-
-.player-license-card-header p {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--green);
-}
-
-.player-license-card-body {
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 12px;
-  padding: 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+}
+
+.player-license-card-brand {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--green);
+  padding: 3px 8px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--navy);
+}
+
+.player-license-card-competition {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+  text-align: right;
+}
+
+.player-license-card-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 0;
 }
 
 .player-license-card-photo {
   display: flex;
-  height: 72px;
-  width: 72px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.12);
-  font-size: 20px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 18px;
   font-weight: 700;
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+}
+
+.player-license-card-info {
+  min-width: 0;
+  flex: 1;
 }
 
 .player-license-card-name {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.25;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .player-license-card-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 13px;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--green);
 }
 
 .player-license-card-numero {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 900;
   line-height: 1;
 }
 
 .player-license-card-team {
-  margin-top: 8px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.78);
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
 }
 
-.player-license-card-footer {
+.player-license-card-qr-zone {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.1);
-  padding: 12px 14px;
-}
-
-.player-license-card-qr-wrap {
-  display: flex;
+  flex-shrink: 0;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 4px;
 }
 
-.player-license-card-qr-label {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+.player-license-card-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  padding: 4px;
+  box-shadow:
+    0 0 0 2px var(--green),
+    0 4px 16px rgba(0, 0, 0, 0.28);
 }
 
-.player-license-card-qr {
-  border-radius: var(--radius-sm);
-  background: white;
-  padding: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.player-license-card-scan-hint {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.player-license-card-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 6px 12px;
+}
+
+.player-license-card-licence {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .player-license-card-id {
-  font-size: 10px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 9px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.player-license-card--compact .player-license-card-name {
+  font-size: 13px;
+}
+
+.player-license-card--compact .player-license-card-numero {
+  font-size: 14px;
 }
 
 .player-license-card-actions {
@@ -2734,6 +2847,7 @@ body {
   z-index: 1;
   width: 100%;
   max-width: 480px;
+  max-height: 88vh;
   max-height: 88dvh;
   overflow-y: auto;
   border-top-left-radius: var(--radius-xl);
@@ -2772,7 +2886,7 @@ body {
 
 .card-preview-sheet-body .player-license-card {
   width: 100%;
-  max-width: 340px;
+  max-width: 400px;
 }
 
 .card-preview-sheet-footer {

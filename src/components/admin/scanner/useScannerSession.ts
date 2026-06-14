@@ -17,9 +17,11 @@ export function useScannerSession() {
 
   useEffect(() => {
     const snapshot = loadScannerSession();
-    setValidatedCount(snapshot.validatedCount);
-    setRecentScans(snapshot.recentScans);
-    setReady(true);
+    queueMicrotask(() => {
+      setValidatedCount(snapshot.validatedCount);
+      setRecentScans(snapshot.recentScans);
+      setReady(true);
+    });
   }, []);
 
   useEffect(() => {

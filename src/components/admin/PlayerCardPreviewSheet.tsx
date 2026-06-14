@@ -4,6 +4,7 @@ import { Download, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, PrimaryButton } from "@/components/admin/ui";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { PREVIEW_PLAYER_LICENSE } from "@/lib/playerCardMock";
 
 type PlayerCardPreviewSheetProps = {
@@ -17,6 +18,8 @@ export function PlayerCardPreviewSheet({
 }: PlayerCardPreviewSheetProps) {
   const [downloading, setDownloading] = useState(false);
 
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return;
 
@@ -29,15 +32,6 @@ export function PlayerCardPreviewSheet({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
 
   if (!open) return null;
 

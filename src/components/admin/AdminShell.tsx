@@ -6,11 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 import { brandAssets } from "@/lib/brand";
 
@@ -50,8 +51,9 @@ function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const pathname = usePathname();
+  const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
   const backPath = useAdminBackPath();
   const { data: session } = useSession();
@@ -59,19 +61,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const topbarBrand = getMobileTopbarBrand(pathname);
   const TopbarIcon = topbarBrand.icon;
 
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
+  const closeMenu = useCallback(() => setMenuOpenPath(null), []);
   useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
 
-  useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  useBodyScrollLock(menuOpen);
 
   return (
     <div className="admin-layout">
@@ -146,7 +140,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ) : (
             <button
               type="button"
-              onClick={() => setMenuOpen(true)}
+              onClick={openMenu}
               className="btn btn-ghost btn-icon touch-target admin-topbar-btn--on-dark"
               aria-label="Ouvrir le menu"
             >

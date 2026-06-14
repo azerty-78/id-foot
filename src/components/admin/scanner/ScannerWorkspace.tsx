@@ -5,13 +5,15 @@ import { Html5Qrcode } from "html5-qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GhostButton, PrimaryButton } from "@/components/admin/ui";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { isMobileSafari } from "@/lib/browserCompat";
 import { extractToken } from "./extractToken";
 import { ManualPlayerSearchPanel } from "./ManualPlayerSearchPanel";
 import { playErrorTone, playSuccessChime } from "./playScanSound";
 import { queryCameraPermission, markScannerCameraGranted, subscribeCameraPermission, isCameraPermissionDeniedError, shouldAttemptCameraAutoStart } from "./scannerSession";
 import { RecentScansStrip } from "./RecentScansStrip";
 import { ScanSuccessOverlay } from "./ScanSuccessOverlay";
-import type { RecentScan, ScanPhase, ValidatedPlayer } from "./types";
+import type { ScanPhase, ValidatedPlayer } from "./types";
 import { useScannerSession } from "./useScannerSession";
 
 const DUPLICATE_MS = 2500;
@@ -227,23 +229,36 @@ export function ScannerWorkspace() {
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
 
-      await scanner.start(
-        { facingMode: { ideal: "environment" } },
-        {
-          fps: isMobile ? 24 : 16,
-          qrbox: (width, height) => {
-            const size = computeScanBoxSize(width, height, isMobile);
-            applyScanBoxSize(viewport, width, height, isMobile);
-            return { width: size, height: size };
-          },
-          aspectRatio: 1,
-          disableFlip: false,
+      const scanConfig = {
+        fps: isMobile ? (isMobileSafari() ? 20 : 24) : 16,
+        qrbox: (width: number, height: number) => {
+          const size = computeScanBoxSize(width, height, isMobile);
+          applyScanBoxSize(viewport, width, height, isMobile);
+          return { width: size, height: size };
         },
-        (decodedText) => {
-          void lookupToken(decodedText);
-        },
-        () => undefined,
-      );
+        aspectRatio: 1,
+        disableFlip: false,
+      };
+
+      const onScan = (decodedText: string) => {
+        void lookupToken(decodedText);
+      };
+
+      try {
+        await scanner.start(
+          { facingMode: { ideal: "environment" } },
+          scanConfig,
+          onScan,
+          () => undefined,
+        );
+      } catch {
+        await scanner.start(
+          { facingMode: "environment" },
+          scanConfig,
+          onScan,
+          () => undefined,
+        );
+      }
 
       setCameraStatus("active");
       markScannerCameraGranted();
@@ -289,16 +304,7 @@ export function ScannerWorkspace() {
   useHistoryOverlay(manualOpen, closeManual, "scan-manual");
   useHistoryOverlay(phase === "success", closeSuccess, "scan-success");
 
-  useEffect(() => {
-    const shouldLock = manualOpen || phase === "success";
-    if (!shouldLock) return;
-
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [manualOpen, phase]);
+  useBodyScrollLock(manualOpen || phase === "success");
 
   useEffect(() => {
     if (!sessionReady || autoStartAttemptedRef.current) return;
@@ -377,8 +383,11 @@ export function ScannerWorkspace() {
     }
 
     document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pageshow", onVisibilityChange);
+
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pageshow", onVisibilityChange);
     };
   }, [cameraStatus, manualOpen, phase, startScanner]);
 

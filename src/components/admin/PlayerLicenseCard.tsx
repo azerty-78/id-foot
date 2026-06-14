@@ -27,6 +27,9 @@ type PlayerLicenseCardProps = {
   className?: string;
 };
 
+const PHOTO_PX = { default: 76, compact: 68 } as const;
+const QR_PX = { default: 92, compact: 80 } as const;
+
 function getInitials(prenom: string, nom: string): string {
   return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
 }
@@ -39,21 +42,38 @@ export function PlayerLicenseCard({
   className = "",
 }: PlayerLicenseCardProps) {
   const shortId = player.id.slice(0, 8).toUpperCase();
+  const sizeKey = compact ? "compact" : "default";
+  const photoPx = PHOTO_PX[sizeKey];
+  const qrPx = QR_PX[sizeKey];
 
   return (
-    <article className={`player-license-card ${compact ? "player-license-card--compact" : ""} ${className}`.trim()}>
+    <article
+      className={`player-license-card ${compact ? "player-license-card--compact" : ""} ${className}`.trim()}
+    >
+      {player.numero != null && (
+        <span className="player-license-card-watermark" aria-hidden>
+          {player.numero}
+        </span>
+      )}
+
       <header className="player-license-card-header">
-        <p>{player.equipe.competition.nom}</p>
+        <span className="player-license-card-brand">ID FOOT</span>
+        <p className="player-license-card-competition">
+          {player.equipe.competition.nom}
+        </p>
       </header>
 
-      <div className="player-license-card-body">
-        <div className="player-license-card-photo">
+      <div className="player-license-card-main">
+        <div
+          className="player-license-card-photo"
+          style={{ width: photoPx, height: photoPx }}
+        >
           {player.photo ? (
             <Image
               src={player.photo}
               alt={`${player.prenom} ${player.nom}`}
-              width={80}
-              height={80}
+              width={photoPx}
+              height={photoPx}
               unoptimized
               className="h-full w-full object-cover"
             />
@@ -62,7 +82,7 @@ export function PlayerLicenseCard({
           )}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="player-license-card-info">
           <p className="player-license-card-name">
             {player.prenom} {player.nom}
           </p>
@@ -74,16 +94,21 @@ export function PlayerLicenseCard({
           </p>
           <p className="player-license-card-team">{player.equipe.nom}</p>
         </div>
+
+        <div className="player-license-card-qr-zone">
+          <div
+            className="player-license-card-qr"
+            style={{ width: qrPx, height: qrPx }}
+          >
+            <PlayerCardQr token={player.qrToken} size={qrPx - 8} />
+          </div>
+          <span className="player-license-card-scan-hint">Scanner ici</span>
+        </div>
       </div>
 
       <footer className="player-license-card-footer">
-        <div className="player-license-card-qr-wrap">
-          <p className="player-license-card-qr-label">QR licence</p>
-          <div className="player-license-card-qr">
-            <PlayerCardQr token={player.qrToken} size={compact ? 56 : 72} />
-          </div>
-        </div>
-        <p className="player-license-card-id">ID {shortId}</p>
+        <span className="player-license-card-licence">Licence joueur</span>
+        <span className="player-license-card-id">ID {shortId}</span>
       </footer>
 
       {!compact && (

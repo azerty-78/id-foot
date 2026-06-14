@@ -3,7 +3,7 @@
 import { Save, Shield, Trophy, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import {
   AdminCard,
@@ -18,6 +18,7 @@ import {
 } from "@/components/admin/ui";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useTeams, type Player } from "@/hooks/useApi";
+import { useBlobObjectUrl } from "@/hooks/useBlobObjectUrl";
 import { validateJoueur } from "@/lib/validators";
 import { compressImageForUpload } from "@/lib/compressImage";
 import { DEFAULT_NATIONALITY, NATIONALITIES } from "@/lib/nationalities";
@@ -86,8 +87,41 @@ function toDateInputValue(value: string): string {
   return new Date(value).toISOString().split("T")[0];
 }
 
-function getInitials(prenom: string, nom: string): string {
-  return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
+function createFormState(initialPlayer?: Player) {
+  if (!initialPlayer) {
+    return {
+      values: emptyValues,
+      currentPhotoUrl: null as string | null,
+      contactOpen: false,
+      sportOpen: false,
+    };
+  }
+
+  const phone = parsePhoneNumber(initialPlayer.telephone);
+
+  return {
+    values: {
+      prenom: initialPlayer.prenom,
+      nom: initialPlayer.nom,
+      dateNaissance: initialPlayer.dateNaissance
+        ? toDateInputValue(initialPlayer.dateNaissance)
+        : "",
+      nationalite: initialPlayer.nationalite ?? DEFAULT_NATIONALITY,
+      sexe: initialPlayer.sexe === "Féminin" ? "Féminin" : DEFAULT_SEXE,
+      phoneDial: phone.dial,
+      phoneLocal: phone.local,
+      numeroMaillot:
+        initialPlayer.numero != null ? String(initialPlayer.numero) : "",
+      poste: initialPlayer.poste ?? "",
+      equipeId: initialPlayer.equipeId,
+    },
+    currentPhotoUrl: initialPlayer.photo,
+    contactOpen: Boolean(initialPlayer.telephone?.trim()),
+    sportOpen: Boolean(
+      initialPlayer.numero != null ||
+        (initialPlayer.poste && initialPlayer.poste.trim()),
+    ),
+  };
 }
 
 type PlayerFormProps = {
@@ -109,67 +143,18 @@ export function PlayerForm({
   const { teams, loading: teamsLoading } = useTeams();
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
-  const [values, setValues] = useState<PlayerFormValues>(emptyValues);
+  const initialFormState = createFormState(initialPlayer);
+  const [values, setValues] = useState<PlayerFormValues>(initialFormState.values);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [currentPhotoUrl, setCurrentPhotoUrl] = useState<string | null>(null);
+  const photoBlobUrl = useBlobObjectUrl(photoFile);
+  const [currentPhotoUrl, setCurrentPhotoUrl] = useState<string | null>(
+    initialFormState.currentPhotoUrl,
+  );
   const [errors, setErrors] = useState<FormErrors>({});
-  const [contactOpen, setContactOpen] = useState(false);
-  const [sportOpen, setSportOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(initialFormState.contactOpen);
+  const [sportOpen, setSportOpen] = useState(initialFormState.sportOpen);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
-
-  useEffect(() => {
-    if (!initialPlayer) return;
-
-    const phone = parsePhoneNumber(initialPlayer.telephone);
-
-    setValues({
-      prenom: initialPlayer.prenom,
-      nom: initialPlayer.nom,
-      dateNaissance: initialPlayer.dateNaissance
-        ? toDateInputValue(initialPlayer.dateNaissance)
-        : "",
-      nationalite: initialPlayer.nationalite ?? DEFAULT_NATIONALITY,
-      sexe:
-        initialPlayer.sexe === "Féminin" ? "Féminin" : DEFAULT_SEXE,
-      phoneDial: phone.dial,
-      phoneLocal: phone.local,
-      numeroMaillot: initialPlayer.numero != null ? String(initialPlayer.numero) : "",
-      poste: initialPlayer.poste ?? "",
-      equipeId: initialPlayer.equipeId,
-    });
-    setCurrentPhotoUrl(initialPlayer.photo);
-    setContactOpen(Boolean(initialPlayer.telephone?.trim()));
-    setSportOpen(
-      Boolean(
-        initialPlayer.numero != null ||
-          (initialPlayer.poste && initialPlayer.poste.trim()),
-      ),
-    );
-  }, [initialPlayer]);
-
-  useEffect(() => {
-    if (errors.telephone) setContactOpen(true);
-  }, [errors.telephone]);
-
-  useEffect(() => {
-    if (errors.numeroMaillot || errors.poste) setSportOpen(true);
-  }, [errors.numeroMaillot, errors.poste]);
-
-  useEffect(() => {
-    if (!photoFile) {
-      setPhotoPreview(null);
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(photoFile);
-    setPhotoPreview(previewUrl);
-
-    return () => {
-      URL.revokeObjectURL(previewUrl);
-    };
-  }, [photoFile]);
 
   const teamsByCompetition = useMemo(() => {
     const groups = new Map<string, typeof teams>();
@@ -198,7 +183,7 @@ export function PlayerForm({
   }, [values.nationalite]);
 
   const selectedTeam = teams.find((team) => team.id === values.equipeId);
-  const displayPhoto = photoPreview ?? currentPhotoUrl;
+  const displayPhoto = photoBlobUrl ?? currentPhotoUrl;
   const phonePreview = composePhoneNumber(values.phoneDial, values.phoneLocal);
   const phoneCountry = getPhoneCountry(values.phoneDial);
 
@@ -265,7 +250,10 @@ export function PlayerForm({
 
     const validation = validateJoueur(payload);
     if (!validation.valid) {
-      setErrors(mapValidationErrors(validation.errors));
+      const fieldErrors = mapValidationErrors(validation.errors);
+      setErrors(fieldErrors);
+      if (fieldErrors.telephone) setContactOpen(true);
+      if (fieldErrors.numeroMaillot || fieldErrors.poste) setSportOpen(true);
       return;
     }
 
@@ -545,7 +533,7 @@ export function PlayerForm({
           <CollapsibleFormSection
             title="Contact"
             description="Coordonnées du joueur ou du tuteur (facultatif)."
-            open={contactOpen}
+            open={contactOpen || Boolean(errors.telephone)}
             onOpenChange={setContactOpen}
             disabled={submitting}
           >
@@ -589,7 +577,7 @@ export function PlayerForm({
           <CollapsibleFormSection
             title="Informations sportives"
             description="Poste et numéro de maillot (facultatifs)."
-            open={sportOpen}
+            open={sportOpen || Boolean(errors.numeroMaillot || errors.poste)}
             onOpenChange={setSportOpen}
             disabled={submitting}
           >
