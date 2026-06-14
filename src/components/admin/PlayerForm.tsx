@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import {
   AdminCard,
+  CollapsibleFormSection,
   FieldHint,
   FormInput,
   FormSection,
@@ -111,6 +112,8 @@ export function PlayerForm({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [currentPhotoUrl, setCurrentPhotoUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [contactOpen, setContactOpen] = useState(false);
+  const [sportOpen, setSportOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
 
@@ -135,7 +138,22 @@ export function PlayerForm({
       equipeId: initialPlayer.equipeId,
     });
     setCurrentPhotoUrl(initialPlayer.photo);
+    setContactOpen(Boolean(initialPlayer.telephone?.trim()));
+    setSportOpen(
+      Boolean(
+        initialPlayer.numero != null ||
+          (initialPlayer.poste && initialPlayer.poste.trim()),
+      ),
+    );
   }, [initialPlayer]);
+
+  useEffect(() => {
+    if (errors.telephone) setContactOpen(true);
+  }, [errors.telephone]);
+
+  useEffect(() => {
+    if (errors.numeroMaillot || errors.poste) setSportOpen(true);
+  }, [errors.numeroMaillot, errors.poste]);
 
   useEffect(() => {
     if (!photoFile) {
@@ -510,9 +528,11 @@ export function PlayerForm({
             )}
           </FormSection>
 
-          <FormSection
+          <CollapsibleFormSection
             title="Contact"
             description="Coordonnées du joueur ou du tuteur (facultatif)."
+            open={contactOpen}
+            onOpenChange={setContactOpen}
           >
             <FormInput
               id="telephone"
@@ -549,11 +569,13 @@ export function PlayerForm({
                 />
               </div>
             </FormInput>
-          </FormSection>
+          </CollapsibleFormSection>
 
-          <FormSection
+          <CollapsibleFormSection
             title="Informations sportives"
             description="Poste et numéro de maillot (facultatifs)."
+            open={sportOpen}
+            onOpenChange={setSportOpen}
           >
             <FormInput
               id="numeroMaillot"
@@ -600,7 +622,7 @@ export function PlayerForm({
                 <p className="mt-1.5 text-xs text-rose-600">{errors.poste}</p>
               )}
             </div>
-          </FormSection>
+          </CollapsibleFormSection>
 
           </fieldset>
 

@@ -1,6 +1,8 @@
 import type { LucideIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { useId } from "react";
 import Link from "next/link";
 
 export type ButtonSize = "default" | "sm" | "icon";
@@ -502,6 +504,62 @@ export function FormSection({
         {description && <p className="text-body mt-1">{description}</p>}
       </div>
       <div className="space-y-5">{children}</div>
+    </section>
+  );
+}
+
+export function CollapsibleFormSection({
+  title,
+  description,
+  open,
+  onOpenChange,
+  children,
+}: {
+  title: string;
+  description?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: ReactNode;
+}) {
+  const panelId = useId();
+
+  return (
+    <section className="card-default">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => onOpenChange(!open)}
+        className="flex w-full items-start justify-between gap-3 text-left"
+      >
+        <div className="min-w-0">
+          <h2 className="text-h2">{title}</h2>
+          {description && (
+            <p className="text-body mt-1">
+              {description}
+              {!open && (
+                <span className="text-secondary ml-1 font-normal">
+                  — Cliquez pour afficher
+                </span>
+              )}
+            </p>
+          )}
+        </div>
+        <ChevronDown
+          aria-hidden
+          className={`mt-0.5 size-5 shrink-0 text-slate-400 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {open && (
+        <div
+          id={panelId}
+          className="mt-5 space-y-5 border-t border-slate-100 pt-5"
+        >
+          {children}
+        </div>
+      )}
     </section>
   );
 }
