@@ -27,8 +27,8 @@ type PlayerLicenseCardProps = {
   className?: string;
 };
 
-const PHOTO_PX = { default: 100, compact: 92 } as const;
-const QR_PX = { default: 128, compact: 118 } as const;
+/** Grille 500×330 : QR 250px, quiet zone 16px → SVG ≈ 218px */
+const QR_INNER_PX = { default: 218, compact: 174 } as const;
 
 function getInitials(prenom: string, nom: string): string {
   return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
@@ -38,13 +38,17 @@ function LicenseField({
   label,
   value,
   highlight = false,
+  variant = "default",
 }: {
   label: string;
   value: string;
   highlight?: boolean;
+  variant?: "default" | "name";
 }) {
   return (
-    <div className="player-license-card-field">
+    <div
+      className={`player-license-card-field ${variant === "name" ? "player-license-card-field--name" : ""}`.trim()}
+    >
       <dt className="player-license-card-field-label">{label}</dt>
       <dd
         className={`player-license-card-field-value ${highlight ? "player-license-card-field-value--highlight" : ""}`.trim()}
@@ -63,9 +67,7 @@ export function PlayerLicenseCard({
   className = "",
 }: PlayerLicenseCardProps) {
   const shortId = player.id.slice(0, 8).toUpperCase();
-  const sizeKey = compact ? "compact" : "default";
-  const photoPx = PHOTO_PX[sizeKey];
-  const qrPx = QR_PX[sizeKey];
+  const qrInnerPx = QR_INNER_PX[compact ? "compact" : "default"];
   const fullName = `${player.prenom} ${player.nom}`;
 
   return (
@@ -87,16 +89,13 @@ export function PlayerLicenseCard({
 
       <div className="player-license-card-main">
         <div className="player-license-card-identity">
-          <div
-            className="player-license-card-photo"
-            style={{ width: photoPx, height: photoPx }}
-          >
+          <div className="player-license-card-photo">
             {player.photo ? (
               <Image
                 src={player.photo}
                 alt={fullName}
-                width={photoPx}
-                height={photoPx}
+                width={180}
+                height={180}
                 unoptimized
                 className="h-full w-full object-cover"
               />
@@ -106,7 +105,7 @@ export function PlayerLicenseCard({
           </div>
 
           <dl className="player-license-card-fields">
-            <LicenseField label="Nom" value={fullName} />
+            <LicenseField label="Nom" value={fullName} variant="name" />
             <div className="player-license-card-field-row">
               <LicenseField
                 label="Dorsal"
@@ -120,11 +119,8 @@ export function PlayerLicenseCard({
         </div>
 
         <div className="player-license-card-qr-zone">
-          <div
-            className="player-license-card-qr"
-            style={{ width: qrPx, height: qrPx }}
-          >
-            <PlayerCardQr token={player.qrToken} size={qrPx - 10} />
+          <div className="player-license-card-qr">
+            <PlayerCardQr token={player.qrToken} size={qrInnerPx} />
           </div>
           <span className="player-license-card-scan-hint">Scanner ici</span>
         </div>
