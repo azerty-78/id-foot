@@ -15,6 +15,9 @@ export default function HomePage() {
               <p className="text-xs text-slate-500">Système d&apos;identification des joueurs</p>
             </div>
           </div>
+          <Link href="/admin/signin" className="hidden sm:block">
+            <SecondaryButton>Connexion</SecondaryButton>
+          </Link>
           <Link href="/admin/dashboard" className="hidden sm:block">
             <PrimaryButton>Administration</PrimaryButton>
           </Link>
