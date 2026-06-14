@@ -29,12 +29,44 @@ function buildBtnClass(
 function ButtonIcon({
   icon: Icon,
   size = "default",
+  loading = false,
 }: {
   icon?: LucideIcon;
   size?: ButtonSize;
+  loading?: boolean;
 }) {
+  if (loading) {
+    return <LoadingSpinner size={iconSize(size)} />;
+  }
   if (!Icon) return null;
   return <Icon size={iconSize(size)} strokeWidth={2} className="shrink-0" aria-hidden />;
+}
+
+export function LoadingSpinner({ size = 16 }: { size?: number }) {
+  return (
+    <span
+      className="loading-spinner"
+      style={{ width: size, height: size }}
+      aria-hidden
+    />
+  );
+}
+
+export function FormSubmitOverlay({
+  visible,
+  message = "Enregistrement en cours…",
+}: {
+  visible: boolean;
+  message?: string;
+}) {
+  if (!visible) return null;
+
+  return (
+    <div className="form-submit-overlay" role="status" aria-live="polite" aria-busy="true">
+      <LoadingSpinner size={28} />
+      <p className="form-submit-message">{message}</p>
+    </div>
+  );
 }
 
 type ActionButtonProps = {
@@ -123,11 +155,19 @@ function PrimaryButton({
   size = "default",
   children,
   className = "",
+  loading = false,
+  disabled,
   ...props
-}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: ActionButtonProps &
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
   return (
-    <button {...props} className={buildBtnClass("btn-primary", size, className)}>
-      <ButtonIcon icon={icon} size={size} />
+    <button
+      {...props}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={buildBtnClass("btn-primary", size, className)}
+    >
+      <ButtonIcon icon={icon} size={size} loading={loading} />
       {size !== "icon" ? children : null}
     </button>
   );
@@ -183,11 +223,19 @@ function OutlineButton({
   size = "default",
   children,
   className = "",
+  loading = false,
+  disabled,
   ...props
-}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: ActionButtonProps &
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
   return (
-    <button {...props} className={buildBtnClass("btn-outline", size, className)}>
-      <ButtonIcon icon={icon} size={size} />
+    <button
+      {...props}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={buildBtnClass("btn-outline", size, className)}
+    >
+      <ButtonIcon icon={icon} size={size} loading={loading} />
       {size !== "icon" ? children : null}
     </button>
   );
@@ -426,6 +474,7 @@ export function AdminModal({
   children,
   footer,
   historyKey = "admin-modal",
+  busy = false,
 }: {
   open: boolean;
   title: string;
@@ -433,19 +482,26 @@ export function AdminModal({
   children: ReactNode;
   footer: ReactNode;
   historyKey?: string;
+  busy?: boolean;
 }) {
-  useHistoryOverlay(open, onClose, historyKey);
+  useHistoryOverlay(open && !busy, onClose, historyKey);
 
   if (!open) return null;
 
+  function handleClose() {
+    if (busy) return;
+    onClose();
+  }
+
   return (
-    <div className="modal-overlay" onClick={onClose} role="presentation">
+    <div className="modal-overlay" onClick={handleClose} role="presentation">
       <div
-        className="modal-panel"
+        className={`modal-panel ${busy ? "modal-panel--busy" : ""}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
+        aria-busy={busy || undefined}
       >
         <div className="modal-header">
           <h2 id="modal-title" className="modal-title">
@@ -453,14 +509,15 @@ export function AdminModal({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="modal-close"
             aria-label="Fermer"
+            disabled={busy}
           >
             ✕
           </button>
         </div>
-        <div className="modal-body">{children}</div>
+        <div className="modal-body modal-body--relative">{children}</div>
         <div className="modal-footer">{footer}</div>
       </div>
     </div>

@@ -47,5 +47,13 @@ export function isNavItemActive(pathname: string, href: string): boolean {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
+  if (href === "/admin/teams") {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  if (href === "/admin/scanner") {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   return pathname === href || pathname.startsWith(`${href}/`);
 }

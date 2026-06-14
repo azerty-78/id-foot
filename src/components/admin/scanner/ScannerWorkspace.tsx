@@ -176,10 +176,6 @@ export function ScannerWorkspace() {
     }
   }, [lookupToken, showError, stopScanner]);
 
-  const handleNextScan = useCallback(() => {
-    closeSuccess();
-  }, [closeSuccess]);
-
   const handleManualSelect = useCallback(
     (selected: ValidatedPlayer) => {
       validatePlayer(selected);
@@ -194,6 +190,10 @@ export function ScannerWorkspace() {
     setErrorMessage(null);
     unlockScanner();
   }, [clearErrorTimer, unlockScanner]);
+
+  const handleNextScan = useCallback(() => {
+    closeSuccess();
+  }, [closeSuccess]);
 
   useHistoryOverlay(manualOpen, closeManual, "scan-manual");
   useHistoryOverlay(phase === "success", closeSuccess, "scan-success");

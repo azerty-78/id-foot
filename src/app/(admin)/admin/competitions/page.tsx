@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   AdminCard,
   AdminModal,
@@ -9,12 +9,14 @@ import {
   EmptyState,
   FieldError,
   FieldLabel,
+  FormSubmitOverlay,
   LoadingState,
   OutlineButton,
   PageHeader,
   PrimaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
+import { useToast } from "@/components/providers/ToastProvider";
 import { useCompetitions, type Competition } from "@/hooks/useApi";
 import { validateCompetition } from "@/lib/validators";
 
@@ -28,11 +30,14 @@ const emptyForm: FormState = { nom: "", annee: "", lieu: "" };
 
 export default function CompetitionsPage() {
   const { competitions, loading, error, refetch } = useCompetitions();
+  const { showToast } = useToast();
+  const submitLockRef = useRef(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
 
   function openCreateModal() {
     setEditingId(null);
@@ -53,6 +58,7 @@ export default function CompetitionsPage() {
   }
 
   function closeModal() {
+    if (submitting) return;
     setIsModalOpen(false);
     setEditingId(null);
     setForm(emptyForm);
@@ -60,8 +66,10 @@ export default function CompetitionsPage() {
   }
 
   async function handleSubmit() {
+    if (submitLockRef.current) return;
+
     const payload = {
-      nom: form.nom,
+      nom: form.nom.trim(),
       annee: Number.parseInt(form.annee, 10),
       lieu: form.lieu.trim() || null,
     };
@@ -72,10 +80,15 @@ export default function CompetitionsPage() {
       return;
     }
 
+    submitLockRef.current = true;
     setSubmitting(true);
     setFormError(null);
+    setSubmitMessage("Vérification des données…");
 
     try {
+      await new Promise((resolve) => window.setTimeout(resolve, 120));
+      setSubmitMessage("Enregistrement de la compétition…");
+
       const url = editingId
         ? `/api/competitions/${editingId}`
         : "/api/competitions";
@@ -92,14 +105,20 @@ export default function CompetitionsPage() {
         throw new Error(data.error ?? "Erreur lors de l'enregistrement.");
       }
 
+      showToast(
+        "success",
+        editingId ? "Compétition mise à jour." : "Compétition créée avec succès.",
+      );
       closeModal();
       refetch();
     } catch (err) {
       setFormError(
-        err instanceof Error ? err.message : "Erreur lors de l'enregistrement."
+        err instanceof Error ? err.message : "Erreur lors de l'enregistrement.",
       );
     } finally {
+      submitLockRef.current = false;
       setSubmitting(false);
+      setSubmitMessage("Enregistrement en cours…");
     }
   }
 
@@ -203,24 +222,32 @@ export default function CompetitionsPage() {
         title={editingId ? "Modifier la compétition" : "Nouvelle compétition"}
         onClose={closeModal}
         historyKey="competition-form"
+        busy={submitting}
         footer={
           <>
-            <OutlineButton type="button" icon={X} size="sm" onClick={closeModal}>
+            <OutlineButton
+              type="button"
+              icon={X}
+              size="sm"
+              onClick={closeModal}
+              disabled={submitting}
+            >
               Annuler
             </OutlineButton>
             <PrimaryButton
               type="button"
               icon={Save}
               size="sm"
+              loading={submitting}
               onClick={() => void handleSubmit()}
-              disabled={submitting}
             >
-              {submitting ? "Enregistrement..." : "Enregistrer"}
+              {submitting ? "Enregistrement…" : "Enregistrer"}
             </PrimaryButton>
           </>
         }
       >
-        <div className="space-y-4">
+        <FormSubmitOverlay visible={submitting} message={submitMessage} />
+        <fieldset disabled={submitting} className="space-y-4 border-0 p-0 m-0">
           <div>
             <FieldLabel htmlFor="comp-nom">Nom *</FieldLabel>
             <input
@@ -229,6 +256,7 @@ export default function CompetitionsPage() {
               value={form.nom}
               onChange={(e) => setForm({ ...form, nom: e.target.value })}
               className="admin-input"
+              autoFocus
             />
           </div>
           <div>
@@ -254,7 +282,7 @@ export default function CompetitionsPage() {
             />
           </div>
           <FieldError message={formError ?? undefined} />
-        </div>
+        </fieldset>
       </AdminModal>
     </div>
   );

@@ -44,8 +44,9 @@ export function MobileBottomNav() {
             >
               <span className="mobile-bottom-nav-scan-icon" aria-hidden>
                 <Icon size={22} strokeWidth={2.25} />
+                {active && <span className="mobile-bottom-nav-active-dot" />}
               </span>
-              <span>{item.label}</span>
+              <span className="mobile-bottom-nav-label">{item.label}</span>
             </Link>
           );
         }
@@ -57,8 +58,10 @@ export function MobileBottomNav() {
             className={`mobile-bottom-nav-item ${active ? "mobile-bottom-nav-item--active" : ""}`}
             aria-current={active ? "page" : undefined}
           >
-            <Icon size={20} strokeWidth={2} aria-hidden />
-            <span>{item.label}</span>
+            <span className="mobile-bottom-nav-item-inner" aria-hidden>
+              <Icon size={20} strokeWidth={active ? 2.25 : 2} />
+            </span>
+            <span className="mobile-bottom-nav-label">{item.label}</span>
           </Link>
         );
       })}
