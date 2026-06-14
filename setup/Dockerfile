@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Build : docker build -f setup/Dockerfile .
 # Le contexte DOIT être la racine du repo (voir setup/.dockerignore).
 
