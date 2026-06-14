@@ -179,7 +179,7 @@ export default function CompetitionsPage() {
             >
               <div className="mb-5 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/60">
+                  <p className="card-meta-badge">
                     {competition.annee}
                   </p>
                   <h2 className="mt-2 text-xl font-bold text-slate-900">
