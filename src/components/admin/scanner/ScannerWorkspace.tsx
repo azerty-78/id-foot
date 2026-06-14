@@ -68,6 +68,7 @@ export function ScannerWorkspace() {
     validatedCount,
     recentScans,
     registerValidation,
+    resetSession,
     wasCameraGrantedBefore,
   } = useScannerSession();
 
@@ -488,7 +489,7 @@ export function ScannerWorkspace() {
         </div>
       </div>
 
-      <RecentScansStrip scans={recentScans} />
+      <RecentScansStrip scans={recentScans} onReset={resetSession} />
 
       {phase === "success" && player && (
         <ScanSuccessOverlay
