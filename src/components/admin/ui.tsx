@@ -1,7 +1,10 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 
 export type ButtonSize = "default" | "sm" | "icon";
 
@@ -422,13 +425,17 @@ export function AdminModal({
   onClose,
   children,
   footer,
+  historyKey = "admin-modal",
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
   footer: ReactNode;
+  historyKey?: string;
 }) {
+  useHistoryOverlay(open, onClose, historyKey);
+
   if (!open) return null;
 
   return (

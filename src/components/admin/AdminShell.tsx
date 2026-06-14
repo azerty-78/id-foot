@@ -4,9 +4,12 @@ import { Fingerprint, Home, Menu, QrCode } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
+import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
+import { useAdminBackPath } from "@/hooks/useAdminBackPath";
+import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) {
@@ -24,8 +27,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
+  const backPath = useAdminBackPath();
   const { data: session } = useSession();
   const initials = getInitials(session?.user?.name, session?.user?.email);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -34,7 +41,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [menuOpen]);
 
-  const closeMenu = () => setMenuOpen(false);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   return (
     <div className="admin-layout">
@@ -104,14 +113,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className={`admin-main lg:ml-[240px] ${isScannerPage ? "admin-main--scanner" : ""}`}>
         <header className="admin-topbar-sticky flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 lg:hidden">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            className="btn btn-ghost btn-icon touch-target"
-            aria-label="Ouvrir le menu"
-          >
-            <Menu size={18} strokeWidth={2} />
-          </button>
+          {backPath ? (
+            <AdminBackButton
+              className={isScannerPage ? "admin-back-btn--on-dark" : ""}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className={`btn btn-ghost btn-icon touch-target ${
+                isScannerPage ? "admin-topbar-btn--on-dark" : ""
+              }`}
+              aria-label="Ouvrir le menu"
+            >
+              <Menu size={18} strokeWidth={2} />
+            </button>
+          )}
 
           {isScannerPage ? (
             <Link href="/admin/scanner" className="scanner-topbar-brand flex items-center gap-1.5 text-[14px] font-bold tracking-wide">
@@ -134,12 +151,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>
-          <div className={`mx-auto max-w-7xl ${isScannerPage ? "h-full max-w-none" : ""}`}>
+          <div
+            key={pathname}
+            className={`admin-page-view mx-auto max-w-7xl ${isScannerPage ? "h-full max-w-none" : ""}`}
+          >
             {children}
           </div>
         </div>
 
-        <MobileBottomNav onOpenMenu={() => setMenuOpen(true)} />
+        <MobileBottomNav />
       </div>
     </div>
   );

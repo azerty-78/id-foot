@@ -86,7 +86,7 @@ export function ManualPlayerSearchPanel({
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Ex. Dupont, Jean, Martin…"
+          placeholder="Ex. Aboubakar, Onana, Kamga…"
           className="scan-manual-input"
           autoFocus
         />
