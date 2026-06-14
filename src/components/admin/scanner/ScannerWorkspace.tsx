@@ -16,6 +16,27 @@ import { useScannerSession } from "./useScannerSession";
 
 const DUPLICATE_MS = 2500;
 const ERROR_DISMISS_MS = 2200;
+
+// TEMP — joueur fictif si la BD est vide (retirer après review UI)
+const PREVIEW_MOCK_PLAYER: ValidatedPlayer = {
+  id: "00000000-0000-0000-0000-000000000001",
+  nom: "Mbarga",
+  prenom: "Samuel",
+  numero: 10,
+  poste: "Milieu offensif",
+  photo: "/logo.png",
+  qrToken: "preview-mock-token",
+  equipe: {
+    nom: "AS Lion Douala",
+    logo: null,
+    competition: {
+      nom: "Championnat National U17",
+      annee: 2026,
+      lieu: "Douala",
+    },
+  },
+};
+
 const SCAN_BOX_MIN = 200;
 const SCAN_BOX_MAX_MOBILE = 280;
 const SCAN_BOX_MAX_DESKTOP = 300;
@@ -245,33 +266,26 @@ export function ScannerWorkspace() {
     void startScanner();
   }, [startScanner]);
 
-  // TEMP — preview overlay succès scan (retirer après review UI)
+  // TEMP — preview succès scan (BD puis mock, retirer après review UI)
   const previewSuccessfulScan = useCallback(async () => {
     setErrorMessage(null);
     setPhase("loading");
     setCameraStatus("active");
 
     try {
-      const res = await fetch("/api/players");
-      if (!res.ok) {
-        throw new Error("Impossible de charger un joueur pour la preview.");
-      }
+      let sample: ValidatedPlayer = PREVIEW_MOCK_PLAYER;
 
-      const players = (await res.json()) as ValidatedPlayer[];
-      const sample = players[0];
-      if (!sample) {
-        throw new Error("Aucun joueur en base — créez-en un pour tester.");
+      const res = await fetch("/api/players");
+      if (res.ok) {
+        const players = (await res.json()) as ValidatedPlayer[];
+        if (players[0]) sample = players[0];
       }
 
       validatePlayer(mapApiPlayer({ ...sample, valid: true }));
-    } catch (err) {
-      setPhase("scanning");
-      setCameraStatus("denied");
-      showError(
-        err instanceof Error ? err.message : "Preview du scan indisponible.",
-      );
+    } catch {
+      validatePlayer(mapApiPlayer({ ...PREVIEW_MOCK_PLAYER, valid: true }));
     }
-  }, [showError, validatePlayer]);
+  }, [validatePlayer]);
 
   const handleCameraPromptClick = useCallback(() => {
     if (cameraStatus === "denied") {
@@ -420,7 +434,8 @@ export function ScannerWorkspace() {
   const showCameraPrompt =
     (cameraStatus === "needs-gesture" || cameraStatus === "denied") &&
     phase !== "success" &&
-    phase !== "loading";
+    phase !== "loading" &&
+    phase !== "error";
   const showCameraLoading = cameraStatus === "starting";
 
   return (
@@ -491,7 +506,7 @@ export function ScannerWorkspace() {
                   onClick={handleCameraPromptClick}
                 >
                   {cameraStatus === "denied"
-                    ? "Réessayer (preview scan)"
+                    ? "Réessayer (preview succès)"
                     : "Activer la caméra"}
                 </PrimaryButton>
               </div>
