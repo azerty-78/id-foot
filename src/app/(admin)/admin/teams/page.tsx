@@ -298,7 +298,7 @@ export default function TeamsPage() {
             className="fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-[2px]"
             onClick={() => setSelectedTeamId(null)}
           />
-          <aside className="admin-card fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col rounded-none border-l shadow-2xl">
+          <aside className="admin-card fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col rounded-none border-l shadow-2xl sm:max-w-md">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/60">

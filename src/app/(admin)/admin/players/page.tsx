@@ -115,11 +115,10 @@ export default function PlayersPage() {
         title="Joueurs"
         description="Gestion des joueurs enregistrés et de leurs licences."
         action={
-          <Link
-            href="/admin/players/new"
-            className="inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark"
-          >
-            + Ajouter un joueur
+          <Link href="/admin/players/new" className="block w-full sm:w-auto">
+            <PrimaryButton className="w-full sm:w-auto">
+              + Ajouter un joueur
+            </PrimaryButton>
           </Link>
         }
       />
@@ -158,9 +157,61 @@ export default function PlayersPage() {
       ) : players.length === 0 ? (
         <EmptyState message="Aucun joueur trouvé pour ces critères." />
       ) : (
-        <AdminCard className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-100">
+        <>
+          <div className="grid gap-4 lg:hidden">
+            {players.map((player) => (
+              <AdminCard key={player.id} className="p-4">
+                <div className="flex items-start gap-3">
+                  <PlayerAvatar player={player} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-slate-900">
+                      {player.prenom} {player.nom}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {player.equipe.nom} · {player.equipe.competition.nom}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                      <span className="rounded-full bg-gold px-2.5 py-1 font-bold text-brand-dark">
+                        #{player.numero}
+                      </span>
+                      <span className="rounded-full bg-brand-light px-2.5 py-1 font-medium text-brand">
+                        {player.poste}
+                      </span>
+                    </div>
+                    {player.telephone && (
+                      <p className="mt-2 text-sm text-slate-600">{player.telephone}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <Link href={`/admin/players/${player.id}`} className="col-span-1">
+                    <SecondaryButton className="w-full px-2 py-2 text-xs">
+                      Voir
+                    </SecondaryButton>
+                  </Link>
+                  <PrimaryButton
+                    type="button"
+                    onClick={() => handleDownloadCard(player.id)}
+                    className="w-full bg-amber-500 px-2 py-2 text-xs hover:bg-amber-600"
+                  >
+                    PDF
+                  </PrimaryButton>
+                  <DangerButton
+                    type="button"
+                    onClick={() => handleDelete(player)}
+                    className="col-span-2 w-full px-2 py-2 text-xs sm:col-span-1"
+                  >
+                    Supprimer
+                  </DangerButton>
+                </div>
+              </AdminCard>
+            ))}
+          </div>
+
+          <AdminCard className="hidden overflow-hidden lg:block">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-100">
               <thead className="bg-slate-50/80">
                 <tr>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -244,6 +295,7 @@ export default function PlayersPage() {
             </table>
           </div>
         </AdminCard>
+        </>
       )}
     </div>
   );

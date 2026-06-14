@@ -171,18 +171,18 @@ export default function PlayerDetailPage() {
               <QRCodeSVG value={qrValue} size={140} level="M" />
             </div>
 
-            <div className="mt-6 flex flex-wrap justify-center gap-3 print:hidden">
+            <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-3 print:hidden">
               <PrimaryButton
                 type="button"
                 onClick={handleDownloadCard}
-                className="bg-gold text-brand-dark hover:bg-[#e6c200]"
+                className="w-full bg-gold text-brand-dark hover:bg-[#e6c200] sm:w-auto"
               >
                 Télécharger la carte PDF
               </PrimaryButton>
               <SecondaryButton
                 type="button"
                 onClick={() => window.print()}
-                className="border-white/30 bg-transparent text-white hover:bg-white/10"
+                className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto"
               >
                 Imprimer
               </SecondaryButton>

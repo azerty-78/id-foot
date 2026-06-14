@@ -10,12 +10,12 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
+    <div className="mb-6 flex flex-col gap-4 sm:mb-8 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand/70">
           Football ID
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           {title}
         </h1>
         {description && (
@@ -24,7 +24,7 @@ export function PageHeader({
           </p>
         )}
       </div>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

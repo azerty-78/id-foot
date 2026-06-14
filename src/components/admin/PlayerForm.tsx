@@ -239,7 +239,7 @@ export function PlayerForm({
 
   return (
     <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <AdminCard className="p-6">
+      <AdminCard className="order-2 p-4 sm:p-6 xl:order-1">
         <form onSubmit={handleSubmit} className="space-y-6">
           {errors.submit && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -516,7 +516,7 @@ export function PlayerForm({
         </form>
       </AdminCard>
 
-      <aside className="xl:sticky xl:top-8 xl:self-start">
+      <aside className="order-1 xl:sticky xl:top-8 xl:order-2 xl:self-start">
         <AdminCard className="overflow-hidden">
           <div className="bg-gradient-to-br from-brand to-brand-dark px-6 py-5 text-white">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">

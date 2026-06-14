@@ -59,11 +59,11 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function AdminNav() {
+export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-1 flex-col gap-1.5 px-4 py-5">
+    <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-4 py-5">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -72,6 +72,7 @@ export function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
+            onClick={onNavigate}
             className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all ${
               isActive
                 ? "bg-white/14 text-white shadow-inner ring-1 ring-white/10"
