@@ -80,8 +80,8 @@ function drawPlayerCardOnDoc(
   });
 
   const photoX = 5;
-  const photoY = 11;
-  const photoSize = 18;
+  const photoY = 10;
+  const photoSize = 20;
 
   if (photoDataUrl) {
     doc.addImage(photoDataUrl, "PNG", photoX, photoY, photoSize, photoSize);
@@ -97,35 +97,62 @@ function drawPlayerCardOnDoc(
     });
   }
 
-  const textX = photoX + photoSize + 3;
-  const textMaxW = CARD_WIDTH - textX - 26;
+  const fieldX = photoX;
+  let fieldY = photoY + photoSize + 2.5;
+  const fieldMaxW = 34;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.setTextColor(255, 255, 255);
-  doc.text(`${joueur.prenom} ${joueur.nom}`, textX, 16, {
-    maxWidth: textMaxW,
-  });
+  function drawField(label: string, value: string, highlight = false) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(4.2);
+    doc.setTextColor(150, 165, 180);
+    doc.text(label.toUpperCase(), fieldX, fieldY);
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(57, 231, 95);
-  const metaParts = [
-    joueur.numero != null ? `#${joueur.numero}` : null,
-    joueur.poste,
-  ].filter(Boolean);
-  if (metaParts.length > 0) {
-    doc.text(metaParts.join(" · "), textX, 22, { maxWidth: textMaxW });
+    doc.setFont("helvetica", highlight ? "bold" : "normal");
+    doc.setFontSize(highlight ? 7.5 : 6.5);
+    doc.setTextColor(highlight ? 57 : 255, highlight ? 231 : 255, highlight ? 95 : 255);
+    doc.text(value, fieldX, fieldY + 2.6, { maxWidth: fieldMaxW });
+
+    fieldY += 5.2;
   }
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(220, 230, 240);
-  doc.text(joueur.equipe.nom, textX, 28, { maxWidth: textMaxW });
+  drawField("Nom", `${joueur.prenom} ${joueur.nom}`);
 
-  const qrSize = 22;
+  const rowY = fieldY;
+  const colWidth = 16;
+
+  function drawFieldAt(
+    x: number,
+    y: number,
+    label: string,
+    value: string,
+    highlight = false,
+  ) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(4.2);
+    doc.setTextColor(150, 165, 180);
+    doc.text(label.toUpperCase(), x, y);
+
+    doc.setFont("helvetica", highlight ? "bold" : "normal");
+    doc.setFontSize(highlight ? 7.5 : 6.5);
+    doc.setTextColor(highlight ? 57 : 255, highlight ? 231 : 255, highlight ? 95 : 255);
+    doc.text(value, x, y + 2.6, { maxWidth: colWidth });
+  }
+
+  drawFieldAt(
+    fieldX,
+    rowY,
+    "Dorsal",
+    joueur.numero != null ? `#${joueur.numero}` : "—",
+    joueur.numero != null,
+  );
+  drawFieldAt(fieldX + colWidth + 2, rowY, "Poste", joueur.poste?.trim() || "—");
+  fieldY += 5.2;
+
+  drawField("Club", joueur.equipe.nom);
+
+  const qrSize = 28;
   const qrX = CARD_WIDTH - qrSize - 4;
-  const qrY = 10;
+  const qrY = 9;
 
   doc.setFillColor(255, 255, 255);
   doc.roundedRect(qrX - 0.8, qrY - 0.8, qrSize + 1.6, qrSize + 1.6, 1.2, 1.2, "F");

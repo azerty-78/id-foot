@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { QRCodeSVG } from "qrcode.react";
+import { BrandedQrCode } from "@/components/qr/BrandedQrCode";
 
 type PlayerIdentityCardProps = {
   prenom: string;
@@ -120,7 +120,7 @@ export function PlayerIdentityCard({
       {qrValue && (
         <div className="relative mt-4 flex justify-end">
           <div className="rounded-[var(--radius-sm)] bg-white p-1">
-            <QRCodeSVG value={qrValue} size={44} level="M" />
+            <BrandedQrCode value={qrValue} size={44} />
           </div>
         </div>
       )}
