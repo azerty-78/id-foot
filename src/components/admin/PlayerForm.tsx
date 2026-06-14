@@ -522,7 +522,7 @@ export function PlayerForm({
           </fieldset>
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            <OutlineLink href={cancelHref} icon={X} tabIndex={submitting ? -1 : undefined}>
+            <OutlineLink href={cancelHref} icon={X}>
               Annuler
             </OutlineLink>
             <PrimaryButton

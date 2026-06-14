@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   QrCode,
   Shield,
+  Trophy,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -20,6 +21,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: "/admin/dashboard", label: "Accueil", icon: LayoutDashboard },
+  { href: "/admin/competitions", label: "Compétitions", icon: Trophy },
   { href: "/admin/scanner", label: "Scanner", icon: QrCode, highlight: true },
   { href: "/admin/players", label: "Joueurs", icon: Users },
   { href: "/admin/teams", label: "Équipes", icon: Shield },

@@ -14,6 +14,33 @@ import type { RecentScan, ScanPhase, ValidatedPlayer } from "./types";
 
 const DUPLICATE_MS = 2500;
 const ERROR_DISMISS_MS = 2200;
+const SCAN_BOX_MIN = 200;
+const SCAN_BOX_MAX_MOBILE = 280;
+const SCAN_BOX_MAX_DESKTOP = 300;
+
+function computeScanBoxSize(
+  viewfinderWidth: number,
+  viewfinderHeight: number,
+  isMobile: boolean,
+): number {
+  const max = isMobile ? SCAN_BOX_MAX_MOBILE : SCAN_BOX_MAX_DESKTOP;
+  const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+  const ratio = isMobile ? 0.72 : 0.68;
+  const size = Math.floor(minEdge * ratio);
+
+  return Math.max(SCAN_BOX_MIN, Math.min(max, size));
+}
+
+function applyScanBoxSize(
+  viewport: HTMLElement | null,
+  width: number,
+  height: number,
+  isMobile: boolean,
+): number {
+  const boxSize = computeScanBoxSize(width, height, isMobile);
+  viewport?.style.setProperty("--scan-box-size", `${boxSize}px`);
+  return boxSize;
+}
 
 function mapApiPlayer(data: ValidatedPlayer & { valid?: boolean; error?: string }): ValidatedPlayer {
   return {
@@ -37,6 +64,7 @@ export function ScannerWorkspace() {
   const [manualOpen, setManualOpen] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
 
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isLockedRef = useRef(false);
   const lastTokenRef = useRef<string | null>(null);
@@ -144,22 +172,31 @@ export function ScannerWorkspace() {
   const startScanner = useCallback(async () => {
     if (scannerRef.current) return;
 
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
+
+    const viewport = viewportRef.current;
+    const rect = viewport?.getBoundingClientRect();
+    const viewfinderWidth = rect?.width ?? window.innerWidth;
+    const viewfinderHeight = rect?.height ?? window.innerHeight;
+    const isMobile = window.innerWidth < 1024;
+
+    applyScanBoxSize(viewport, viewfinderWidth, viewfinderHeight, isMobile);
+
     try {
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
-
-      const isMobile = window.innerWidth < 1024;
-      const viewportWidth = window.innerWidth - (isMobile ? 16 : 48);
-      const boxSize = Math.max(
-        isMobile ? 200 : 220,
-        Math.min(isMobile ? 280 : 320, viewportWidth - 32),
-      );
 
       await scanner.start(
         { facingMode: "environment" },
         {
           fps: isMobile ? 20 : 16,
-          qrbox: { width: boxSize, height: boxSize },
+          qrbox: (width, height) => {
+            const size = computeScanBoxSize(width, height, isMobile);
+            applyScanBoxSize(viewport, width, height, isMobile);
+            return { width: size, height: size };
+          },
           aspectRatio: 1,
           disableFlip: false,
         },
@@ -228,6 +265,35 @@ export function ScannerWorkspace() {
     }
   }, [manualOpen, phase, startScanner, stopScanner]);
 
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    let resizeTimer: number;
+
+    const observer = new ResizeObserver(() => {
+      const rect = viewport.getBoundingClientRect();
+      const isMobile = window.innerWidth < 1024;
+      applyScanBoxSize(viewport, rect.width, rect.height, isMobile);
+
+      if (manualOpen || phase !== "scanning" || !scannerRef.current) {
+        return;
+      }
+
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        void stopScanner().then(() => startScanner());
+      }, 350);
+    });
+
+    observer.observe(viewport);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(resizeTimer);
+    };
+  }, [manualOpen, phase, startScanner, stopScanner]);
+
   return (
     <div className="scanner-workspace scanner-workspace--mobile">
       <header className="scanner-toolbar">
@@ -257,6 +323,7 @@ export function ScannerWorkspace() {
 
       <div className="scanner-stage">
         <div
+          ref={viewportRef}
           className={`scanner-viewport ${
             phase === "loading" ? "scanner-viewport--loading" : ""
           } ${phase === "success" ? "scanner-viewport--paused" : ""}`}
