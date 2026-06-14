@@ -11,9 +11,9 @@ import {
   FieldLabel,
   GhostLink,
   LoadingState,
+  OutlineButton,
   PageHeader,
   PrimaryButton,
-  SecondaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
 import {
@@ -270,13 +270,13 @@ export default function TeamsPage() {
                 className="flex flex-wrap gap-2"
                 onClick={(e) => e.stopPropagation()}
               >
-                <SecondaryButton
+                <OutlineButton
                   type="button"
                   onClick={() => openEditModal(teamItem)}
                   className="px-3 py-1.5 text-xs"
                 >
                   Modifier
-                </SecondaryButton>
+                </OutlineButton>
                 <DangerButton
                   type="button"
                   onClick={() => handleDelete(teamItem)}
@@ -310,13 +310,13 @@ export default function TeamsPage() {
                   {selectedTeam.competition?.nom}
                 </p>
               </div>
-              <SecondaryButton
+              <OutlineButton
                 type="button"
                 onClick={() => setSelectedTeamId(null)}
                 className="px-3 py-2"
               >
                 Fermer
-              </SecondaryButton>
+              </OutlineButton>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6">
@@ -360,9 +360,9 @@ export default function TeamsPage() {
         onClose={closeModal}
         footer={
           <>
-            <SecondaryButton type="button" onClick={closeModal}>
+            <OutlineButton type="button" onClick={closeModal}>
               Annuler
-            </SecondaryButton>
+            </OutlineButton>
             <PrimaryButton
               type="button"
               onClick={() => void handleSubmit()}

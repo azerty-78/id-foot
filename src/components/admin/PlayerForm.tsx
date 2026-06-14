@@ -8,8 +8,8 @@ import {
   FormInput,
   FormSection,
   GhostLink,
+  OutlineLink,
   PrimaryButton,
-  SecondaryLink,
 } from "@/components/admin/ui";
 import { useTeams, type Player } from "@/hooks/useApi";
 import { validateJoueur } from "@/lib/validators";
@@ -497,7 +497,7 @@ export function PlayerForm({
           </FormSection>
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            <SecondaryLink href={cancelHref}>Annuler</SecondaryLink>
+            <OutlineLink href={cancelHref}>Annuler</OutlineLink>
             <PrimaryButton type="submit" disabled={submitting || teams.length === 0}>
               {submitting
                 ? "Enregistrement..."

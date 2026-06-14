@@ -1,5 +1,5 @@
 import { AppLogo } from "@/components/brand/AppLogo";
-import { GhostLink, PrimaryLink } from "@/components/admin/ui";
+import { OutlineLink, PrimaryLink } from "@/components/admin/ui";
 
 type NotFoundViewProps = {
   title?: string;
@@ -34,9 +34,9 @@ export function NotFoundView({
             {homeLabel}
           </PrimaryLink>
           {secondaryHref && secondaryLabel && (
-            <GhostLink href={secondaryHref} className="w-full sm:w-auto">
+            <OutlineLink href={secondaryHref} className="w-full sm:w-auto">
               {secondaryLabel}
-            </GhostLink>
+            </OutlineLink>
           )}
         </div>
       </div>

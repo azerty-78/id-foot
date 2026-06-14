@@ -9,9 +9,9 @@ import {
   FieldError,
   FieldLabel,
   LoadingState,
+  OutlineButton,
   PageHeader,
   PrimaryButton,
-  SecondaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
 import { useCompetitions, type Competition } from "@/hooks/useApi";
@@ -175,13 +175,13 @@ export default function CompetitionsPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <SecondaryButton
+                <OutlineButton
                   type="button"
                   onClick={() => openEditModal(competition)}
                   className="px-3 py-1.5 text-xs"
                 >
                   Modifier
-                </SecondaryButton>
+                </OutlineButton>
                 <DangerButton
                   type="button"
                   onClick={() => handleDelete(competition)}
@@ -201,9 +201,9 @@ export default function CompetitionsPage() {
         onClose={closeModal}
         footer={
           <>
-            <SecondaryButton type="button" onClick={closeModal}>
+            <OutlineButton type="button" onClick={closeModal}>
               Annuler
-            </SecondaryButton>
+            </OutlineButton>
             <PrimaryButton
               type="button"
               onClick={() => void handleSubmit()}

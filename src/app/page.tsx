@@ -1,5 +1,5 @@
 import { AppLogo } from "@/components/brand/AppLogo";
-import { PrimaryLink, SecondaryLink } from "@/components/admin/ui";
+import { PrimaryLink, OutlineLink, SecondaryLink } from "@/components/admin/ui";
 
 export default function HomePage() {
   return (
@@ -35,9 +35,9 @@ export default function HomePage() {
               <PrimaryLink href="/admin/dashboard" className="w-full sm:w-auto">
                 Accéder à l&apos;administration
               </PrimaryLink>
-              <SecondaryLink href="/admin/scanner" className="w-full sm:w-auto">
+              <OutlineLink href="/admin/scanner" className="w-full sm:w-auto">
                 Scanner un QR code
-              </SecondaryLink>
+              </OutlineLink>
             </div>
           </div>
 

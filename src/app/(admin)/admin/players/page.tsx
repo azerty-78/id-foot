@@ -8,10 +8,10 @@ import {
   EmptyState,
   LoadingState,
   PageHeader,
+  GhostLink,
+  OutlineLink,
   PrimaryButton,
   PrimaryLink,
-  SecondaryButton,
-  SecondaryLink,
 } from "@/components/admin/ui";
 import { usePlayers, useTeams, type Player } from "@/hooks/useApi";
 
@@ -184,12 +184,12 @@ export default function PlayersPage() {
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  <SecondaryLink
+                  <GhostLink
                     href={`/admin/players/${player.id}`}
                     className="col-span-1 w-full px-2 py-2 text-xs"
                   >
                     Voir
-                  </SecondaryLink>
+                  </GhostLink>
                   <PrimaryButton
                     type="button"
                     onClick={() => handleDownloadCard(player.id)}
@@ -268,12 +268,12 @@ export default function PlayersPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <SecondaryLink
+                        <GhostLink
                           href={`/admin/players/${player.id}`}
                           className="px-3 py-1.5 text-xs"
                         >
                           Voir
-                        </SecondaryLink>
+                        </GhostLink>
                         <PrimaryButton
                           type="button"
                           onClick={() => handleDownloadCard(player.id)}

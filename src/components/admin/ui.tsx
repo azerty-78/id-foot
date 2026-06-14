@@ -1,15 +1,13 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-/* ── Boutons — charte ID FOOT ── */
-const primaryClasses =
-  "inline-flex items-center justify-center rounded-[var(--radius-md)] bg-green px-4 py-2.5 text-sm font-semibold text-navy shadow-[var(--shadow-green)] transition hover:bg-green-dark disabled:cursor-not-allowed disabled:opacity-60";
+const btnBase = "btn disabled:cursor-not-allowed disabled:opacity-60";
 
-const secondaryClasses =
-  "inline-flex items-center justify-center rounded-[var(--radius-md)] border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:border-green/40 hover:bg-green-bg disabled:opacity-60";
-
-const ghostClasses =
-  "inline-flex items-center justify-center rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium text-green transition hover:bg-green-bg";
+const primaryClasses = `${btnBase} btn-primary`;
+const secondaryClasses = `${btnBase} btn-secondary`;
+const outlineClasses = `${btnBase} btn-outline`;
+const ghostClasses = `${btnBase} btn-ghost`;
+const dangerClasses = `${btnBase} btn-danger`;
 
 export function PrimaryLink({
   href,
@@ -54,6 +52,22 @@ export function GhostLink({
 }) {
   return (
     <Link href={href} className={`${ghostClasses} ${className}`}>
+      {children}
+    </Link>
+  );
+}
+
+export function OutlineLink({
+  href,
+  children,
+  className = "",
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={`${outlineClasses} ${className}`}>
       {children}
     </Link>
   );
@@ -127,10 +141,7 @@ export function DangerButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button
-      {...props}
-      className={`inline-flex items-center justify-center rounded-[var(--radius-md)] border border-danger/20 bg-danger/10 px-4 py-2.5 text-sm font-medium text-danger transition hover:bg-danger/15 disabled:opacity-60 ${className}`}
-    >
+    <button {...props} className={`${dangerClasses} ${className}`}>
       {children}
     </button>
   );
@@ -143,6 +154,18 @@ export function GhostButton({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button {...props} className={`${ghostClasses} ${className}`}>
+      {children}
+    </button>
+  );
+}
+
+export function OutlineButton({
+  children,
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={`${outlineClasses} ${className}`}>
       {children}
     </button>
   );

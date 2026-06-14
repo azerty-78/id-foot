@@ -9,9 +9,9 @@ import {
   DangerButton,
   GhostLink,
   LoadingState,
+  OutlineButton,
+  OutlineLink,
   PrimaryButton,
-  SecondaryButton,
-  SecondaryLink,
 } from "@/components/admin/ui";
 
 function getInitials(prenom: string, nom: string): string {
@@ -179,13 +179,13 @@ export default function PlayerDetailPage() {
               >
                 Télécharger la carte PDF
               </PrimaryButton>
-              <SecondaryButton
+              <OutlineButton
                 type="button"
                 onClick={() => window.print()}
                 className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto"
               >
                 Imprimer
-              </SecondaryButton>
+              </OutlineButton>
             </div>
           </div>
         </AdminCard>
@@ -201,9 +201,9 @@ export default function PlayerDetailPage() {
               </h2>
             </div>
             <div className="flex flex-wrap gap-2 print:hidden">
-              <SecondaryLink href={`/admin/players/${player.id}/edit`}>
+              <OutlineLink href={`/admin/players/${player.id}/edit`}>
                 Modifier
-              </SecondaryLink>
+              </OutlineLink>
               <DangerButton type="button" onClick={handleDelete}>
                 Supprimer
               </DangerButton>

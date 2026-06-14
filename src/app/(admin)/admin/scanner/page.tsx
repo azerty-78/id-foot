@@ -8,10 +8,10 @@ import {
   DangerButton,
   FieldLabel,
   GhostLink,
+  OutlineButton,
   PageHeader,
   PrimaryButton,
   PrimaryLink,
-  SecondaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
 
@@ -313,9 +313,9 @@ export default function ScannerPage() {
                 <PrimaryLink href={`/admin/players/${player.id}`}>
                   Voir la fiche complète
                 </PrimaryLink>
-                <SecondaryButton type="button" onClick={() => void resetScan()}>
+                <OutlineButton type="button" onClick={() => void resetScan()}>
                   Nouveau scan
-                </SecondaryButton>
+                </OutlineButton>
               </div>
             </div>
           )}
