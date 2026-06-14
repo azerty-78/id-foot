@@ -57,12 +57,16 @@ export default function CompetitionsPage() {
     setIsModalOpen(true);
   }
 
-  function closeModal() {
-    if (submitting) return;
+  function resetModal() {
     setIsModalOpen(false);
     setEditingId(null);
     setForm(emptyForm);
     setFormError(null);
+  }
+
+  function closeModal() {
+    if (submitting) return;
+    resetModal();
   }
 
   async function handleSubmit() {
@@ -83,12 +87,9 @@ export default function CompetitionsPage() {
     submitLockRef.current = true;
     setSubmitting(true);
     setFormError(null);
-    setSubmitMessage("Vérification des données…");
+    setSubmitMessage("Enregistrement de la compétition…");
 
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 120));
-      setSubmitMessage("Enregistrement de la compétition…");
-
       const url = editingId
         ? `/api/competitions/${editingId}`
         : "/api/competitions";
@@ -109,7 +110,7 @@ export default function CompetitionsPage() {
         "success",
         editingId ? "Compétition mise à jour." : "Compétition créée avec succès.",
       );
-      closeModal();
+      resetModal();
       refetch();
     } catch (err) {
       setFormError(

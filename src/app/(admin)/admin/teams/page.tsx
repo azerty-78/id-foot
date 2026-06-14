@@ -2,7 +2,7 @@
 
 import { Eye, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AdminCard,
   AdminModal,
@@ -10,6 +10,7 @@ import {
   EmptyState,
   FieldError,
   FieldLabel,
+  FormSubmitOverlay,
   GhostLink,
   LoadingState,
   OutlineButton,
@@ -17,6 +18,7 @@ import {
   PrimaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
+import { useToast } from "@/components/providers/ToastProvider";
 import {
   useCompetitions,
   usePlayers,
@@ -51,6 +53,8 @@ function getInitials(nom: string): string {
 export default function TeamsPage() {
   const { teams, loading, error, refetch } = useTeams();
   const { competitions, loading: competitionsLoading } = useCompetitions();
+  const { showToast } = useToast();
+  const submitLockRef = useRef(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const { players, loading: playersLoading } = usePlayers({
     equipeId: selectedTeamId ?? undefined,
@@ -63,6 +67,7 @@ export default function TeamsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
 
   const selectedTeam = teams.find((team) => team.id === selectedTeamId) as
     | TeamItem
@@ -120,7 +125,7 @@ export default function TeamsPage() {
     setIsModalOpen(true);
   }
 
-  function closeModal() {
+  function resetModal() {
     setIsModalOpen(false);
     setEditingId(null);
     setForm(emptyForm);
@@ -128,9 +133,16 @@ export default function TeamsPage() {
     setFormError(null);
   }
 
+  function closeModal() {
+    if (submitting) return;
+    resetModal();
+  }
+
   async function handleSubmit() {
+    if (submitLockRef.current) return;
+
     const payload = {
-      nom: form.nom,
+      nom: form.nom.trim(),
       competitionId: form.competitionId,
       logo: form.logo,
     };
@@ -141,6 +153,7 @@ export default function TeamsPage() {
       return;
     }
 
+    submitLockRef.current = true;
     setSubmitting(true);
     setFormError(null);
 
@@ -148,8 +161,11 @@ export default function TeamsPage() {
       let logoUrl = form.logo;
 
       if (logoFile) {
+        setSubmitMessage("Envoi du logo…");
         logoUrl = await uploadLogo(logoFile);
       }
+
+      setSubmitMessage("Enregistrement de l'équipe…");
 
       const url = editingId ? `/api/teams/${editingId}` : "/api/teams";
       const method = editingId ? "PUT" : "POST";
@@ -158,8 +174,8 @@ export default function TeamsPage() {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nom: form.nom.trim(),
-          competitionId: form.competitionId,
+          nom: payload.nom,
+          competitionId: payload.competitionId,
           logo: logoUrl,
         }),
       });
@@ -169,14 +185,20 @@ export default function TeamsPage() {
         throw new Error(data.error ?? "Erreur lors de l'enregistrement.");
       }
 
-      closeModal();
+      showToast(
+        "success",
+        editingId ? "Équipe mise à jour." : "Équipe créée avec succès.",
+      );
+      resetModal();
       refetch();
     } catch (err) {
       setFormError(
-        err instanceof Error ? err.message : "Erreur lors de l'enregistrement."
+        err instanceof Error ? err.message : "Erreur lors de l'enregistrement.",
       );
     } finally {
+      submitLockRef.current = false;
       setSubmitting(false);
+      setSubmitMessage("Enregistrement en cours…");
     }
   }
 
@@ -364,24 +386,32 @@ export default function TeamsPage() {
         title={editingId ? "Modifier l'équipe" : "Nouvelle équipe"}
         onClose={closeModal}
         historyKey="team-form"
+        busy={submitting}
         footer={
           <>
-            <OutlineButton type="button" icon={X} size="sm" onClick={closeModal}>
+            <OutlineButton
+              type="button"
+              icon={X}
+              size="sm"
+              onClick={closeModal}
+              disabled={submitting}
+            >
               Annuler
             </OutlineButton>
             <PrimaryButton
               type="button"
               icon={Save}
               size="sm"
+              loading={submitting}
               onClick={() => void handleSubmit()}
-              disabled={submitting}
             >
-              {submitting ? "Enregistrement..." : "Enregistrer"}
+              {submitting ? "Enregistrement…" : "Enregistrer"}
             </PrimaryButton>
           </>
         }
       >
-        <div className="space-y-4">
+        <FormSubmitOverlay visible={submitting} message={submitMessage} />
+        <fieldset disabled={submitting} className="space-y-4 border-0 p-0 m-0">
           <div>
             <FieldLabel htmlFor="team-nom">Nom *</FieldLabel>
             <input
@@ -435,7 +465,7 @@ export default function TeamsPage() {
           </div>
 
           <FieldError message={formError ?? undefined} />
-        </div>
+        </fieldset>
       </AdminModal>
     </div>
   );

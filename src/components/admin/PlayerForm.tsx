@@ -1,18 +1,20 @@
 "use client";
 
-import { ArrowLeft, Save, Shield, Trophy, X } from "lucide-react";
+import { Save, Shield, Trophy, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import {
   AdminCard,
   FieldHint,
   FormInput,
   FormSection,
+  FormSubmitOverlay,
   GhostLink,
   OutlineLink,
   PrimaryButton,
 } from "@/components/admin/ui";
+import { useToast } from "@/components/providers/ToastProvider";
 import { useTeams, type Player } from "@/hooks/useApi";
 import { validateJoueur } from "@/lib/validators";
 import { POSTES, SEXES } from "@/types/player";
@@ -86,12 +88,15 @@ export function PlayerForm({
   onSuccess,
 }: PlayerFormProps) {
   const { teams, loading: teamsLoading } = useTeams();
+  const { showToast } = useToast();
+  const submitLockRef = useRef(false);
   const [values, setValues] = useState<PlayerFormValues>(emptyValues);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [currentPhotoUrl, setCurrentPhotoUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
 
   useEffect(() => {
     if (!initialPlayer) return;
@@ -167,11 +172,12 @@ export function PlayerForm({
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitLockRef.current) return;
     setErrors({});
 
     const payload = {
-      prenom: values.prenom,
-      nom: values.nom,
+      prenom: values.prenom.trim(),
+      nom: values.nom.trim(),
       dateNaissance: values.dateNaissance,
       nationalite: values.nationalite.trim() || null,
       sexe: values.sexe.trim() || null,
@@ -187,14 +193,21 @@ export function PlayerForm({
       return;
     }
 
+    submitLockRef.current = true;
     setSubmitting(true);
+    setSubmitMessage("Vérification des données…");
 
     try {
       let photoUrl = currentPhotoUrl;
 
       if (photoFile) {
+        setSubmitMessage("Envoi de la photo…");
         photoUrl = await uploadPhoto(photoFile);
       }
+
+      setSubmitMessage(
+        mode === "create" ? "Création du joueur…" : "Mise à jour du joueur…",
+      );
 
       const url =
         mode === "create" ? "/api/players" : `/api/players/${playerId}`;
@@ -215,11 +228,15 @@ export function PlayerForm({
           data.error ??
             (mode === "create"
               ? "Erreur lors de la création du joueur."
-              : "Erreur lors de la modification du joueur.")
+              : "Erreur lors de la modification du joueur."),
         );
       }
 
       const saved = (await res.json()) as Player;
+      showToast(
+        "success",
+        mode === "create" ? "Joueur enregistré avec succès." : "Joueur mis à jour.",
+      );
       onSuccess(saved.id);
     } catch (err) {
       setErrors({
@@ -231,7 +248,9 @@ export function PlayerForm({
             : undefined,
       });
     } finally {
+      submitLockRef.current = false;
       setSubmitting(false);
+      setSubmitMessage("Enregistrement en cours…");
     }
   }
 
@@ -240,8 +259,10 @@ export function PlayerForm({
 
   return (
     <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <AdminCard className="order-2 p-4 sm:p-6 xl:order-1">
+      <AdminCard className={`order-2 p-4 sm:p-6 xl:order-1 ${submitting ? "form-card-busy" : ""}`}>
+        <FormSubmitOverlay visible={submitting} message={submitMessage} />
         <form onSubmit={handleSubmit} className="space-y-6">
+          <fieldset disabled={submitting} className="space-y-6 border-0 p-0 m-0">
           {errors.submit && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               {errors.submit}
