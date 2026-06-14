@@ -11,16 +11,61 @@ async function getSharp(): Promise<typeof sharp> {
   return sharpModule;
 }
 
+async function roundPhoto(
+  photoPng: Buffer,
+  size: number,
+  radius: number,
+): Promise<Buffer> {
+  const renderer = await getSharp();
+  const mask = Buffer.from(
+    `<svg width="${size}" height="${size}"><rect x="0" y="0" width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="white"/></svg>`,
+  );
+
+  return renderer(photoPng)
+    .resize(size, size, { fit: "cover", position: "centre" })
+    .composite([{ input: mask, blend: "dest-in" }])
+    .png()
+    .toBuffer();
+}
+
 export async function renderPlayerCardPng(
   joueur: CardRenderPlayer,
   qrPng: Buffer,
   photoPng: Buffer | null,
 ): Promise<Buffer> {
-  const svg = buildPlayerCardSvg(joueur, qrPng, photoPng);
+  const { svg, layout } = buildPlayerCardSvg(joueur, {
+    hasPhoto: photoPng != null,
+  });
   const renderer = await getSharp();
 
   try {
-    return await renderer(Buffer.from(svg), { density: 96 })
+    const qrLayer = await renderer(qrPng)
+      .resize(layout.qrInner, layout.qrInner)
+      .png()
+      .toBuffer();
+
+    const photoLayer =
+      photoPng != null
+        ? await roundPhoto(photoPng, layout.photoSize, 16)
+        : null;
+
+    return await renderer(Buffer.from(svg), { density: 144 })
+      .composite([
+        ...(photoLayer
+          ? [
+              {
+                input: photoLayer,
+                left: layout.photoX,
+                top: layout.photoY,
+              },
+            ]
+          : []),
+        {
+          input: qrLayer,
+          left: layout.qrLeft,
+          top: layout.qrTop,
+        },
+      ])
       .png({ compressionLevel: 4, effort: 1 })
       .toBuffer();
   } catch (error) {

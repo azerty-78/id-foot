@@ -18,6 +18,17 @@ export type CardRenderPlayer = {
   };
 };
 
+export type PlayerCardLayout = {
+  width: number;
+  height: number;
+  photoX: number;
+  photoY: number;
+  photoSize: number;
+  qrLeft: number;
+  qrTop: number;
+  qrInner: number;
+};
+
 function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -27,20 +38,11 @@ function escapeXml(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function toDataUri(buffer: Buffer, mime = "image/png"): string {
-  return `data:${mime};base64,${buffer.toString("base64")}`;
-}
-
 function getInitials(prenom: string, nom: string): string {
   return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
 }
 
-/** Grille 500×330 — mêmes proportions que PlayerLicenseCard + globals.css */
-export function buildPlayerCardSvg(
-  joueur: CardRenderPlayer,
-  qrPng: Buffer,
-  photoPng: Buffer | null,
-): string {
+function computeLayout(): PlayerCardLayout {
   const W = CARD_RENDER_WIDTH;
   const H = CARD_RENDER_HEIGHT;
   const pad = 16;
@@ -60,6 +62,44 @@ export function buildPlayerCardSvg(
   const photoX = leftX + (leftW - identityPadR - photoSize) / 2;
   const photoY = contentTop;
 
+  const qrBox = 250;
+  const qrQuiet = 16;
+  const qrInner = qrBox - qrQuiet * 2;
+  const qrX = rightX + (rightW - qrBox) / 2;
+  const qrY = contentTop + 2;
+
+  return {
+    width: W,
+    height: H,
+    photoX,
+    photoY,
+    photoSize,
+    qrLeft: qrX + qrQuiet,
+    qrTop: qrY + qrQuiet,
+    qrInner,
+  };
+}
+
+/** Grille 500×330 — fond vectoriel sans images raster (composées ensuite via Sharp). */
+export function buildPlayerCardSvg(
+  joueur: CardRenderPlayer,
+  options?: { hasPhoto?: boolean },
+): { svg: string; layout: PlayerCardLayout } {
+  const layout = computeLayout();
+  const { width: W, height: H } = layout;
+  const pad = 16;
+  const headerH = 40;
+  const footerH = 35;
+  const mainPadY = 12;
+  const contentTop = headerH + mainPadY;
+  const gap = 24;
+  const contentW = W - pad * 2;
+  const leftW = (contentW - gap) * 0.42;
+  const leftX = pad;
+  const identityPadR = 12;
+
+  const { photoX, photoY, photoSize } = layout;
+
   const fieldW = leftW - identityPadR;
   const fieldX = leftX;
   const fieldY = photoY + photoSize + 12;
@@ -69,23 +109,22 @@ export function buildPlayerCardSvg(
   const poste = joueur.poste?.trim() || "—";
 
   const qrBox = 250;
-  const qrQuiet = 16;
-  const qrInner = qrBox - qrQuiet * 2;
-  const qrX = rightX + (rightW - qrBox) / 2;
-  const qrY = contentTop + 2;
+  const qrX = layout.qrLeft - 16;
+  const qrY = layout.qrTop - 2;
 
   const sepX = leftX + leftW;
   const bodyBottom = H - footerH;
 
-  const photoBlock = photoPng
-    ? `<image href="${toDataUri(photoPng)}" x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClip)"/>`
+  const hasPhoto = options?.hasPhoto ?? false;
+  const photoBlock = hasPhoto
+    ? ""
     : `<rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoPlaceholder}"/>
        <text x="${photoX + photoSize / 2}" y="${photoY + photoSize / 2 + 7}" text-anchor="middle" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="22" font-weight="700">${escapeXml(getInitials(joueur.prenom, joueur.nom))}</text>`;
 
   const rowY = fieldY + 28;
   const fontFaceStyles = getInterFontFaceDefs();
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     ${fontFaceStyles ? `<style><![CDATA[${fontFaceStyles}]]></style>` : ""}
@@ -94,9 +133,6 @@ export function buildPlayerCardSvg(
       <stop offset="58%" stop-color="${CARD_COLORS.navy}"/>
       <stop offset="100%" stop-color="${CARD_COLORS.navy}"/>
     </linearGradient>
-    <clipPath id="photoClip">
-      <rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16"/>
-    </clipPath>
   </defs>
 
   <rect width="${W}" height="${H}" rx="20" fill="url(#cardBg)"/>
@@ -136,11 +172,10 @@ export function buildPlayerCardSvg(
   <text x="${fieldX + fieldW / 2 + 4}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">POSTE</text>
   <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
 
-  <!-- QR -->
+  <!-- QR (cadre blanc — image composée ensuite) -->
   <g>
     <rect x="${qrX}" y="${qrY}" width="${qrBox}" height="${qrBox}" rx="10" fill="${CARD_COLORS.white}" stroke="${CARD_COLORS.green}" stroke-width="2"/>
   </g>
-  <image href="${toDataUri(qrPng)}" x="${qrX + qrQuiet}" y="${qrY + qrQuiet}" width="${qrInner}" height="${qrInner}" preserveAspectRatio="xMidYMid meet"/>
   <text x="${qrX + qrBox / 2}" y="${qrY + qrBox + 12}" text-anchor="middle" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.4">SCANNER ICI</text>
 
   <!-- Footer -->
@@ -149,4 +184,6 @@ export function buildPlayerCardSvg(
   <text x="${pad}" y="${H - footerH / 2 + 4}" fill="${CARD_COLORS.footerText}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.4">LICENCE JOUEUR</text>
   <text x="${W - pad}" y="${H - footerH / 2 + 4}" text-anchor="end" fill="${CARD_COLORS.labelBright}" font-family="${CARD_FONT}" font-size="10" font-weight="700">${escapeXml(joueur.equipe.nom)}</text>
 </svg>`;
+
+  return { svg, layout };
 }
