@@ -2399,6 +2399,29 @@ body {
   gap: 8px;
 }
 
+.phone-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.phone-input-dial {
+  width: min(100%, 148px);
+  flex-shrink: 0;
+  padding-inline: 10px;
+  font-size: 13px;
+}
+
+.phone-input-local {
+  min-width: 0;
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .phone-input-dial {
+    width: 168px;
+  }
+}
+
 .player-section-nav {
   display: flex;
   gap: 6px;

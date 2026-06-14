@@ -18,7 +18,16 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { useTeams, type Player } from "@/hooks/useApi";
 import { validateJoueur } from "@/lib/validators";
 import { compressImageForUpload } from "@/lib/compressImage";
-import { POSTES, SEXES } from "@/types/player";
+import { DEFAULT_NATIONALITY, NATIONALITIES } from "@/lib/nationalities";
+import {
+  composePhoneNumber,
+  DEFAULT_PHONE_DIAL,
+  formatLocalPhone,
+  getPhoneCountry,
+  parsePhoneNumber,
+  PHONE_COUNTRIES,
+} from "@/lib/phoneCountries";
+import { DEFAULT_SEXE, POSTES, SEXES } from "@/types/player";
 
 export type PlayerFormValues = {
   prenom: string;
@@ -26,21 +35,25 @@ export type PlayerFormValues = {
   dateNaissance: string;
   nationalite: string;
   sexe: string;
-  telephone: string;
+  phoneDial: string;
+  phoneLocal: string;
   numeroMaillot: string;
   poste: string;
   equipeId: string;
 };
 
-type FormErrors = Partial<Record<keyof PlayerFormValues | "photo" | "submit", string>>;
+type FormErrors = Partial<
+  Record<keyof PlayerFormValues | "photo" | "submit" | "telephone", string>
+>;
 
 const emptyValues: PlayerFormValues = {
   prenom: "",
   nom: "",
   dateNaissance: "",
-  nationalite: "",
-  sexe: "",
-  telephone: "",
+  nationalite: DEFAULT_NATIONALITY,
+  sexe: DEFAULT_SEXE,
+  phoneDial: DEFAULT_PHONE_DIAL,
+  phoneLocal: "",
   numeroMaillot: "",
   poste: "",
   equipeId: "",
@@ -102,15 +115,19 @@ export function PlayerForm({
   useEffect(() => {
     if (!initialPlayer) return;
 
+    const phone = parsePhoneNumber(initialPlayer.telephone);
+
     setValues({
       prenom: initialPlayer.prenom,
       nom: initialPlayer.nom,
       dateNaissance: initialPlayer.dateNaissance
         ? toDateInputValue(initialPlayer.dateNaissance)
         : "",
-      nationalite: initialPlayer.nationalite ?? "",
-      sexe: initialPlayer.sexe ?? "",
-      telephone: initialPlayer.telephone ?? "",
+      nationalite: initialPlayer.nationalite ?? DEFAULT_NATIONALITY,
+      sexe:
+        initialPlayer.sexe === "Féminin" ? "Féminin" : DEFAULT_SEXE,
+      phoneDial: phone.dial,
+      phoneLocal: phone.local,
       numeroMaillot: initialPlayer.numero != null ? String(initialPlayer.numero) : "",
       poste: initialPlayer.poste ?? "",
       equipeId: initialPlayer.equipeId,
@@ -147,12 +164,38 @@ export function PlayerForm({
     return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b, "fr"));
   }, [teams]);
 
+  const nationalityOptions = useMemo(() => {
+    const options = [...NATIONALITIES];
+    const current = values.nationalite.trim();
+
+    if (current && !options.includes(current as (typeof NATIONALITIES)[number])) {
+      options.unshift(current as (typeof NATIONALITIES)[number]);
+    }
+
+    return options;
+  }, [values.nationalite]);
+
   const selectedTeam = teams.find((team) => team.id === values.equipeId);
   const displayPhoto = photoPreview ?? currentPhotoUrl;
+  const phonePreview = composePhoneNumber(values.phoneDial, values.phoneLocal);
+  const phoneCountry = getPhoneCountry(values.phoneDial);
 
   function updateField<K extends keyof PlayerFormValues>(key: K, value: PlayerFormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
-    setErrors((current) => ({ ...current, [key]: undefined, submit: undefined }));
+    setErrors((current) => ({ ...current, [key]: undefined, submit: undefined, telephone: undefined }));
+  }
+
+  function handlePhoneLocalChange(raw: string) {
+    updateField("phoneLocal", formatLocalPhone(values.phoneDial, raw));
+  }
+
+  function handlePhoneDialChange(dial: string) {
+    setValues((current) => ({
+      ...current,
+      phoneDial: dial,
+      phoneLocal: formatLocalPhone(dial, current.phoneLocal),
+    }));
+    setErrors((current) => ({ ...current, telephone: undefined, submit: undefined }));
   }
 
   async function uploadPhoto(file: File): Promise<string> {
@@ -184,7 +227,7 @@ export function PlayerForm({
       dateNaissance: values.dateNaissance.trim() || null,
       nationalite: values.nationalite.trim() || null,
       sexe: values.sexe.trim() || null,
-      telephone: values.telephone.trim() || null,
+      telephone: phonePreview || null,
       numero: values.numeroMaillot.trim()
         ? Number.parseInt(values.numeroMaillot, 10)
         : null,
@@ -279,7 +322,7 @@ export function PlayerForm({
 
           <FormSection
             title="Identité"
-            description="Informations personnelles du joueur."
+            description="Prénom et nom obligatoires. Les autres champs sont facultatifs."
           >
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <FormInput
@@ -316,7 +359,7 @@ export function PlayerForm({
               <FormInput
                 id="dateNaissance"
                 label="Date de naissance"
-                hint="Optionnel."
+                hint="Facultatif."
                 error={errors.dateNaissance}
               >
                 <input
@@ -328,18 +371,13 @@ export function PlayerForm({
                 />
               </FormInput>
 
-              <FormInput
-                id="sexe"
-                label="Sexe"
-                hint="Laissez vide si non renseigné."
-              >
+              <FormInput id="sexe" label="Sexe" hint="Facultatif.">
                 <select
                   id="sexe"
                   value={values.sexe}
                   onChange={(e) => updateField("sexe", e.target.value)}
                   className="admin-input"
                 >
-                  <option value="">Non renseigné</option>
                   {SEXES.map((item) => (
                     <option key={item} value={item}>
                       {item}
@@ -352,89 +390,21 @@ export function PlayerForm({
             <FormInput
               id="nationalite"
               label="Nationalité"
-              hint="Ex. Camerounaise, Française…"
+              hint="Facultatif."
             >
-              <input
+              <select
                 id="nationalite"
-                type="text"
-                placeholder="Nationalité"
                 value={values.nationalite}
                 onChange={(e) => updateField("nationalite", e.target.value)}
                 className="admin-input"
-              />
+              >
+                {nationalityOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
             </FormInput>
-          </FormSection>
-
-          <FormSection
-            title="Contact"
-            description="Coordonnées du joueur ou du tuteur."
-          >
-            <FormInput
-              id="telephone"
-              label="Numéro de téléphone"
-              error={errors.telephone}
-              hint="Format libre : +237 6XX XXX XXX ou 06 XX XX XX XX"
-            >
-              <input
-                id="telephone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="+237 6XX XXX XXX"
-                value={values.telephone}
-                onChange={(e) => updateField("telephone", e.target.value)}
-                className={inputClass("telephone")}
-              />
-            </FormInput>
-          </FormSection>
-
-          <FormSection
-            title="Informations sportives"
-            description="Poste et numéro porté sur le maillot."
-          >
-            <FormInput
-              id="numeroMaillot"
-              label="Numéro de maillot"
-              error={errors.numeroMaillot}
-              hint="Optionnel — numéro sur le dos du maillot (1 à 99)."
-            >
-              <input
-                id="numeroMaillot"
-                type="number"
-                min={1}
-                max={99}
-                placeholder="Ex. 10"
-                value={values.numeroMaillot}
-                onChange={(e) => updateField("numeroMaillot", e.target.value)}
-                className={inputClass("numeroMaillot")}
-              />
-            </FormInput>
-
-            <div>
-              <p className="mb-2 text-sm font-medium text-slate-700">
-                Poste <span className="font-normal text-slate-400">(optionnel)</span>
-              </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {POSTES.map((item) => {
-                  const active = values.poste === item;
-                  return (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => updateField("poste", item)}
-                      className={`poste-pill rounded-xl px-3 py-3 text-sm font-semibold ${
-                        active ? "poste-pill-active" : ""
-                      }`}
-                    >
-                      {item}
-                    </button>
-                  );
-                })}
-              </div>
-              {errors.poste && (
-                <p className="mt-1.5 text-xs text-rose-600">{errors.poste}</p>
-              )}
-            </div>
           </FormSection>
 
           <FormSection
@@ -528,6 +498,98 @@ export function PlayerForm({
             )}
           </FormSection>
 
+          <FormSection
+            title="Contact"
+            description="Coordonnées du joueur ou du tuteur (facultatif)."
+          >
+            <FormInput
+              id="telephone"
+              label="Numéro de téléphone"
+              error={errors.telephone}
+              hint={`Indicatif modifiable · ex. ${values.phoneDial} 6XX XXX XXX`}
+            >
+              <div className="phone-input-row">
+                <select
+                  id="phoneDial"
+                  value={values.phoneDial}
+                  onChange={(e) => handlePhoneDialChange(e.target.value)}
+                  className="admin-input phone-input-dial"
+                  aria-label="Indicatif pays"
+                >
+                  {PHONE_COUNTRIES.map((country) => (
+                    <option key={country.dial} value={country.dial}>
+                      {country.label} ({country.dial})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  id="telephone"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  placeholder={
+                    values.phoneDial === "+237" ? "6XX XXX XXX" : "Numéro local"
+                  }
+                  value={values.phoneLocal}
+                  onChange={(e) => handlePhoneLocalChange(e.target.value)}
+                  className={`admin-input phone-input-local ${errors.telephone ? "admin-input-error" : ""}`}
+                  maxLength={phoneCountry.localLength + 5}
+                />
+              </div>
+            </FormInput>
+          </FormSection>
+
+          <FormSection
+            title="Informations sportives"
+            description="Poste et numéro de maillot (facultatifs)."
+          >
+            <FormInput
+              id="numeroMaillot"
+              label="Numéro de maillot"
+              error={errors.numeroMaillot}
+              hint="Facultatif — de 1 à 99."
+            >
+              <input
+                id="numeroMaillot"
+                type="number"
+                min={1}
+                max={99}
+                placeholder="Ex. 10"
+                value={values.numeroMaillot}
+                onChange={(e) => updateField("numeroMaillot", e.target.value)}
+                className={inputClass("numeroMaillot")}
+              />
+            </FormInput>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-slate-700">
+                Poste <span className="font-normal text-slate-400">(facultatif)</span>
+              </p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {POSTES.map((item) => {
+                  const active = values.poste === item;
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() =>
+                        updateField("poste", active ? "" : item)
+                      }
+                      className={`poste-pill rounded-xl px-3 py-2.5 text-xs font-semibold sm:text-sm ${
+                        active ? "poste-pill-active" : ""
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.poste && (
+                <p className="mt-1.5 text-xs text-rose-600">{errors.poste}</p>
+              )}
+            </div>
+          </FormSection>
+
           </fieldset>
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
@@ -569,7 +631,7 @@ export function PlayerForm({
               </p>
               <p className="text-body">
                 <span className="font-medium text-navy">Téléphone :</span>{" "}
-                {values.telephone || "—"}
+                {phonePreview || "—"}
               </p>
             </div>
           </AdminCard>
