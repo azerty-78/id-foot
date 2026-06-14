@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  serverExternalPackages: ["sharp"],
   async redirects() {
     return [
       { source: "/dashboard", destination: "/admin/dashboard", permanent: true },

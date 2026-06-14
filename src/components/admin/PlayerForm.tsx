@@ -17,6 +17,7 @@ import {
 import { useToast } from "@/components/providers/ToastProvider";
 import { useTeams, type Player } from "@/hooks/useApi";
 import { validateJoueur } from "@/lib/validators";
+import { compressImageForUpload } from "@/lib/compressImage";
 import { POSTES, SEXES } from "@/types/player";
 
 export type PlayerFormValues = {
@@ -203,7 +204,10 @@ export function PlayerForm({
       let photoUrl = currentPhotoUrl;
 
       if (photoFile) {
-        photoUrl = await uploadPhoto(photoFile);
+        setSubmitMessage("Optimisation de la photo…");
+        const optimized = await compressImageForUpload(photoFile);
+        setSubmitMessage("Envoi de la photo…");
+        photoUrl = await uploadPhoto(optimized);
         setSubmitMessage(
           mode === "create" ? "Création du joueur…" : "Mise à jour du joueur…",
         );
@@ -494,7 +498,7 @@ export function PlayerForm({
                 <input
                   id="photo"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   className="sr-only"
                   onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
                 />
