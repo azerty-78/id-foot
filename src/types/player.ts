@@ -1,7 +1,29 @@
-export const POSTES = ["Gardien", "Défenseur", "Milieu", "Attaquant"] as const;
-export const SEXES = ["Masculin", "Féminin", "Autre"] as const;
+export const POSTES = [
+  "Gardien",
+  "Défenseur central",
+  "Arrière droit",
+  "Arrière gauche",
+  "Latéral droit",
+  "Latéral gauche",
+  "Piston droit",
+  "Piston gauche",
+  "Milieu défensif",
+  "Milieu relayeur",
+  "Milieu central",
+  "Milieu offensif",
+  "Ailier droit",
+  "Ailier gauche",
+  "Second attaquant",
+  "Avant-centre",
+  "Attaquant",
+] as const;
+
+export const SEXES = ["Masculin", "Féminin"] as const;
+
+export const DEFAULT_SEXE = "Masculin";
 
 export type Poste = (typeof POSTES)[number];
+export type Sexe = (typeof SEXES)[number];
 
 export type CreateJoueurInput = {
   nom: string;

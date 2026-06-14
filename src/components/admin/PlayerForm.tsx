@@ -112,7 +112,7 @@ export function PlayerForm({
       sexe: initialPlayer.sexe ?? "",
       telephone: initialPlayer.telephone ?? "",
       numeroMaillot: initialPlayer.numero != null ? String(initialPlayer.numero) : "",
-      poste: initialPlayer.poste,
+      poste: initialPlayer.poste ?? "",
       equipeId: initialPlayer.equipeId,
     });
     setCurrentPhotoUrl(initialPlayer.photo);

@@ -8,7 +8,7 @@ type ValidationResult = {
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const PHONE_REGEX = /^\+?[0-9\s().-]{8,20}$/;
+const PHONE_REGEX = /^\+[1-9]\d{0,3}(\s?\d){6,14}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -106,7 +106,12 @@ export function validateJoueur(data: unknown): ValidationResult {
 
   const poste = getString(data.poste);
   if (poste && !POSTES.includes(poste as (typeof POSTES)[number])) {
-    errors.push("Le poste doit être Gardien, Défenseur, Milieu ou Attaquant.");
+    errors.push("Le poste sélectionné n'est pas valide.");
+  }
+
+  const sexe = getString(data.sexe);
+  if (sexe && sexe !== "Masculin" && sexe !== "Féminin") {
+    errors.push("Le sexe doit être Masculin ou Féminin.");
   }
 
   return { valid: errors.length === 0, errors };
