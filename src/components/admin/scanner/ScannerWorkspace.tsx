@@ -11,7 +11,7 @@ import { playErrorTone, playSuccessChime } from "./playScanSound";
 import { queryCameraPermission, markScannerCameraGranted, subscribeCameraPermission, isCameraPermissionDeniedError, shouldAttemptCameraAutoStart } from "./scannerSession";
 import { RecentScansStrip } from "./RecentScansStrip";
 import { ScanSuccessOverlay } from "./ScanSuccessOverlay";
-import type { RecentScan, ScanPhase, ValidatedPlayer } from "./types";
+import type { ScanPhase, ValidatedPlayer } from "./types";
 import { useScannerSession } from "./useScannerSession";
 
 const DUPLICATE_MS = 2500;

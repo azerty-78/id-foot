@@ -106,17 +106,15 @@ export function usePlayers(filters?: PlayerFilters) {
 }
 
 export function usePlayer(id: string) {
+  const missingId = !id;
   const [player, setPlayer] = useState<Player | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!missingId);
+  const [error, setError] = useState<string | null>(
+    missingId ? "Identifiant joueur manquant." : null,
+  );
 
   useEffect(() => {
-    if (!id) {
-      setPlayer(null);
-      setLoading(false);
-      setError("Identifiant joueur manquant.");
-      return;
-    }
+    if (missingId) return;
 
     let cancelled = false;
 
@@ -148,7 +146,7 @@ export function usePlayer(id: string) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, missingId]);
 
   return { player, loading, error };
 }

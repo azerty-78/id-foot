@@ -15,8 +15,10 @@ export function useHistoryOverlay(
   const isOpenRef = useRef(isOpen);
   const skipBackOnCloseRef = useRef(false);
 
-  onCloseRef.current = onClose;
-  isOpenRef.current = isOpen;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    isOpenRef.current = isOpen;
+  });
 
   useEffect(() => {
     if (!isOpen) return;

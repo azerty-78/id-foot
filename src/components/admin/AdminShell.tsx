@@ -50,8 +50,9 @@ function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const pathname = usePathname();
+  const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
   const backPath = useAdminBackPath();
   const { data: session } = useSession();
@@ -59,7 +60,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const topbarBrand = getMobileTopbarBrand(pathname);
   const TopbarIcon = topbarBrand.icon;
 
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
+  const closeMenu = useCallback(() => setMenuOpenPath(null), []);
   useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
 
   useEffect(() => {
@@ -68,10 +70,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   return (
     <div className="admin-layout">
@@ -146,7 +144,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ) : (
             <button
               type="button"
-              onClick={() => setMenuOpen(true)}
+              onClick={openMenu}
               className="btn btn-ghost btn-icon touch-target admin-topbar-btn--on-dark"
               aria-label="Ouvrir le menu"
             >

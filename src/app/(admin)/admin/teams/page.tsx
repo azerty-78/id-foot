@@ -2,7 +2,7 @@
 
 import { Eye, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   AdminCard,
   DangerButton,
@@ -27,6 +27,7 @@ import {
   type Team,
 } from "@/hooks/useApi";
 import { validateEquipe } from "@/lib/validators";
+import { useBlobObjectUrl } from "@/hooks/useBlobObjectUrl";
 
 type TeamItem = Team & {
   _count: { joueurs: number };
@@ -64,7 +65,8 @@ export default function TeamsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const logoBlobUrl = useBlobObjectUrl(logoFile);
+  const logoPreview = logoFile ? logoBlobUrl : form.logo;
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
@@ -72,20 +74,6 @@ export default function TeamsPage() {
   const selectedTeam = teams.find((team) => team.id === selectedTeamId) as
     | TeamItem
     | undefined;
-
-  useEffect(() => {
-    if (!logoFile) {
-      setLogoPreview(form.logo);
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(logoFile);
-    setLogoPreview(previewUrl);
-
-    return () => {
-      URL.revokeObjectURL(previewUrl);
-    };
-  }, [logoFile, form.logo]);
 
   async function uploadLogo(file: File): Promise<string> {
     const formData = new FormData();

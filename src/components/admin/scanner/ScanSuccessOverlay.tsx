@@ -24,11 +24,8 @@ export function ScanSuccessOverlay({
   validatedCount,
   onNextScan,
 }: ScanSuccessOverlayProps) {
-  const [showCard, setShowCard] = useState(false);
-
-  useEffect(() => {
-    setShowCard(false);
-  }, [player.id]);
+  const [cardViewPlayerId, setCardViewPlayerId] = useState<string | null>(null);
+  const showCard = cardViewPlayerId === player.id;
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -96,7 +93,9 @@ export function ScanSuccessOverlay({
             <GhostButton
               type="button"
               icon={CreditCard}
-              onClick={() => setShowCard((value) => !value)}
+              onClick={() =>
+                setCardViewPlayerId(showCard ? null : player.id)
+              }
               className="scan-action-btn flex-1"
             >
               {showCard ? "Identité" : "Carte"}

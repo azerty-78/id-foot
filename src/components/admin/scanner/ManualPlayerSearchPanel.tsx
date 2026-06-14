@@ -23,30 +23,36 @@ export function ManualPlayerSearchPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setResults([]);
-      setError(null);
-    }
-  }, [open]);
+  const trimmedQuery = query.trim();
+  const canSearch = open && trimmedQuery.length >= 2;
+  const visibleResults = canSearch ? results : [];
+  const visibleError = canSearch ? error : null;
+
+  function handleClose() {
+    setQuery("");
+    setResults([]);
+    setError(null);
+    onClose();
+  }
+
+  function handleSelectPlayer(player: SearchPlayer) {
+    setQuery("");
+    setResults([]);
+    setError(null);
+    onSelectPlayer(player);
+  }
 
   useEffect(() => {
-    if (!open) return;
-
-    const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      setResults([]);
-      setError(null);
-      return;
-    }
+    if (!canSearch) return;
 
     const timer = window.setTimeout(async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetch(`/api/players?q=${encodeURIComponent(trimmed)}`);
+        const res = await fetch(
+          `/api/players?q=${encodeURIComponent(trimmedQuery)}`,
+        );
         if (!res.ok) throw new Error("Recherche impossible.");
 
         const data = (await res.json()) as SearchPlayer[];
@@ -60,7 +66,7 @@ export function ManualPlayerSearchPanel({
     }, 280);
 
     return () => window.clearTimeout(timer);
-  }, [open, query]);
+  }, [canSearch, trimmedQuery]);
 
   if (!open) return null;
 
@@ -75,7 +81,7 @@ export function ManualPlayerSearchPanel({
             Secours uniquement — recherchez par nom ou prénom
           </p>
         </div>
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
+        <button type="button" className="modal-close" onClick={handleClose} aria-label="Fermer">
           <X size={16} />
         </button>
       </div>
@@ -93,18 +99,18 @@ export function ManualPlayerSearchPanel({
       </div>
 
       {loading && <p className="scan-manual-hint">Recherche en cours…</p>}
-      {error && <p className="scan-manual-error">{error}</p>}
-      {!loading && query.trim().length >= 2 && results.length === 0 && !error && (
+      {visibleError && <p className="scan-manual-error">{visibleError}</p>}
+      {!loading && canSearch && visibleResults.length === 0 && !visibleError && (
         <p className="scan-manual-hint">Aucun joueur trouvé.</p>
       )}
 
       <ul className="scan-manual-results">
-        {results.map((player) => (
+        {visibleResults.map((player) => (
           <li key={player.id}>
             <button
               type="button"
               className="scan-manual-result"
-              onClick={() => onSelectPlayer(player)}
+              onClick={() => handleSelectPlayer(player)}
             >
               <span className="scan-manual-result-icon" aria-hidden>
                 <UserRound size={16} />
@@ -122,7 +128,7 @@ export function ManualPlayerSearchPanel({
         ))}
       </ul>
 
-      <GhostButton type="button" onClick={onClose} className="mt-4 w-full">
+      <GhostButton type="button" onClick={handleClose} className="mt-4 w-full">
         Retour au scan
       </GhostButton>
     </div>
