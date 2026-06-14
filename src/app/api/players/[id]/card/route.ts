@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const buffer = await generatePlayerCard(id);
 
-    return new Response(buffer, {
+    return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="carte-joueur-${id}.pdf"`,

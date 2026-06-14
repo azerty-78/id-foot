@@ -336,8 +336,7 @@ export default function ScannerPage() {
           )}
 
           {(state === "idle" || state === "scanning" || state === "loading") &&
-            !player &&
-            state !== "error" && (
+            !player && (
               <p className="text-sm leading-6 text-slate-500">
                 {mode === "camera"
                   ? "Placez un QR code devant la caméra pour identifier un joueur."
