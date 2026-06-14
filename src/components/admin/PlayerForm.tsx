@@ -2,6 +2,7 @@
 
 import { Save, Shield, Trophy, X } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import {
@@ -12,6 +13,7 @@ import {
   FormSection,
   FormSubmitOverlay,
   GhostLink,
+  OutlineButton,
   OutlineLink,
   PrimaryButton,
 } from "@/components/admin/ui";
@@ -104,6 +106,7 @@ export function PlayerForm({
   cancelHref,
   onSuccess,
 }: PlayerFormProps) {
+  const router = useRouter();
   const { teams, loading: teamsLoading } = useTeams();
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
@@ -269,9 +272,15 @@ export function PlayerForm({
 
     submitLockRef.current = true;
     setSubmitting(true);
-    setSubmitMessage(photoFile ? "Envoi de la photo…" : (
-      mode === "create" ? "Création du joueur…" : "Mise à jour du joueur…"
-    ));
+    setSubmitMessage(
+      photoFile
+        ? "Préparation de la photo…"
+        : mode === "create"
+          ? "Création du joueur…"
+          : "Mise à jour du joueur…",
+    );
+
+    let succeeded = false;
 
     try {
       let photoUrl = currentPhotoUrl;
@@ -314,6 +323,8 @@ export function PlayerForm({
       }
 
       const saved = (await res.json()) as Player;
+      succeeded = true;
+      setSubmitMessage("Redirection…");
       showToast(
         "success",
         mode === "create" ? "Joueur enregistré avec succès." : "Joueur mis à jour.",
@@ -330,8 +341,10 @@ export function PlayerForm({
       });
     } finally {
       submitLockRef.current = false;
-      setSubmitting(false);
-      setSubmitMessage("Enregistrement en cours…");
+      if (!succeeded) {
+        setSubmitting(false);
+        setSubmitMessage("Enregistrement en cours…");
+      }
     }
   }
 
@@ -339,9 +352,11 @@ export function PlayerForm({
     `admin-input ${errors[field] ? "admin-input-error" : ""}`;
 
   return (
-    <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <div
+      className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_320px]"
+      aria-busy={submitting}
+    >
       <AdminCard className={`order-2 p-4 sm:p-6 xl:order-1 ${submitting ? "form-card-busy" : ""}`}>
-        <FormSubmitOverlay visible={submitting} message={submitMessage} />
         <form onSubmit={handleSubmit} className="space-y-6">
           <fieldset disabled={submitting} className="space-y-6 border-0 p-0 m-0">
           {errors.submit && (
@@ -533,6 +548,7 @@ export function PlayerForm({
             description="Coordonnées du joueur ou du tuteur (facultatif)."
             open={contactOpen}
             onOpenChange={setContactOpen}
+            disabled={submitting}
           >
             <FormInput
               id="telephone"

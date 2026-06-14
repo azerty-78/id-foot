@@ -513,12 +513,14 @@ export function CollapsibleFormSection({
   description,
   open,
   onOpenChange,
+  disabled = false,
   children,
 }: {
   title: string;
   description?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  disabled?: boolean;
   children: ReactNode;
 }) {
   const panelId = useId();
@@ -529,8 +531,9 @@ export function CollapsibleFormSection({
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
+        disabled={disabled}
         onClick={() => onOpenChange(!open)}
-        className="flex w-full items-start justify-between gap-3 text-left"
+        className="flex w-full items-start justify-between gap-3 text-left disabled:cursor-not-allowed disabled:opacity-60"
       >
         <div className="min-w-0">
           <h2 className="text-h2">{title}</h2>

@@ -565,6 +565,10 @@ body {
   pointer-events: none;
 }
 
+.form-card-busy .form-submit-overlay {
+  pointer-events: auto;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
