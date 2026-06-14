@@ -11,6 +11,8 @@ type UpdateJoueurBody = {
   prenom: string;
   dateNaissance: string;
   nationalite?: string | null;
+  sexe?: string | null;
+  telephone?: string | null;
   numero: number | string;
   poste: string;
   photo?: string | null;
@@ -60,6 +62,8 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         prenom: body.prenom,
         dateNaissance,
         nationalite: body.nationalite ?? null,
+        sexe: body.sexe ?? null,
+        telephone: body.telephone ?? null,
         numero,
         poste: body.poste,
         photo: body.photo ?? null,

@@ -169,9 +169,12 @@ export default function PlayersPage() {
                   <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Nom complet
                   </th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Numéro
-                  </th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Maillot
+                </th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Téléphone
+                </th>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Poste
                   </th>
@@ -199,6 +202,9 @@ export default function PlayersPage() {
                       <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-gold px-2.5 py-1 text-xs font-bold text-brand-dark">
                         {player.numero}
                       </span>
+                    </td>
+                    <td className="px-5 py-4 text-sm text-slate-600">
+                      {player.telephone ?? "—"}
                     </td>
                     <td className="px-5 py-4 text-sm text-slate-600">
                       {player.poste}

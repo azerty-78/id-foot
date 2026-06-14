@@ -30,7 +30,8 @@ model Joueur {
   prenom        String
   dateNaissance DateTime
   nationalite   String?
-  sexe          String
+  sexe          String?
+  telephone     String?
   numero        Int
   poste         String
   photo         String?

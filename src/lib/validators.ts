@@ -1,12 +1,14 @@
+import { POSTES } from "@/types/player";
+
 type ValidationResult = {
   valid: boolean;
   errors: string[];
 };
 
-const POSTES = ["Gardien", "Défenseur", "Milieu", "Attaquant"] as const;
-
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const PHONE_REGEX = /^\+?[0-9\s().-]{8,20}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -62,32 +64,35 @@ export function validateJoueur(data: unknown): ValidationResult {
     errors.push("La date de naissance est requise et doit être valide.");
   } else {
     const age = calculateAge(dateNaissance);
-    if (age < 10 || age > 60) {
-      errors.push("Le joueur doit avoir entre 10 et 60 ans.");
+    if (age < 5 || age > 99) {
+      errors.push("La date de naissance doit correspondre à un âge entre 5 et 99 ans.");
     }
+  }
+
+  const telephone = getString(data.telephone);
+  if (telephone && !PHONE_REGEX.test(telephone)) {
+    errors.push("Le numéro de téléphone semble invalide (8 à 20 caractères).");
   }
 
   const numeroRaw = data.numero;
   const numero =
     typeof numeroRaw === "number"
       ? numeroRaw
-      : typeof numeroRaw === "string"
+      : typeof numeroRaw === "string" && numeroRaw.trim()
         ? Number.parseInt(numeroRaw, 10)
         : Number.NaN;
 
   if (!Number.isInteger(numero) || numero < 1 || numero > 99) {
-    errors.push("Le numéro est requis (entier entre 1 et 99).");
+    errors.push("Le numéro de maillot est requis (entier entre 1 et 99).");
   }
 
   const poste = getString(data.poste);
   if (!poste || !POSTES.includes(poste as (typeof POSTES)[number])) {
-    errors.push(
-      'Le poste est requis et doit être "Gardien", "Défenseur", "Milieu" ou "Attaquant".'
-    );
+    errors.push("Le poste est requis (Gardien, Défenseur, Milieu ou Attaquant).");
   }
 
   if (!isValidUuid(data.equipeId)) {
-    errors.push("L'identifiant d'équipe est requis (UUID valide).");
+    errors.push("Veuillez sélectionner un club (équipe).");
   }
 
   return { valid: errors.length === 0, errors };

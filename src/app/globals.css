@@ -60,6 +60,30 @@ body {
   box-shadow: 0 0 0 4px rgba(26, 71, 42, 0.12);
 }
 
+.admin-input-error {
+  border-color: #f43f5e !important;
+  box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.12) !important;
+}
+
+.poste-pill {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #334155;
+  transition: all 0.15s ease;
+}
+
+.poste-pill:hover {
+  border-color: rgba(26, 71, 42, 0.35);
+  background: var(--brand-light);
+}
+
+.poste-pill-active {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(26, 71, 42, 0.18);
+}
+
 .pitch-pattern {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),

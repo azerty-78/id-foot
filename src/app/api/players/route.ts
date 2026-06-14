@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
         dateNaissance,
         nationalite: input.nationalite,
         sexe: input.sexe,
+        telephone: input.telephone,
         numero,
         poste: input.poste,
         photo: input.photo ?? null,

@@ -27,7 +27,8 @@ export type Player = {
   prenom: string;
   dateNaissance: string;
   nationalite: string | null;
-  sexe: string;
+  sexe: string | null;
+  telephone: string | null;
   numero: number;
   poste: string;
   photo: string | null;

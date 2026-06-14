@@ -163,6 +163,65 @@ export function FieldError({ message }: { message?: string }) {
   return <p className="mt-1.5 text-xs text-rose-600">{message}</p>;
 }
 
+export function FieldHint({ children }: { children: ReactNode }) {
+  return <p className="mt-1.5 text-xs text-slate-400">{children}</p>;
+}
+
+export function FormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5">
+      <div className="mb-5">
+        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+        {description && (
+          <p className="mt-1 text-sm text-slate-500">{description}</p>
+        )}
+      </div>
+      <div className="space-y-5">{children}</div>
+    </section>
+  );
+}
+
+export function FormInput({
+  id,
+  label,
+  required,
+  hint,
+  error,
+  children,
+}: {
+  id?: string;
+  label: string;
+  required?: boolean;
+  hint?: string;
+  error?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <FieldLabel htmlFor={id}>
+        {label}
+        {required ? " *" : ""}
+        {!required && (
+          <span className="ml-1 text-xs font-normal text-slate-400">
+            (facultatif)
+          </span>
+        )}
+      </FieldLabel>
+      {children}
+      <FieldError message={error} />
+      {hint && !error && <FieldHint>{hint}</FieldHint>}
+    </div>
+  );
+}
+
 export function EmptyState({ message }: { message: string }) {
   return (
     <AdminCard className="px-6 py-16 text-center">
