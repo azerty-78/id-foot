@@ -42,6 +42,7 @@ export type Player = {
 type PlayerFilters = {
   nom?: string;
   equipeId?: string;
+  competitionId?: string;
 };
 
 async function parseErrorResponse(res: Response): Promise<string> {
@@ -67,6 +68,7 @@ export function usePlayers(filters?: PlayerFilters) {
     const params = new URLSearchParams();
     if (filters?.nom) params.set("nom", filters.nom);
     if (filters?.equipeId) params.set("equipeId", filters.equipeId);
+    if (filters?.competitionId) params.set("competitionId", filters.competitionId);
 
     const query = params.toString();
     const url = `/api/players${query ? `?${query}` : ""}`;
@@ -100,7 +102,7 @@ export function usePlayers(filters?: PlayerFilters) {
     return () => {
       cancelled = true;
     };
-  }, [filters?.nom, filters?.equipeId, refreshKey]);
+  }, [filters?.nom, filters?.equipeId, filters?.competitionId, refreshKey]);
 
   return { players, loading, error, refetch };
 }

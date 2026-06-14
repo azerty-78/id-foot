@@ -2,10 +2,7 @@ import { CameraOff, Shield, Trophy, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { PageHeader, StatCard, type StatCardTone } from "@/components/admin/ui";
-
-type Competition = { id: string };
-type Equipe = { id: string };
-type Joueur = { id: string; photo: string | null };
+import { prisma } from "@/lib/prisma";
 
 type StatItem = {
   label: string;
@@ -16,22 +13,11 @@ type StatItem = {
   tone?: StatCardTone;
 };
 
-async function fetchJson<T>(path: string): Promise<T> {
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const res = await fetch(`${baseUrl}${path}`, { cache: "no-store" });
-
-  if (!res.ok) {
-    throw new Error(`Échec du chargement : ${path}`);
-  }
-
-  return res.json() as Promise<T>;
-}
-
 export default async function DashboardPage() {
-  const [competitions, equipes, joueurs] = await Promise.all([
-    fetchJson<Competition[]>("/api/competitions"),
-    fetchJson<Equipe[]>("/api/teams"),
-    fetchJson<Joueur[]>("/api/players"),
+  const [competitionsCount, equipesCount, joueurs] = await Promise.all([
+    prisma.competition.count(),
+    prisma.equipe.count(),
+    prisma.joueur.findMany({ select: { id: true, photo: true } }),
   ]);
 
   const joueursSansPhoto = joueurs.filter((joueur) => joueur.photo === null).length;
@@ -39,14 +25,14 @@ export default async function DashboardPage() {
   const stats: StatItem[] = [
     {
       label: "Compétitions",
-      value: competitions.length,
+      value: competitionsCount,
       delta: "Tournois actifs",
       href: "/admin/competitions",
       icon: Trophy,
     },
     {
       label: "Équipes",
-      value: equipes.length,
+      value: equipesCount,
       delta: "Clubs enregistrés",
       href: "/admin/teams",
       icon: Shield,

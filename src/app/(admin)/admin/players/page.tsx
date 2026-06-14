@@ -19,6 +19,8 @@ import {
 } from "@/components/admin/ui";
 import { useToast } from "@/components/providers/ToastProvider";
 import { usePlayers, useTeams, type Player } from "@/hooks/useApi";
+import { downloadPdfFromApi } from "@/lib/downloadPdfClient";
+import { buildPlayerCardFilename } from "@/lib/playerCardFilename";
 
 export default function PlayersPage() {
   const [search, setSearch] = useState("");
@@ -46,23 +48,12 @@ export default function PlayersPage() {
   const { teams, loading: teamsLoading } = useTeams();
   const { showToast } = useToast();
 
-  async function handleDownloadCard(id: string) {
+  async function handleDownloadCard(player: Player) {
     try {
-      const res = await fetch(`/api/players/${id}/card`);
-
-      if (!res.ok) {
-        throw new Error("Erreur lors du téléchargement de la carte.");
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `carte-joueur-${id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      await downloadPdfFromApi(
+        `/api/players/${player.id}/card`,
+        buildPlayerCardFilename(player.prenom, player.nom),
+      );
       showToast("success", "Carte PDF téléchargée.");
     } catch (err) {
       showToast("error", err instanceof Error ? err.message : "Erreur inconnue");
@@ -193,7 +184,7 @@ export default function PlayersPage() {
                     icon={Download}
                     size="icon"
                     aria-label="Télécharger PDF"
-                    onClick={() => handleDownloadCard(player.id)}
+                    onClick={() => handleDownloadCard(player)}
                   />
                   <DangerButton
                     type="button"
@@ -264,7 +255,7 @@ export default function PlayersPage() {
                           icon={Download}
                           size="icon"
                           aria-label="Télécharger PDF"
-                          onClick={() => handleDownloadCard(player.id)}
+                          onClick={() => handleDownloadCard(player)}
                         />
                         <DangerButton
                           type="button"

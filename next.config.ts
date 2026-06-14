@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["sharp"],
+  images: {
+    // Les assets /public servis tels quels — évite les échecs Sharp en Docker Alpine
+    unoptimized: true,
+  },
   async redirects() {
     return [
       { source: "/dashboard", destination: "/admin/dashboard", permanent: true },

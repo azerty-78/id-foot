@@ -12,7 +12,10 @@ export const metadata: Metadata = {
   description: "Système d'identification et de gestion des licences joueurs ID FOOT.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: brandAssets.icon, type: "image/png" }],
+    icon: [
+      { url: brandAssets.icon, type: "image/png" },
+      { url: brandAssets.icon192, sizes: "192x192", type: "image/png" },
+    ],
     apple: [
       {
         url: brandAssets.appleTouchIcon,

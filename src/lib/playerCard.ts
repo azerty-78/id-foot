@@ -6,6 +6,7 @@ import {
   renderPlayerCardPng,
 } from "@/lib/playerCardRender";
 import type { CardRenderPlayer } from "@/lib/playerCardSvg";
+import { buildPlayerListWhere } from "@/lib/playerFilters";
 import { generateQRCodeBuffer } from "@/lib/qrcode";
 
 export const CARD_WIDTH = 85;
@@ -101,9 +102,11 @@ export async function generatePlayerCard(joueurId: string): Promise<Buffer> {
 
 export async function generateAllPlayerCardsPdf(options?: {
   equipeId?: string;
+  competitionId?: string;
+  nom?: string;
 }): Promise<Buffer> {
   const joueurs = await prisma.joueur.findMany({
-    where: options?.equipeId ? { equipeId: options.equipeId } : undefined,
+    where: buildPlayerListWhere(options),
     include: { equipe: { include: { competition: true } } },
     orderBy: [{ equipe: { nom: "asc" } }, { nom: "asc" }, { prenom: "asc" }],
   });

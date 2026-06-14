@@ -10,11 +10,12 @@ let cachedLogoPng: Buffer | null = null;
 let sharpModule: typeof sharp | null = null;
 
 function getQrBaseUrl(): string {
-  const baseUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
-  if (!baseUrl) {
-    throw new Error("NEXTAUTH_URL is not defined");
-  }
-  return baseUrl;
+  const baseUrl =
+    process.env.NEXTAUTH_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "http://localhost:3000";
+
+  return baseUrl.replace(/\/$/, "");
 }
 
 async function getSharp() {
