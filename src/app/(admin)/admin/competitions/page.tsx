@@ -4,7 +4,6 @@ import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   AdminCard,
-  AdminModal,
   DangerButton,
   EmptyState,
   FieldError,
@@ -16,6 +15,7 @@ import {
   PrimaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
+import { AdminModal } from "@/components/admin/AdminModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useCompetitions, type Competition } from "@/hooks/useApi";
 import { validateCompetition } from "@/lib/validators";

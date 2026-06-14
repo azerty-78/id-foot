@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowLeft, LayoutDashboard } from "lucide-react";
 import { OutlineLink, PrimaryLink } from "@/components/admin/ui";
 

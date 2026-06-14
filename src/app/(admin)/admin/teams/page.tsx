@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   AdminCard,
-  AdminModal,
   DangerButton,
   EmptyState,
   FieldError,
@@ -18,6 +17,7 @@ import {
   PrimaryButton,
   StatusBadge,
 } from "@/components/admin/ui";
+import { AdminModal } from "@/components/admin/AdminModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   useCompetitions,
