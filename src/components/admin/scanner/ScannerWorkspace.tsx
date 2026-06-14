@@ -245,6 +245,42 @@ export function ScannerWorkspace() {
     void startScanner();
   }, [startScanner]);
 
+  // TEMP — preview overlay succès scan (retirer après review UI)
+  const previewSuccessfulScan = useCallback(async () => {
+    setErrorMessage(null);
+    setPhase("loading");
+    setCameraStatus("active");
+
+    try {
+      const res = await fetch("/api/players");
+      if (!res.ok) {
+        throw new Error("Impossible de charger un joueur pour la preview.");
+      }
+
+      const players = (await res.json()) as ValidatedPlayer[];
+      const sample = players[0];
+      if (!sample) {
+        throw new Error("Aucun joueur en base — créez-en un pour tester.");
+      }
+
+      validatePlayer(mapApiPlayer({ ...sample, valid: true }));
+    } catch (err) {
+      setPhase("scanning");
+      setCameraStatus("denied");
+      showError(
+        err instanceof Error ? err.message : "Preview du scan indisponible.",
+      );
+    }
+  }, [showError, validatePlayer]);
+
+  const handleCameraPromptClick = useCallback(() => {
+    if (cameraStatus === "denied") {
+      void previewSuccessfulScan();
+      return;
+    }
+    requestCameraAccess();
+  }, [cameraStatus, previewSuccessfulScan, requestCameraAccess]);
+
   const handleManualSelect = useCallback(
     (selected: ValidatedPlayer) => {
       validatePlayer(selected);
@@ -382,7 +418,9 @@ export function ScannerWorkspace() {
   }, [clearErrorTimer, stopScanner]);
 
   const showCameraPrompt =
-    cameraStatus === "needs-gesture" || cameraStatus === "denied";
+    (cameraStatus === "needs-gesture" || cameraStatus === "denied") &&
+    phase !== "success" &&
+    phase !== "loading";
   const showCameraLoading = cameraStatus === "starting";
 
   return (
@@ -450,9 +488,11 @@ export function ScannerWorkspace() {
                   type="button"
                   icon={Camera}
                   className="scanner-camera-prompt-btn w-full"
-                  onClick={requestCameraAccess}
+                  onClick={handleCameraPromptClick}
                 >
-                  {cameraStatus === "denied" ? "Réessayer" : "Activer la caméra"}
+                  {cameraStatus === "denied"
+                    ? "Réessayer (preview scan)"
+                    : "Activer la caméra"}
                 </PrimaryButton>
               </div>
             </div>
