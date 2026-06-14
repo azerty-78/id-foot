@@ -1,6 +1,8 @@
 "use client";
 
-import { Fingerprint, Home, Menu, QrCode } from "lucide-react";
+import { Fingerprint, Home, LayoutDashboard, Menu, QrCode, Shield, Trophy, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -10,6 +12,7 @@ import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
+import { brandAssets } from "@/lib/brand";
 
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) {
@@ -23,6 +26,29 @@ function getInitials(name?: string | null, email?: string | null): string {
   return "IF";
 }
 
+type MobileTopbarBrand = {
+  href: string;
+  icon: LucideIcon;
+  primary: string;
+  accent?: string;
+};
+
+function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
+  if (pathname.startsWith("/admin/scanner")) {
+    return { href: "/admin/scanner", icon: QrCode, primary: "Scan ", accent: "QR" };
+  }
+  if (pathname.startsWith("/admin/players")) {
+    return { href: "/admin/players", icon: Users, primary: "Joueurs" };
+  }
+  if (pathname.startsWith("/admin/teams")) {
+    return { href: "/admin/teams", icon: Shield, primary: "Équipes" };
+  }
+  if (pathname.startsWith("/admin/competitions")) {
+    return { href: "/admin/competitions", icon: Trophy, primary: "Compétitions" };
+  }
+  return { href: "/admin/dashboard", icon: LayoutDashboard, primary: "Dashboard" };
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -30,6 +56,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const backPath = useAdminBackPath();
   const { data: session } = useSession();
   const initials = getInitials(session?.user?.name, session?.user?.email);
+  const topbarBrand = getMobileTopbarBrand(pathname);
+  const TopbarIcon = topbarBrand.icon;
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
@@ -114,40 +142,46 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className={`admin-main lg:ml-[240px] ${isScannerPage ? "admin-main--scanner" : ""}`}>
         <header className="admin-topbar-sticky flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 lg:hidden">
           {backPath ? (
-            <AdminBackButton
-              className={isScannerPage ? "admin-back-btn--on-dark" : ""}
-            />
+            <AdminBackButton className="admin-back-btn--on-dark" />
           ) : (
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className={`btn btn-ghost btn-icon touch-target ${
-                isScannerPage ? "admin-topbar-btn--on-dark" : ""
-              }`}
+              className="btn btn-ghost btn-icon touch-target admin-topbar-btn--on-dark"
               aria-label="Ouvrir le menu"
             >
               <Menu size={18} strokeWidth={2} />
             </button>
           )}
 
-          {isScannerPage ? (
-            <Link href="/admin/scanner" className="scanner-topbar-brand flex items-center gap-1.5 text-[14px] font-bold tracking-wide">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-green/20 text-green">
-                <QrCode size={14} strokeWidth={2.5} aria-hidden />
-              </span>
-              <span className="text-white">Scan </span>
-              <span className="text-green">QR</span>
-            </Link>
-          ) : (
-            <Link href="/admin/dashboard" className="text-[15px] font-bold tracking-wide">
-              <span className="text-navy">ID </span>
-              <span className="text-green">FOOT</span>
-            </Link>
-          )}
+          <Link
+            href={topbarBrand.href}
+            className="admin-topbar-brand flex items-center gap-1.5 text-[14px] font-bold tracking-wide"
+          >
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-green/20 text-green">
+              <TopbarIcon size={14} strokeWidth={2.5} aria-hidden />
+            </span>
+            <span className="text-white">{topbarBrand.primary}</span>
+            {topbarBrand.accent && (
+              <span className="text-green">{topbarBrand.accent}</span>
+            )}
+          </Link>
 
-          <span className="user-avatar touch-target" aria-hidden>
-            {initials}
-          </span>
+          <Link
+            href="/admin/dashboard"
+            className="admin-topbar-logo touch-target"
+            aria-label="ID FOOT"
+          >
+            <Image
+              src={brandAssets.logo}
+              alt=""
+              width={44}
+              height={44}
+              priority
+              unoptimized
+              className="admin-topbar-logo-image"
+            />
+          </Link>
         </header>
 
         <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>

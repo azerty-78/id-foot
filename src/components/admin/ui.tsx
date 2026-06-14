@@ -1,6 +1,8 @@
 import type { LucideIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { useId } from "react";
 import Link from "next/link";
 
 export type ButtonSize = "default" | "sm" | "icon";
@@ -262,8 +264,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-4 sm:mb-8 lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0">
-        <p className="text-section-label">ID FOOT</p>
-        <h1 className="text-h1 mt-2">{title}</h1>
+        <h1 className="text-h1">{title}</h1>
         {description && (
           <p className="text-body mt-2 max-w-2xl">{description}</p>
         )}
@@ -281,6 +282,7 @@ export function PageToolbar({
   searchPlaceholder = "Rechercher...",
   action,
   userInitials = "IF",
+  onAvatarClick,
 }: {
   title: string;
   subtitle?: string;
@@ -289,6 +291,7 @@ export function PageToolbar({
   searchPlaceholder?: string;
   action?: ReactNode;
   userInitials?: string;
+  onAvatarClick?: () => void;
 }) {
   return (
     <div className="page-toolbar">
@@ -308,9 +311,20 @@ export function PageToolbar({
           />
         )}
         {action}
-        <span className="user-avatar hidden sm:inline-flex" aria-hidden>
-          {userInitials}
-        </span>
+        {onAvatarClick ? (
+          <button
+            type="button"
+            className="user-avatar user-avatar--interactive inline-flex"
+            aria-label="Aperçu carte joueur (temporaire)"
+            onClick={onAvatarClick}
+          >
+            {userInitials}
+          </button>
+        ) : (
+          <span className="user-avatar hidden sm:inline-flex" aria-hidden>
+            {userInitials}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -503,6 +517,65 @@ export function FormSection({
         {description && <p className="text-body mt-1">{description}</p>}
       </div>
       <div className="space-y-5">{children}</div>
+    </section>
+  );
+}
+
+export function CollapsibleFormSection({
+  title,
+  description,
+  open,
+  onOpenChange,
+  disabled = false,
+  children,
+}: {
+  title: string;
+  description?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  const panelId = useId();
+
+  return (
+    <section className="card-default">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        disabled={disabled}
+        onClick={() => onOpenChange(!open)}
+        className="flex w-full items-start justify-between gap-3 text-left disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <div className="min-w-0">
+          <h2 className="text-h2">{title}</h2>
+          {description && (
+            <p className="text-body mt-1">
+              {description}
+              {!open && (
+                <span className="text-secondary ml-1 font-normal">
+                  — Cliquez pour afficher
+                </span>
+              )}
+            </p>
+          )}
+        </div>
+        <ChevronDown
+          aria-hidden
+          className={`mt-0.5 size-5 shrink-0 text-slate-400 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {open && (
+        <div
+          id={panelId}
+          className="mt-5 space-y-5 border-t border-slate-100 pt-5"
+        >
+          {children}
+        </div>
+      )}
     </section>
   );
 }

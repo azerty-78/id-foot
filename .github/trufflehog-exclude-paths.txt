@@ -1,0 +1,6 @@
+# Chemins exclus du scan TruffleHog (faux positifs / artefacts).
+node_modules/
+.next/
+.git/
+package-lock.json
+prisma/migrations/

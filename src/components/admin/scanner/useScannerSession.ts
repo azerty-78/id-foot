@@ -39,11 +39,17 @@ export function useScannerSession() {
     markScannerCameraGranted();
   }, []);
 
+  const resetSession = useCallback(() => {
+    setValidatedCount(0);
+    setRecentScans([]);
+  }, []);
+
   return {
     ready,
     validatedCount,
     recentScans,
     registerValidation,
+    resetSession,
     wasCameraGrantedBefore: wasScannerCameraGranted,
   };
 }

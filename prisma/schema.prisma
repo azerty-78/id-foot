@@ -34,7 +34,7 @@ model Joueur {
   telephone     String?
   numero        Int?
   poste         String?
-  photo         String?
+  photo         String
   qrToken       String    @unique @default(uuid())
   equipeId      String
   equipe        Equipe    @relation(fields: [equipeId], references: [id])

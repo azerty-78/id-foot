@@ -51,7 +51,7 @@ export function ScanSuccessOverlay({
           </span>
           <div>
             <p id="scan-success-title" className="scan-success-title">
-              Joueur autorisé
+              Accès au joueur autorisée
             </p>
             <p className="scan-success-subtitle">
               Licence valide · participation confirmée
@@ -67,19 +67,19 @@ export function ScanSuccessOverlay({
             poste={player.poste}
             equipe={player.equipe.nom}
             photo={player.photo}
+            layout="column"
+            competition={[
+              player.equipe.competition.nom,
+              String(player.equipe.competition.annee),
+              player.equipe.competition.lieu,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
             className="scan-success-identity"
           />
         ) : (
           <PlayerLicenseCard player={player} compact className="scan-success-card" />
         )}
-
-        <div className="scan-success-meta">
-          <p>{player.equipe.nom}</p>
-          <p>
-            {player.equipe.competition.nom} · {player.equipe.competition.annee}
-            {player.equipe.competition.lieu ? ` · ${player.equipe.competition.lieu}` : ""}
-          </p>
-        </div>
 
         <div className="scan-success-actions">
           <PrimaryButton
