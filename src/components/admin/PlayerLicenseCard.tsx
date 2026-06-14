@@ -4,13 +4,23 @@ import Image from "next/image";
 import { Download, Eye } from "lucide-react";
 import { PlayerCardQr } from "@/app/player-card/[id]/PlayerCardQr";
 import { GhostLink, OutlineButton } from "@/components/admin/ui";
-import type { Player } from "@/hooks/useApi";
+
+export type PlayerLicenseCardPlayer = {
+  id: string;
+  nom: string;
+  prenom: string;
+  numero: number;
+  poste: string;
+  photo: string | null;
+  qrToken: string;
+  equipe: {
+    nom: string;
+    competition: { nom: string };
+  };
+};
 
 type PlayerLicenseCardProps = {
-  player: Pick<
-    Player,
-    "id" | "nom" | "prenom" | "numero" | "poste" | "photo" | "qrToken" | "equipe"
-  >;
+  player: PlayerLicenseCardPlayer;
   onDownload?: (id: string) => void;
   downloading?: boolean;
   compact?: boolean;
@@ -26,11 +36,12 @@ export function PlayerLicenseCard({
   onDownload,
   downloading = false,
   compact = false,
+  className = "",
 }: PlayerLicenseCardProps) {
   const shortId = player.id.slice(0, 8).toUpperCase();
 
   return (
-    <article className={`player-license-card ${compact ? "player-license-card--compact" : ""}`}>
+    <article className={`player-license-card ${compact ? "player-license-card--compact" : ""} ${className}`.trim()}>
       <header className="player-license-card-header">
         <p>{player.equipe.competition.nom}</p>
       </header>

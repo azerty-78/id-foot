@@ -8,6 +8,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, OutlineLink, PrimaryButton } from "@/components/admin/ui";
 import type { ValidatedPlayer } from "./types";
@@ -69,7 +70,7 @@ export function ScanSuccessOverlay({
             className="scan-success-identity"
           />
         ) : (
-          <PlayerCardPreview player={player} />
+          <PlayerLicenseCard player={player} compact className="scan-success-card" />
         )}
 
         <div className="scan-success-meta">
