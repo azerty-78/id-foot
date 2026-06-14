@@ -1,0 +1,44 @@
+# Contexte Docker = racine du repo (copié vers .dockerignore avant build CI)
+# Voir deploy.yml : cp setup/.dockerignore .dockerignore
+
+**/.classpath
+**/.dockerignore
+**/.env
+**/.env.*
+**/.git
+**/.gitignore
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/.next
+**/.cache
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+**/charts
+**/node_modules
+**/npm-debug.log
+**/obj
+**/secrets.dev.yaml
+**/values.dev.yaml
+**/build
+**/dist
+**/.cursor
+
+# Compose local (non utilisé en prod VPS)
+**/docker-compose*
+**/compose*.yaml
+
+# Uploads utilisateur (volume monté en prod)
+public/uploads/photos/*
+!public/uploads/photos/.gitkeep
+
+# Docs et fichiers temporaires
+docs
+*.md
+!setup/**
+
+LICENSE
+README.md
