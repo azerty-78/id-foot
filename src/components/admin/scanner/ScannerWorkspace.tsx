@@ -16,27 +16,6 @@ import { useScannerSession } from "./useScannerSession";
 
 const DUPLICATE_MS = 2500;
 const ERROR_DISMISS_MS = 2200;
-
-// TEMP — joueur fictif si la BD est vide (retirer après review UI)
-const PREVIEW_MOCK_PLAYER: ValidatedPlayer = {
-  id: "00000000-0000-0000-0000-000000000001",
-  nom: "Mbarga",
-  prenom: "Samuel",
-  numero: 10,
-  poste: "Milieu offensif",
-  photo: "/logo.png",
-  qrToken: "preview-mock-token",
-  equipe: {
-    nom: "AS Lion Douala",
-    logo: null,
-    competition: {
-      nom: "Championnat National U17",
-      annee: 2026,
-      lieu: "Douala",
-    },
-  },
-};
-
 const SCAN_BOX_MIN = 200;
 const SCAN_BOX_MAX_MOBILE = 280;
 const SCAN_BOX_MAX_DESKTOP = 300;
@@ -265,35 +244,6 @@ export function ScannerWorkspace() {
   const requestCameraAccess = useCallback(() => {
     void startScanner();
   }, [startScanner]);
-
-  // TEMP — preview succès scan (BD puis mock, retirer après review UI)
-  const previewSuccessfulScan = useCallback(async () => {
-    setErrorMessage(null);
-    setPhase("loading");
-    setCameraStatus("active");
-
-    try {
-      let sample: ValidatedPlayer = PREVIEW_MOCK_PLAYER;
-
-      const res = await fetch("/api/players");
-      if (res.ok) {
-        const players = (await res.json()) as ValidatedPlayer[];
-        if (players[0]) sample = players[0];
-      }
-
-      validatePlayer(mapApiPlayer({ ...sample, valid: true }));
-    } catch {
-      validatePlayer(mapApiPlayer({ ...PREVIEW_MOCK_PLAYER, valid: true }));
-    }
-  }, [validatePlayer]);
-
-  const handleCameraPromptClick = useCallback(() => {
-    if (cameraStatus === "denied") {
-      void previewSuccessfulScan();
-      return;
-    }
-    requestCameraAccess();
-  }, [cameraStatus, previewSuccessfulScan, requestCameraAccess]);
 
   const handleManualSelect = useCallback(
     (selected: ValidatedPlayer) => {

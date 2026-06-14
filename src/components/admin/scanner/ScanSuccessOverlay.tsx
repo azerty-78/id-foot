@@ -51,7 +51,7 @@ export function ScanSuccessOverlay({
           </span>
           <div>
             <p id="scan-success-title" className="scan-success-title">
-              Joueur autorisé
+              Accès au joueur autorisée
             </p>
             <p className="scan-success-subtitle">
               Licence valide · participation confirmée
