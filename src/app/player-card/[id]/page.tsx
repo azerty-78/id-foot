@@ -92,11 +92,11 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
 
         <article
           id="player-card"
-          className="pitch-pattern flex w-[85.6mm] flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_24px_60px_var(--brand-glow)] ring-1 ring-white/10"
+          className="pitch-pattern flex w-[85.6mm] flex-col overflow-hidden rounded-[var(--radius-xl)] bg-gradient-to-br from-green to-navy text-white shadow-[var(--shadow-green)] ring-1 ring-white/10"
           style={{ minHeight: "53.98mm" }}
         >
           <header className="border-b border-white/10 bg-black/10 px-3 py-2 text-center">
-            <p className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
+            <p className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-green">
               {player.equipe.competition.nom}
             </p>
           </header>
@@ -122,9 +122,9 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
               <p className="truncate text-sm font-bold leading-tight">
                 {player.nom} {player.prenom}
               </p>
-              <p className="mt-1 text-lg font-black leading-none text-gold">
+              <p className="mt-1 text-lg font-black leading-none text-green">
                 #{player.numero}
-                <span className="ml-2 text-xs font-semibold text-gold/90">
+                <span className="ml-2 text-xs font-semibold text-green/90">
                   {player.poste}
                 </span>
               </p>

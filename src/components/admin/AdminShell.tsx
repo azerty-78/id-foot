@@ -19,11 +19,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="admin-shell min-h-screen">
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-md lg:hidden">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden">
         <button
           type="button"
           onClick={() => setMenuOpen(true)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-gray-200 text-navy"
           aria-label="Ouvrir le menu"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -37,7 +37,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         <Link
           href="/"
-          className="text-xs font-medium text-brand"
+          className="text-secondary font-medium text-green"
           aria-label="Accueil"
         >
           Accueil
@@ -47,14 +47,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {menuOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-40 bg-navy/50 backdrop-blur-[2px] lg:hidden"
           aria-label="Fermer le menu"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(100vw-3rem,18rem)] flex-col border-r border-brand/25 bg-gradient-to-b from-brand-dark via-[#0d1219] to-black text-white shadow-[20px_0_60px_var(--brand-glow)] transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(100vw-3rem,18rem)] flex-col border-r border-green/20 bg-gradient-to-b from-navy via-navy-800 to-black text-white shadow-[var(--shadow-lg)] transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

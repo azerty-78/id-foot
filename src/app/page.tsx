@@ -4,7 +4,7 @@ import { PrimaryLink, SecondaryLink } from "@/components/admin/ui";
 export default function HomePage() {
   return (
     <div className="admin-shell flex min-h-screen flex-col">
-      <header className="border-b border-slate-200/80 bg-white/80 px-4 py-4 backdrop-blur-sm sm:px-8">
+      <header className="border-b border-gray-200 bg-white/90 px-4 py-4 backdrop-blur-sm sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <AppLogo href="/" size="lg" />
 
@@ -22,13 +22,11 @@ export default function HomePage() {
       <main className="flex flex-1 items-center">
         <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 lg:grid-cols-2 lg:items-center lg:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand">
-              KOBE Corporation
-            </p>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight text-brand-dark sm:text-5xl">
+            <p className="text-section-label">KOBE Corporation</p>
+            <h1 className="text-h1 mt-4 max-w-xl">
               Gérez les licences de vos joueurs en toute simplicité
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
+            <p className="text-body mt-5 max-w-xl">
               Enregistrez les joueurs, générez leurs cartes PDF, scannez les QR codes
               et administrez compétitions, clubs et effectifs depuis une interface unique.
             </p>
@@ -69,10 +67,10 @@ export default function HomePage() {
               <a
                 key={item.href}
                 href={item.href}
-                className="admin-card block rounded-2xl p-5 transition hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg"
+                className="admin-card block rounded-[var(--radius-xl)] p-5 transition hover:-translate-y-0.5 hover:border-green/30 hover:shadow-lg"
               >
-                <h2 className="text-lg font-bold text-brand-dark">{item.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{item.text}</p>
+                <h2 className="text-h3">{item.title}</h2>
+                <p className="text-body mt-2">{item.text}</p>
               </a>
             ))}
           </div>

@@ -1,92 +1,181 @@
 @import "tailwindcss";
+@config "../../tailwind.config.ts";
 
+/* ── ID FOOT — Charte graphique ── */
 :root {
-  --background: #f3f5f7;
-  --foreground: #0a0e14;
-  --brand: #39ff14;
-  --brand-hover: #2de00f;
-  --brand-dark: #0a0e14;
-  --brand-light: #f0fff4;
-  --brand-glow: rgba(57, 255, 20, 0.34);
-  --brand-ring: rgba(57, 255, 20, 0.45);
-  --gold: #39ff14;
-  --card: #ffffff;
-  --muted: #64748b;
-  --border: #e2e8f0;
+  --navy: #0d1b2a;
+  --navy-800: #162438;
+  --navy-700: #1e3148;
+  --navy-600: #243a55;
+  --green: #39e75f;
+  --green-dark: #2bc44e;
+  --green-dim: #1a7a32;
+  --green-bg: #e8fbed;
+  --white: #ffffff;
+  --gray-50: #f7f8fa;
+  --gray-100: #eef0f4;
+  --gray-200: #d8dce5;
+  --gray-400: #9099aa;
+  --gray-600: #5a6478;
+  --danger: #e03b3b;
+  --warning: #f5a623;
+  --shadow-sm: 0 1px 3px rgba(13, 27, 42, 0.08), 0 1px 2px rgba(13, 27, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(13, 27, 42, 0.1), 0 2px 4px rgba(13, 27, 42, 0.06);
+  --shadow-lg: 0 8px 24px rgba(13, 27, 42, 0.12);
+  --shadow-green: 0 4px 16px rgba(57, 231, 95, 0.25);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* Alias rétrocompatibilité composants existants */
+  --background: var(--gray-50);
+  --foreground: var(--navy);
+  --brand: var(--green);
+  --brand-hover: var(--green-dark);
+  --brand-dark: var(--navy);
+  --brand-light: var(--green-bg);
+  --brand-glow: rgba(57, 231, 95, 0.25);
+  --brand-ring: rgba(57, 231, 95, 0.45);
+  --gold: var(--green);
+  --card: var(--white);
+  --muted: var(--gray-400);
+  --border: var(--gray-200);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-navy: var(--navy);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+  --color-navy-600: var(--navy-600);
+  --color-green: var(--green);
+  --color-green-dark: var(--green-dark);
+  --color-green-dim: var(--green-dim);
+  --color-green-bg: var(--green-bg);
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-400: var(--gray-400);
+  --color-gray-600: var(--gray-600);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-white: var(--white);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-dark: var(--brand-dark);
   --color-brand-light: var(--brand-light);
   --color-gold: var(--gold);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+}
+
+/* ── Typographie ── */
+.text-h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.25;
+}
+
+.text-h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.35;
+}
+
+.text-h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.4;
+}
+
+.text-body {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--gray-600);
+  line-height: 1.7;
+}
+
+.text-secondary {
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.5;
+}
+
+.text-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-400);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--gray-600);
 }
 
+/* ── Layout admin ── */
 .admin-shell {
   background:
-    radial-gradient(circle at top left, rgba(57, 255, 20, 0.1), transparent 32%),
-    radial-gradient(circle at bottom right, rgba(10, 14, 20, 0.05), transparent 28%),
-    linear-gradient(180deg, #fafbfc 0%, #eef2ef 100%);
+    radial-gradient(circle at top left, rgba(57, 231, 95, 0.08), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(13, 27, 42, 0.04), transparent 28%),
+    linear-gradient(180deg, var(--gray-50) 0%, var(--gray-100) 100%);
 }
 
 .admin-card {
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 12px 32px rgba(15, 23, 42, 0.05);
+  border: 1px solid var(--gray-200);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--shadow-md);
   backdrop-filter: blur(8px);
 }
 
 .admin-input {
   width: 100%;
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  background: #fff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  background: var(--white);
   padding: 0.7rem 1rem;
-  font-size: 0.875rem;
+  font-size: 14px;
+  color: var(--navy);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .admin-input:focus {
-  border-color: var(--brand-hover);
-  box-shadow: 0 0 0 4px var(--brand-glow);
+  border-color: var(--green-dark);
+  box-shadow: 0 0 0 4px rgba(57, 231, 95, 0.18);
 }
 
 .admin-input-error {
-  border-color: #f43f5e !important;
-  box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.12) !important;
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 4px rgba(224, 59, 59, 0.12) !important;
 }
 
 .poste-pill {
-  border: 1px solid var(--border);
-  background: #fff;
-  color: #334155;
+  border: 1px solid var(--gray-200);
+  background: var(--white);
+  color: var(--navy);
   transition: all 0.15s ease;
 }
 
 .poste-pill:hover {
   border-color: var(--brand-ring);
-  background: var(--brand-light);
+  background: var(--green-bg);
 }
 
 .poste-pill-active {
-  border-color: var(--brand-hover);
-  background: var(--brand-dark);
-  color: var(--brand);
-  box-shadow: 0 8px 20px var(--brand-glow);
+  border-color: var(--green-dark);
+  background: var(--navy);
+  color: var(--green);
+  box-shadow: var(--shadow-green);
 }
 
 .pitch-pattern {
