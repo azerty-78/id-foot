@@ -34,7 +34,7 @@ export type CreateJoueurInput = {
   telephone?: string | null;
   numero?: number | string | null;
   poste?: string | null;
-  photo?: string | null;
+  photo: string;
   equipeId: string;
 };
 
@@ -79,7 +79,10 @@ export function parseCreateJoueurInput(body: unknown): CreateJoueurInput | null 
         : null,
     poste:
       typeof posteRaw === "string" && posteRaw.trim() ? posteRaw.trim() : null,
-    photo: typeof data.photo === "string" ? data.photo : null,
+    photo:
+      typeof data.photo === "string" && data.photo.trim()
+        ? data.photo.trim()
+        : "",
     equipeId,
   };
 }

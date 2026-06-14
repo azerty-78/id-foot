@@ -71,6 +71,7 @@ function mapValidationErrors(errors: string[]): FormErrors {
     else if (error.includes("téléphone")) fieldErrors.telephone = error;
     else if (error.includes("maillot")) fieldErrors.numeroMaillot = error;
     else if (error.includes("poste")) fieldErrors.poste = error;
+    else if (error.includes("photo")) fieldErrors.photo = error;
     else if (error.includes("club") || error.includes("équipe"))
       fieldErrors.equipeId = error;
     else fieldErrors.submit = error;
@@ -222,6 +223,11 @@ export function PlayerForm({
     if (submitLockRef.current) return;
     setErrors({});
 
+    if (!photoFile && !currentPhotoUrl) {
+      setErrors({ photo: "La photo du joueur est requise." });
+      return;
+    }
+
     const payload = {
       prenom: values.prenom.trim(),
       nom: values.nom.trim(),
@@ -234,6 +240,7 @@ export function PlayerForm({
         : null,
       poste: values.poste.trim() || null,
       equipeId: values.equipeId,
+      photo: currentPhotoUrl ?? (photoFile ? "__pending__" : ""),
     };
 
     const validation = validateJoueur(payload);
@@ -259,6 +266,10 @@ export function PlayerForm({
         setSubmitMessage(
           mode === "create" ? "Création du joueur…" : "Mise à jour du joueur…",
         );
+      }
+
+      if (!photoUrl) {
+        throw new Error("La photo du joueur est requise.");
       }
 
       const url =
@@ -461,8 +472,8 @@ export function PlayerForm({
             )}
           </FormSection>
 
-          <FormSection title="Photo" description="Portrait du joueur pour la licence.">
-            <FormInput id="photo" label="Photo du joueur" error={errors.photo}>
+          <FormSection title="Photo" description="Portrait obligatoire pour la licence.">
+            <FormInput id="photo" label="Photo du joueur" required error={errors.photo}>
               <label
                 htmlFor="photo"
                 className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-8 transition hover:border-brand/40 hover:bg-brand-light/20"

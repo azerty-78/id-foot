@@ -31,7 +31,7 @@ export type Player = {
   telephone: string | null;
   numero: number | null;
   poste: string | null;
-  photo: string | null;
+  photo: string;
   qrToken: string;
   equipeId: string;
   createdAt: string;

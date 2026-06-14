@@ -114,6 +114,11 @@ export function validateJoueur(data: unknown): ValidationResult {
     errors.push("Le sexe est requis (Masculin ou Féminin).");
   }
 
+  const photo = getString(data.photo);
+  if (!photo) {
+    errors.push("La photo du joueur est requise.");
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -199,7 +204,7 @@ export function toJoueurDbFields(input: {
   telephone?: string | null;
   numero?: number | string | null;
   poste?: string | null;
-  photo?: string | null;
+  photo: string;
   equipeId: string;
 }) {
   return {
@@ -211,7 +216,7 @@ export function toJoueurDbFields(input: {
     telephone: input.telephone ?? null,
     numero: parseOptionalNumero(input.numero),
     poste: input.poste?.trim() || null,
-    photo: input.photo ?? null,
+    photo: input.photo.trim(),
     equipeId: input.equipeId,
   };
 }
