@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";

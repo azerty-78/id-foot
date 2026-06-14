@@ -22,7 +22,12 @@ export const metadata: Metadata = {
     ],
   },
   appleWebApp: {
+    capable: true,
     title: "ID FOOT",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 

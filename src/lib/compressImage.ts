@@ -61,7 +61,8 @@ export async function compressImageForUpload(file: File): Promise<File> {
 
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      reject(new Error("Impossible de lire la photo sélectionnée."));
+      // Safari / HEIC : conserver le fichier original si la compression échoue
+      resolve(file);
     };
 
     image.src = objectUrl;

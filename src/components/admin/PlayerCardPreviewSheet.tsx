@@ -23,6 +23,18 @@ export function PlayerCardPreviewSheet({
   useEffect(() => {
     if (!open) return;
 
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
   async function handleDownload() {
     setDownloading(true);
 
