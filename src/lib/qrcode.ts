@@ -1,4 +1,5 @@
 import path from "path";
+import type sharp from "sharp";
 import QRCode from "qrcode";
 import { QR_LOGO_PUBLIC_PATH, getQrLogoSize } from "@/lib/qrBrand";
 
@@ -6,9 +7,7 @@ import { QR_LOGO_PUBLIC_PATH, getQrLogoSize } from "@/lib/qrBrand";
 export const CARD_QR_PIXEL_SIZE = 256;
 
 let cachedLogoPng: Buffer | null = null;
-let sharpModule: Awaited<
-  ReturnType<typeof import("sharp")>["default"]
-> | null = null;
+let sharpModule: typeof sharp | null = null;
 
 function getQrBaseUrl(): string {
   const baseUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;

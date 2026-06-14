@@ -66,7 +66,6 @@ export function PlayerLicenseCard({
   compact = false,
   className = "",
 }: PlayerLicenseCardProps) {
-  const shortId = player.id.slice(0, 8).toUpperCase();
   const qrInnerPx = QR_INNER_PX[compact ? "compact" : "default"];
   const fullName = `${player.prenom} ${player.nom}`;
 
@@ -94,8 +93,8 @@ export function PlayerLicenseCard({
               <Image
                 src={player.photo}
                 alt={fullName}
-                width={180}
-                height={180}
+                width={140}
+                height={140}
                 unoptimized
                 className="h-full w-full object-cover"
               />
@@ -114,7 +113,6 @@ export function PlayerLicenseCard({
               />
               <LicenseField label="Poste" value={player.poste?.trim() || "—"} />
             </div>
-            <LicenseField label="Club" value={player.equipe.nom} />
           </dl>
         </div>
 
@@ -128,7 +126,7 @@ export function PlayerLicenseCard({
 
       <footer className="player-license-card-footer">
         <span className="player-license-card-licence">Licence joueur</span>
-        <span className="player-license-card-id">ID {shortId}</span>
+        <span className="player-license-card-club">{player.equipe.nom}</span>
       </footer>
 
       {!compact && (

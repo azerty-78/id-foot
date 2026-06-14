@@ -1,10 +1,6 @@
 import path from "path";
 import type sharp from "sharp";
 import { buildPlayerCardSvg, type CardRenderPlayer } from "@/lib/playerCardSvg";
-import {
-  CARD_RENDER_HEIGHT,
-  CARD_RENDER_WIDTH,
-} from "@/lib/playerCardColors";
 
 let sharpModule: typeof sharp | null = null;
 
@@ -23,9 +19,8 @@ export async function renderPlayerCardPng(
   const svg = buildPlayerCardSvg(joueur, qrPng, photoPng);
   const renderer = await getSharp();
 
-  return renderer(Buffer.from(svg), { density: 144 })
-    .resize(CARD_RENDER_WIDTH, CARD_RENDER_HEIGHT, { fit: "fill" })
-    .png({ compressionLevel: 6 })
+  return renderer(Buffer.from(svg), { density: 72 })
+    .png({ compressionLevel: 4, effort: 1 })
     .toBuffer();
 }
 
@@ -40,7 +35,7 @@ export async function loadPlayerPhotoBuffer(
     );
     const renderer = await getSharp();
     return renderer(filepath)
-      .resize(360, 360, { fit: "cover", position: "centre" })
+      .resize(280, 280, { fit: "cover", position: "centre" })
       .png()
       .toBuffer();
   } catch {

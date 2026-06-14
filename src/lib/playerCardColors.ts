@@ -21,5 +21,4 @@ export const CARD_COLORS = {
 export const CARD_RENDER_WIDTH = 500;
 export const CARD_RENDER_HEIGHT = 330;
 
-export const CARD_FONT =
-  "Inter, 'Segoe UI', system-ui, -apple-system, Arial, sans-serif";
+export const CARD_FONT = "'Inter', Inter, 'Segoe UI', system-ui, Arial, sans-serif";

@@ -4,6 +4,7 @@ import {
   CARD_RENDER_HEIGHT,
   CARD_RENDER_WIDTH,
 } from "@/lib/playerCardColors";
+import { getInterFontFaceDefs } from "@/lib/playerCardFont";
 
 export type CardRenderPlayer = {
   id: string;
@@ -55,18 +56,17 @@ export function buildPlayerCardSvg(
   const rightX = pad + leftW + gap;
   const identityPadR = 12;
 
-  const photoSize = 180;
+  const photoSize = 140;
   const photoX = leftX + (leftW - identityPadR - photoSize) / 2;
   const photoY = contentTop;
 
   const fieldW = leftW - identityPadR;
   const fieldX = leftX;
-  let fieldY = photoY + photoSize + 20;
+  const fieldY = photoY + photoSize + 12;
 
   const fullName = `${joueur.prenom} ${joueur.nom}`;
   const dorsal = joueur.numero != null ? `#${joueur.numero}` : "—";
   const poste = joueur.poste?.trim() || "—";
-  const shortId = joueur.id.slice(0, 8).toUpperCase();
 
   const qrBox = 250;
   const qrQuiet = 16;
@@ -80,14 +80,20 @@ export function buildPlayerCardSvg(
   const photoBlock = photoPng
     ? `<image href="${toDataUri(photoPng)}" x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClip)"/>`
     : `<rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoPlaceholder}"/>
-       <text x="${photoX + photoSize / 2}" y="${photoY + photoSize / 2 + 8}" text-anchor="middle" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="28" font-weight="700">${escapeXml(getInitials(joueur.prenom, joueur.nom))}</text>`;
+       <text x="${photoX + photoSize / 2}" y="${photoY + photoSize / 2 + 7}" text-anchor="middle" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="22" font-weight="700">${escapeXml(getInitials(joueur.prenom, joueur.nom))}</text>`;
 
-  const rowY = fieldY + 34;
-  const clubY = rowY + 38;
+  const rowY = fieldY + 28;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
+    <style><![CDATA[${getInterFontFaceDefs()}]]></style>
+    <filter id="photoShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(0,0,0,0.22)"/>
+    </filter>
+    <filter id="qrShadow" x="-15%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="rgba(0,0,0,0.28)"/>
+    </filter>
     <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${CARD_COLORS.greenDark}"/>
       <stop offset="58%" stop-color="${CARD_COLORS.navy}"/>
@@ -100,6 +106,7 @@ export function buildPlayerCardSvg(
 
   <rect width="${W}" height="${H}" rx="20" fill="url(#cardBg)"/>
   <rect width="${W}" height="${H}" rx="20" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <line x1="0" y1="1" x2="${W}" y2="1" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
 
   ${
     joueur.numero != null
@@ -118,12 +125,14 @@ export function buildPlayerCardSvg(
   <line x1="${sepX}" y1="${contentTop}" x2="${sepX}" y2="${bodyBottom - mainPadY}" stroke="${CARD_COLORS.divider}" stroke-width="1"/>
 
   <!-- Photo -->
-  <rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoBg}" stroke="${CARD_COLORS.photoBorder}" stroke-width="2"/>
-  ${photoBlock}
+  <g filter="url(#photoShadow)">
+    <rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoBg}" stroke="${CARD_COLORS.photoBorder}" stroke-width="2"/>
+    ${photoBlock}
+  </g>
 
   <!-- Nom -->
   <text x="${fieldX}" y="${fieldY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">NOM</text>
-  <text x="${fieldX}" y="${fieldY + 16}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="17" font-weight="800">${escapeXml(fullName)}</text>
+  <text x="${fieldX}" y="${fieldY + 16}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="17" font-weight="800" letter-spacing="-0.34">${escapeXml(fullName)}</text>
 
   <!-- Dorsal / Poste -->
   <line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
@@ -132,20 +141,17 @@ export function buildPlayerCardSvg(
   <text x="${fieldX + fieldW / 2 + 4}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">POSTE</text>
   <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
 
-  <!-- Club -->
-  <line x1="${fieldX}" y1="${clubY - 8}" x2="${fieldX + fieldW}" y2="${clubY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
-  <text x="${fieldX}" y="${clubY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">CLUB</text>
-  <text x="${fieldX}" y="${clubY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(joueur.equipe.nom)}</text>
-
   <!-- QR -->
-  <rect x="${qrX}" y="${qrY}" width="${qrBox}" height="${qrBox}" rx="10" fill="${CARD_COLORS.white}" stroke="${CARD_COLORS.green}" stroke-width="2"/>
+  <g filter="url(#qrShadow)">
+    <rect x="${qrX}" y="${qrY}" width="${qrBox}" height="${qrBox}" rx="10" fill="${CARD_COLORS.white}" stroke="${CARD_COLORS.green}" stroke-width="2"/>
+  </g>
   <image href="${toDataUri(qrPng)}" x="${qrX + qrQuiet}" y="${qrY + qrQuiet}" width="${qrInner}" height="${qrInner}" preserveAspectRatio="xMidYMid meet"/>
-  <text x="${qrX + qrBox / 2}" y="${qrY + qrBox + 14}" text-anchor="middle" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.4">SCANNER ICI</text>
+  <text x="${qrX + qrBox / 2}" y="${qrY + qrBox + 12}" text-anchor="middle" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.4">SCANNER ICI</text>
 
   <!-- Footer -->
   <rect x="0" y="${H - footerH}" width="${W}" height="${footerH}" fill="${CARD_COLORS.footerOverlay}"/>
   <line x1="0" y1="${H - footerH}" x2="${W}" y2="${H - footerH}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
   <text x="${pad}" y="${H - footerH / 2 + 4}" fill="${CARD_COLORS.footerText}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.4">LICENCE JOUEUR</text>
-  <text x="${W - pad}" y="${H - footerH / 2 + 4}" text-anchor="end" fill="${CARD_COLORS.footerId}" font-family="${CARD_FONT}" font-size="9" font-weight="600" letter-spacing="0.6">ID ${shortId}</text>
+  <text x="${W - pad}" y="${H - footerH / 2 + 4}" text-anchor="end" fill="${CARD_COLORS.labelBright}" font-family="${CARD_FONT}" font-size="10" font-weight="700">${escapeXml(joueur.equipe.nom)}</text>
 </svg>`;
 }

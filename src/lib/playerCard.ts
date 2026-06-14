@@ -11,6 +11,35 @@ import { generateQRCodeBuffer } from "@/lib/qrcode";
 export const CARD_WIDTH = 85;
 export const CARD_HEIGHT = 54;
 
+const BULK_RENDER_CONCURRENCY = 8;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  mapper: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => worker()),
+  );
+
+  return results;
+}
+
 type JoueurForCard = CardRenderPlayer & {
   photo: string | null;
   qrToken: string;
@@ -83,8 +112,10 @@ export async function generateAllPlayerCardsPdf(options?: {
     throw new Error("Aucun joueur trouvé");
   }
 
-  const pages = await Promise.all(
-    joueurs.map((joueur) => renderCardPdfPage(joueur)),
+  const pages = await mapWithConcurrency(
+    joueurs,
+    BULK_RENDER_CONCURRENCY,
+    (joueur) => renderCardPdfPage(joueur),
   );
 
   const doc = createCardPdf();
