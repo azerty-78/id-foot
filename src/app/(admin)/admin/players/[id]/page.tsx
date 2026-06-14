@@ -1,17 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { usePlayer } from "@/hooks/useApi";
 import {
   AdminCard,
   DangerButton,
-  GhostButton,
+  GhostLink,
   LoadingState,
   PrimaryButton,
   SecondaryButton,
+  SecondaryLink,
 } from "@/components/admin/ui";
 
 function getInitials(prenom: string, nom: string): string {
@@ -95,9 +95,9 @@ export default function PlayerDetailPage() {
     return (
       <AdminCard className="px-6 py-10 text-center">
         <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
-        <Link href="/admin/players" className="mt-4 inline-block">
-          <GhostButton>Retour à la liste</GhostButton>
-        </Link>
+        <GhostLink href="/admin/players" className="mt-4 inline-flex">
+          Retour à la liste
+        </GhostLink>
       </AdminCard>
     );
   }
@@ -127,9 +127,9 @@ export default function PlayerDetailPage() {
   return (
     <div className="print:block">
       <div className="mb-6 print:hidden">
-        <Link href="/admin/players">
-          <GhostButton className="px-0">← Retour à la liste</GhostButton>
-        </Link>
+        <GhostLink href="/admin/players" className="px-0">
+          ← Retour à la liste
+        </GhostLink>
       </div>
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
@@ -175,7 +175,7 @@ export default function PlayerDetailPage() {
               <PrimaryButton
                 type="button"
                 onClick={handleDownloadCard}
-                className="w-full bg-gold text-brand-dark hover:bg-[#e6c200] sm:w-auto"
+                className="w-full bg-gold text-brand-dark hover:bg-brand-hover sm:w-auto"
               >
                 Télécharger la carte PDF
               </PrimaryButton>
@@ -201,9 +201,9 @@ export default function PlayerDetailPage() {
               </h2>
             </div>
             <div className="flex flex-wrap gap-2 print:hidden">
-              <Link href={`/admin/players/${player.id}/edit`}>
-                <SecondaryButton>Modifier</SecondaryButton>
-              </Link>
+              <SecondaryLink href={`/admin/players/${player.id}/edit`}>
+                Modifier
+              </SecondaryLink>
               <DangerButton type="button" onClick={handleDelete}>
                 Supprimer
               </DangerButton>

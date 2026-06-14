@@ -7,9 +7,10 @@ import { useState, type FormEvent } from "react";
 import {
   AdminCard,
   FieldLabel,
-  GhostButton,
+  GhostLink,
   PrimaryButton,
 } from "@/components/admin/ui";
+import { AppLogo } from "@/components/brand/AppLogo";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -50,16 +51,9 @@ export default function SignInForm() {
 
   return (
     <AdminCard className="overflow-hidden">
-      <div className="bg-gradient-to-br from-brand to-brand-dark px-6 py-8 text-white">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-xl font-black text-gold">
-            ID
-          </div>
-          <div>
-            <p className="text-lg font-bold">Football ID</p>
-            <p className="text-sm text-white/70">Connexion administration</p>
-          </div>
-        </div>
+      <div className="bg-gradient-to-br from-brand-dark via-[#0d1219] to-black px-6 py-8">
+        <AppLogo size="lg" />
+        <p className="mt-3 text-sm text-white/70">Connexion administration</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5 p-6">
@@ -109,9 +103,7 @@ export default function SignInForm() {
         </PrimaryButton>
 
         <div className="text-center">
-          <Link href="/">
-            <GhostButton type="button">Retour à l&apos;accueil</GhostButton>
-          </Link>
+          <GhostLink href="/">Retour à l&apos;accueil</GhostLink>
         </div>
       </form>
     </AdminCard>

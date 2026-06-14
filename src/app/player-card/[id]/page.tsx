@@ -92,7 +92,7 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
 
         <article
           id="player-card"
-          className="pitch-pattern flex w-[85.6mm] flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_24px_60px_rgba(26,71,42,0.35)] ring-1 ring-white/10"
+          className="pitch-pattern flex w-[85.6mm] flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_24px_60px_var(--brand-glow)] ring-1 ring-white/10"
           style={{ minHeight: "53.98mm" }}
         >
           <header className="border-b border-white/10 bg-black/10 px-3 py-2 text-center">

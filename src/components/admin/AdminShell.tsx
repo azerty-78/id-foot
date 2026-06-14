@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AdminNav } from "@/app/(admin)/AdminNav";
+import { AppLogo } from "@/components/brand/AppLogo";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,11 +31,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </svg>
         </button>
 
-        <Link href="/admin/dashboard" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-sm font-black text-gold">
-            ID
-          </div>
-          <span className="text-sm font-bold text-slate-900">Football ID</span>
+        <Link href="/admin/dashboard" className="flex items-center">
+          <AppLogo size="sm" />
         </Link>
 
         <Link
@@ -56,25 +54,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(100vw-3rem,18rem)] flex-col border-r border-white/10 bg-gradient-to-b from-brand to-brand-dark text-white shadow-[20px_0_60px_rgba(26,71,42,0.18)] transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(100vw-3rem,18rem)] flex-col border-r border-brand/20 bg-gradient-to-b from-brand-dark via-[#0d1219] to-black text-white shadow-[20px_0_60px_rgba(74,222,128,0.08)] transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 lg:px-6 lg:py-6">
           <Link href="/admin/dashboard" className="block" onClick={() => setMenuOpen(false)}>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-lg font-black text-gold">
-                ID
-              </div>
-              <div>
-                <span className="block text-lg font-bold tracking-tight">
-                  Football ID
-                </span>
-                <span className="mt-0.5 block text-xs text-white/60">
-                  Administration
-                </span>
-              </div>
-            </div>
+            <AppLogo size="sm" />
           </Link>
 
           <button

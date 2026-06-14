@@ -1,16 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   AdminCard,
   FieldHint,
   FormInput,
   FormSection,
-  GhostButton,
+  GhostLink,
   PrimaryButton,
-  SecondaryButton,
+  SecondaryLink,
 } from "@/components/admin/ui";
 import { useTeams, type Player } from "@/hooks/useApi";
 import { validateJoueur } from "@/lib/validators";
@@ -419,16 +418,12 @@ export function PlayerForm({
                   Créez d&apos;abord une compétition puis une équipe.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Link href="/admin/competitions">
-                    <GhostButton className="px-3 py-1.5 text-xs">
-                      Créer une compétition
-                    </GhostButton>
-                  </Link>
-                  <Link href="/admin/teams">
-                    <GhostButton className="px-3 py-1.5 text-xs">
-                      Créer un club
-                    </GhostButton>
-                  </Link>
+                  <GhostLink href="/admin/competitions" className="px-3 py-1.5 text-xs">
+                    Créer une compétition
+                  </GhostLink>
+                  <GhostLink href="/admin/teams" className="px-3 py-1.5 text-xs">
+                    Créer un club
+                  </GhostLink>
                 </div>
               </div>
             ) : (
@@ -502,9 +497,7 @@ export function PlayerForm({
           </FormSection>
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            <Link href={cancelHref}>
-              <SecondaryButton type="button">Annuler</SecondaryButton>
-            </Link>
+            <SecondaryLink href={cancelHref}>Annuler</SecondaryLink>
             <PrimaryButton type="submit" disabled={submitting || teams.length === 0}>
               {submitting
                 ? "Enregistrement..."

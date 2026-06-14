@@ -1,36 +1,31 @@
-import Link from "next/link";
-import { PrimaryButton, SecondaryButton } from "@/components/admin/ui";
+import { AppLogo } from "@/components/brand/AppLogo";
+import { PrimaryLink, SecondaryLink } from "@/components/admin/ui";
 
 export default function HomePage() {
   return (
     <div className="admin-shell flex min-h-screen flex-col">
       <header className="border-b border-slate-200/80 bg-white/80 px-4 py-4 backdrop-blur-sm sm:px-8">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand text-lg font-black text-gold">
-              ID
-            </div>
-            <div>
-              <p className="text-lg font-bold text-slate-900">Football ID</p>
-              <p className="text-xs text-slate-500">Système d&apos;identification des joueurs</p>
-            </div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+          <AppLogo href="/" size="md" />
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <SecondaryLink href="/admin/signin" className="hidden sm:inline-flex">
+              Connexion
+            </SecondaryLink>
+            <PrimaryLink href="/admin/dashboard" className="hidden sm:inline-flex">
+              Administration
+            </PrimaryLink>
           </div>
-          <Link href="/admin/signin" className="hidden sm:block">
-            <SecondaryButton>Connexion</SecondaryButton>
-          </Link>
-          <Link href="/admin/dashboard" className="hidden sm:block">
-            <PrimaryButton>Administration</PrimaryButton>
-          </Link>
         </div>
       </header>
 
       <main className="flex flex-1 items-center">
         <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 lg:grid-cols-2 lg:items-center lg:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand/70">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand">
               KOBE Corporation
             </p>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="mt-4 text-4xl font-bold tracking-tight text-brand-dark sm:text-5xl">
               Gérez les licences de vos joueurs en toute simplicité
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
@@ -39,16 +34,12 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/admin/dashboard">
-                <PrimaryButton className="w-full sm:w-auto">
-                  Accéder à l&apos;administration
-                </PrimaryButton>
-              </Link>
-              <Link href="/admin/scanner">
-                <SecondaryButton className="w-full sm:w-auto">
-                  Scanner un QR code
-                </SecondaryButton>
-              </Link>
+              <PrimaryLink href="/admin/dashboard" className="w-full sm:w-auto">
+                Accéder à l&apos;administration
+              </PrimaryLink>
+              <SecondaryLink href="/admin/scanner" className="w-full sm:w-auto">
+                Scanner un QR code
+              </SecondaryLink>
             </div>
           </div>
 
@@ -75,14 +66,14 @@ export default function HomePage() {
                 href: "/admin/players/new",
               },
             ].map((item) => (
-              <Link
+              <a
                 key={item.href}
                 href={item.href}
-                className="admin-card rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-lg"
+                className="admin-card block rounded-2xl p-5 transition hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg"
               >
-                <h2 className="text-lg font-bold text-slate-900">{item.title}</h2>
+                <h2 className="text-lg font-bold text-brand-dark">{item.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500">{item.text}</p>
-              </Link>
+              </a>
             ))}
           </div>
         </div>

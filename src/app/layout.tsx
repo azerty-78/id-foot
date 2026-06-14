@@ -15,10 +15,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Football ID",
-    template: "%s | Football ID",
+    default: "ID FOOT",
+    template: "%s | ID FOOT",
   },
-  description: "Système d'identification et de gestion des licences joueurs.",
+  description: "Système d'identification et de gestion des licences joueurs ID FOOT.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

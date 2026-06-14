@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   AdminCard,
-  GhostButton,
+  GhostLink,
   LoadingState,
   PageHeader,
 } from "@/components/admin/ui";
@@ -25,9 +24,9 @@ export default function EditPlayerPage() {
     return (
       <AdminCard className="px-6 py-10 text-center">
         <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
-        <Link href="/admin/players" className="mt-4 inline-block">
-          <GhostButton>Retour à la liste</GhostButton>
-        </Link>
+        <GhostLink href="/admin/players" className="mt-4 inline-flex">
+          Retour à la liste
+        </GhostLink>
       </AdminCard>
     );
   }

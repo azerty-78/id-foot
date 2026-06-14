@@ -1,5 +1,62 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
+const primaryClasses =
+  "inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-brand-dark shadow-[0_8px_24px_var(--brand-glow)] transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60";
+
+const secondaryClasses =
+  "inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-brand/30 hover:bg-brand-light disabled:opacity-60";
+
+const ghostClasses =
+  "inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-brand transition hover:bg-brand-light";
+
+export function PrimaryLink({
+  href,
+  children,
+  className = "",
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={`${primaryClasses} ${className}`}>
+      {children}
+    </Link>
+  );
+}
+
+export function SecondaryLink({
+  href,
+  children,
+  className = "",
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={`${secondaryClasses} ${className}`}>
+      {children}
+    </Link>
+  );
+}
+
+export function GhostLink({
+  href,
+  children,
+  className = "",
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={`${ghostClasses} ${className}`}>
+      {children}
+    </Link>
+  );
+}
 export function PageHeader({
   title,
   description,
@@ -12,8 +69,8 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-4 sm:mb-8 lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand/70">
-          Football ID
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand">
+          ID FOOT
         </p>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           {title}
@@ -50,10 +107,9 @@ export function PrimaryButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button
-      {...props}
-      className={`inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
-    />
+    <button {...props} className={`${primaryClasses} ${className}`}>
+      {children}
+    </button>
   );
 }
 
@@ -63,10 +119,9 @@ export function SecondaryButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button
-      {...props}
-      className={`inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 ${className}`}
-    />
+    <button {...props} className={`${secondaryClasses} ${className}`}>
+      {children}
+    </button>
   );
 }
 
@@ -79,7 +134,9 @@ export function DangerButton({
     <button
       {...props}
       className={`inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 transition hover:bg-rose-100 disabled:opacity-60 ${className}`}
-    />
+    >
+      {children}
+    </button>
   );
 }
 
@@ -89,10 +146,9 @@ export function GhostButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button
-      {...props}
-      className={`inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-brand transition hover:bg-brand-light ${className}`}
-    />
+    <button {...props} className={`${ghostClasses} ${className}`}>
+      {children}
+    </button>
   );
 }
 

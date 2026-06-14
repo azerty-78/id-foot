@@ -1,17 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Html5Qrcode } from "html5-qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AdminCard,
   DangerButton,
   FieldLabel,
+  GhostLink,
   PageHeader,
   PrimaryButton,
+  PrimaryLink,
   SecondaryButton,
-  StatusBadge,
 } from "@/components/admin/ui";
 
 type ScanState = "idle" | "scanning" | "loading" | "success" | "error";
@@ -309,9 +309,9 @@ export default function ScannerPage() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href={`/admin/players/${player.id}`}>
-                  <PrimaryButton type="button">Voir la fiche complète</PrimaryButton>
-                </Link>
+                <PrimaryLink href={`/admin/players/${player.id}`}>
+                  Voir la fiche complète
+                </PrimaryLink>
                 <SecondaryButton type="button" onClick={() => void resetScan()}>
                   Nouveau scan
                 </SecondaryButton>

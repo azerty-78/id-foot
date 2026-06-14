@@ -10,7 +10,7 @@ import {
   EmptyState,
   FieldError,
   FieldLabel,
-  GhostButton,
+  GhostLink,
   LoadingState,
   PageHeader,
   PrimaryButton,
@@ -340,11 +340,12 @@ export default function TeamsPage() {
                           #{player.numero} · {player.poste}
                         </p>
                       </div>
-                      <Link href={`/admin/players/${player.id}`}>
-                        <GhostButton className="px-2 py-1 text-xs">
-                          Voir
-                        </GhostButton>
-                      </Link>
+                      <GhostLink
+                        href={`/admin/players/${player.id}`}
+                        className="px-2 py-1 text-xs"
+                      >
+                        Voir
+                      </GhostLink>
                     </li>
                   ))}
                 </ul>

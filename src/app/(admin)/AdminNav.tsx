@@ -75,13 +75,13 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all ${
               isActive
-                ? "bg-white/14 text-white shadow-inner ring-1 ring-white/10"
+                ? "bg-brand/15 text-brand shadow-inner ring-1 ring-brand/25"
                 : "text-white/75 hover:bg-white/8 hover:text-white"
             }`}
           >
             <span
               className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-                isActive ? "bg-white/10 text-gold" : "bg-white/5"
+                isActive ? "bg-brand/20 text-brand" : "bg-white/5"
               }`}
             >
               {item.icon}

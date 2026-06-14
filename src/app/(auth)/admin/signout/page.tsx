@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { AdminCard, GhostButton, PrimaryButton } from "@/components/admin/ui";
+import { AdminCard, GhostLink, PrimaryLink } from "@/components/admin/ui";
 
 export default function SignOutPage() {
   const [done, setDone] = useState(false);
@@ -36,12 +36,12 @@ export default function SignOutPage() {
       </p>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <Link href="/admin/signin">
-          <PrimaryButton className="w-full sm:w-auto">Se reconnecter</PrimaryButton>
-        </Link>
-        <Link href="/">
-          <GhostButton className="w-full sm:w-auto">Retour à l&apos;accueil</GhostButton>
-        </Link>
+        <PrimaryLink href="/admin/signin" className="w-full sm:w-auto">
+          Se reconnecter
+        </PrimaryLink>
+        <GhostLink href="/" className="w-full sm:w-auto">
+          Retour à l&apos;accueil
+        </GhostLink>
       </div>
     </AdminCard>
   );

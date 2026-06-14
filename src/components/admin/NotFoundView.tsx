@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { GhostButton, PrimaryButton } from "@/components/admin/ui";
+import { AppLogo } from "@/components/brand/AppLogo";
+import { GhostLink, PrimaryLink } from "@/components/admin/ui";
 
 type NotFoundViewProps = {
   title?: string;
@@ -30,13 +30,13 @@ export function NotFoundView({
         <p className="mt-3 text-sm leading-6 text-slate-500">{description}</p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link href={homeHref}>
-            <PrimaryButton className="w-full sm:w-auto">{homeLabel}</PrimaryButton>
-          </Link>
+          <PrimaryLink href={homeHref} className="w-full sm:w-auto">
+            {homeLabel}
+          </PrimaryLink>
           {secondaryHref && secondaryLabel && (
-            <Link href={secondaryHref}>
-              <GhostButton className="w-full sm:w-auto">{secondaryLabel}</GhostButton>
-            </Link>
+            <GhostLink href={secondaryHref} className="w-full sm:w-auto">
+              {secondaryLabel}
+            </GhostLink>
           )}
         </div>
       </div>
