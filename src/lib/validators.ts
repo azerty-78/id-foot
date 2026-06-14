@@ -110,8 +110,8 @@ export function validateJoueur(data: unknown): ValidationResult {
   }
 
   const sexe = getString(data.sexe);
-  if (sexe && sexe !== "Masculin" && sexe !== "Féminin") {
-    errors.push("Le sexe doit être Masculin ou Féminin.");
+  if (!sexe || (sexe !== "Masculin" && sexe !== "Féminin")) {
+    errors.push("Le sexe est requis (Masculin ou Féminin).");
   }
 
   return { valid: errors.length === 0, errors };

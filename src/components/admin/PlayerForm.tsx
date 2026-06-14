@@ -67,6 +67,7 @@ function mapValidationErrors(errors: string[]): FormErrors {
     else if (error.includes("nom") && !error.includes("prénom")) fieldErrors.nom = error;
     else if (error.includes("date de naissance") || error.includes("âge"))
       fieldErrors.dateNaissance = error;
+    else if (error.includes("sexe")) fieldErrors.sexe = error;
     else if (error.includes("téléphone")) fieldErrors.telephone = error;
     else if (error.includes("maillot")) fieldErrors.numeroMaillot = error;
     else if (error.includes("poste")) fieldErrors.poste = error;
@@ -226,7 +227,7 @@ export function PlayerForm({
       nom: values.nom.trim(),
       dateNaissance: values.dateNaissance.trim() || null,
       nationalite: values.nationalite.trim() || null,
-      sexe: values.sexe.trim() || null,
+      sexe: values.sexe.trim(),
       telephone: phonePreview || null,
       numero: values.numeroMaillot.trim()
         ? Number.parseInt(values.numeroMaillot, 10)
@@ -322,7 +323,7 @@ export function PlayerForm({
 
           <FormSection
             title="Identité"
-            description="Prénom et nom obligatoires. Les autres champs sont facultatifs."
+            description="Prénom, nom et sexe obligatoires. Les autres champs sont facultatifs."
           >
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <FormInput
@@ -371,7 +372,7 @@ export function PlayerForm({
                 />
               </FormInput>
 
-              <FormInput id="sexe" label="Sexe" hint="Facultatif.">
+              <FormInput id="sexe" label="Sexe" required error={errors.sexe}>
                 <select
                   id="sexe"
                   value={values.sexe}
@@ -630,8 +631,8 @@ export function PlayerForm({
                 {selectedTeam?.competition?.nom ?? "—"}
               </p>
               <p className="text-body">
-                <span className="font-medium text-navy">Téléphone :</span>{" "}
-                {phonePreview || "—"}
+                <span className="font-medium text-navy">Club :</span>{" "}
+                {selectedTeam?.nom ?? "—"}
               </p>
             </div>
           </AdminCard>

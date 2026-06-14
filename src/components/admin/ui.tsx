@@ -262,8 +262,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-4 sm:mb-8 lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0">
-        <p className="text-section-label">ID FOOT</p>
-        <h1 className="text-h1 mt-2">{title}</h1>
+        <h1 className="text-h1">{title}</h1>
         {description && (
           <p className="text-body mt-2 max-w-2xl">{description}</p>
         )}
