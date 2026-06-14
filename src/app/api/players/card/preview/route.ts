@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generatePreviewPlayerCard } from "@/lib/playerCard";
+import { buildPreviewCardFilename, pdfContentDisposition } from "@/lib/playerCardFilename";
 
 export async function GET() {
   try {
@@ -8,7 +9,7 @@ export async function GET() {
     return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="carte-joueur-apercu.pdf"',
+        "Content-Disposition": pdfContentDisposition(buildPreviewCardFilename()),
       },
     });
   } catch (error) {

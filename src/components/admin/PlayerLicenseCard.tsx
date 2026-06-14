@@ -39,17 +39,23 @@ function LicenseField({
   value,
   highlight = false,
   variant = "default",
+  valueOnly = false,
 }: {
   label: string;
   value: string;
   highlight?: boolean;
   variant?: "default" | "name";
+  valueOnly?: boolean;
 }) {
   return (
     <div
-      className={`player-license-card-field ${variant === "name" ? "player-license-card-field--name" : ""}`.trim()}
+      className={`player-license-card-field ${variant === "name" ? "player-license-card-field--name" : ""} ${valueOnly ? "player-license-card-field--value-only" : ""}`.trim()}
     >
-      <dt className="player-license-card-field-label">{label}</dt>
+      {!valueOnly ? (
+        <dt className="player-license-card-field-label">{label}</dt>
+      ) : (
+        <dt className="sr-only">{label}</dt>
+      )}
       <dd
         className={`player-license-card-field-value ${highlight ? "player-license-card-field-value--highlight" : ""}`.trim()}
       >
@@ -110,8 +116,13 @@ export function PlayerLicenseCard({
                 label="Dorsal"
                 value={player.numero != null ? `#${player.numero}` : "—"}
                 highlight={player.numero != null}
+                valueOnly
               />
-              <LicenseField label="Poste" value={player.poste?.trim() || "—"} />
+              <LicenseField
+                label="Poste"
+                value={player.poste?.trim() || "—"}
+                valueOnly
+              />
             </div>
           </dl>
         </div>

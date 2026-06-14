@@ -2867,8 +2867,13 @@ body {
   width: 100%;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
+  align-items: center;
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-license-card-field--value-only .player-license-card-field-value {
+  margin-top: 0;
 }
 
 .player-license-card-field-row + .player-license-card-field {

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, PrimaryButton } from "@/components/admin/ui";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { buildPreviewCardFilename } from "@/lib/playerCardFilename";
 import { PREVIEW_PLAYER_LICENSE } from "@/lib/playerCardMock";
 
 type PlayerCardPreviewSheetProps = {
@@ -39,28 +40,10 @@ export function PlayerCardPreviewSheet({
     setDownloading(true);
 
     try {
-      const res = await fetch("/api/players/card/preview");
-
-      if (!res.ok) {
-        let message = "Erreur lors du téléchargement du PDF.";
-        try {
-          const body = (await res.json()) as { detail?: string; error?: string };
-          message = body.detail ?? body.error ?? message;
-        } catch {
-          /* réponse non JSON */
-        }
-        throw new Error(message);
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "carte-joueur-apercu.pdf";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      await downloadPdfFromApi(
+        "/api/players/card/preview",
+        buildPreviewCardFilename(),
+      );
     } catch (error) {
       console.error("[PlayerCardPreviewSheet] download failed", error);
     } finally {

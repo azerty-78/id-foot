@@ -164,12 +164,10 @@ export function buildPlayerCardSvg(
   <text x="${fieldX}" y="${fieldY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">NOM</text>
   <text x="${fieldX}" y="${fieldY + 16}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="17" font-weight="800" letter-spacing="-0.34">${escapeXml(fullName)}</text>
 
-  <!-- Dorsal / Poste -->
+  <!-- Dorsal / Poste (valeurs seules) -->
   <line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
-  <text x="${fieldX}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">DORSAL</text>
-  <text x="${fieldX}" y="${rowY + 15}" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="14" font-weight="900">${escapeXml(dorsal)}</text>
-  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">POSTE</text>
-  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
+  <text x="${fieldX}" y="${rowY + 12}" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="14" font-weight="900">${escapeXml(dorsal)}</text>
+  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 12}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
 
   <!-- QR (cadre blanc — image composée ensuite) -->
   <g>

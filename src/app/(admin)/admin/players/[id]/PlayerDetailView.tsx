@@ -20,6 +20,8 @@ import {
   OutlineLink,
   PrimaryButton,
 } from "@/components/admin/ui";
+import { downloadPdfFromApi } from "@/lib/downloadPdfClient";
+import { buildPlayerCardFilename } from "@/lib/playerCardFilename";
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -48,21 +50,10 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
     if (!player) return;
 
     try {
-      const res = await fetch(`/api/players/${player.id}/card`);
-
-      if (!res.ok) {
-        throw new Error("Erreur lors du téléchargement de la carte.");
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `carte-joueur-${player.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      await downloadPdfFromApi(
+        `/api/players/${player.id}/card`,
+        buildPlayerCardFilename(player.prenom, player.nom),
+      );
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erreur inconnue");
     }
