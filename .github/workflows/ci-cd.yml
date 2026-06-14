@@ -25,11 +25,54 @@ env:
   NODE_VERSION: "22"
   IMAGE_NAME: id-foot
   TRUFFLEHOG_VERSION: "3.95.3"
+  APP_HOST_PORT: "4003"
+  CONTAINER_NAME: id-foot-app
+  DEFAULT_DEPLOY_DIR: /home/deploy/id-foot
+  DEFAULT_PUBLIC_URL: https://id-foot.kobecorporation.com
+  DEFAULT_DOCKER_REGISTRY: azerty78
+  DEFAULT_VPS_SSH_PORT: "22"
 
 # develop : CI + build Docker local (pas de push/deploy).
-# main/master + tags semver : push image, signature, déploiement VPS, smoke test.
+# main/master + tags semver : push image, signature, déploiement VPS (docker run), smoke test.
 
 jobs:
+  config:
+    name: Resolve workflow configuration
+    runs-on: ubuntu-latest
+    outputs:
+      public_url: ${{ steps.resolve.outputs.public_url }}
+      deploy_dir: ${{ steps.resolve.outputs.deploy_dir }}
+      vps_port: ${{ steps.resolve.outputs.vps_port }}
+      public_check_enabled: ${{ steps.resolve.outputs.public_check_enabled }}
+      docker_registry: ${{ steps.resolve.outputs.docker_registry }}
+    steps:
+      - name: Resolve URLs, paths and registry
+        id: resolve
+        env:
+          VAR_PUBLIC_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+          SECRET_DEPLOY_DIR: ${{ secrets.VPS_DEPLOY_DIR }}
+          SECRET_VPS_PORT: ${{ secrets.VPS_PORT }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DEFAULT_PUBLIC_URL: ${{ env.DEFAULT_PUBLIC_URL }}
+          DEFAULT_DEPLOY_DIR: ${{ env.DEFAULT_DEPLOY_DIR }}
+          DEFAULT_VPS_SSH_PORT: ${{ env.DEFAULT_VPS_SSH_PORT }}
+          DEFAULT_DOCKER_REGISTRY: ${{ env.DEFAULT_DOCKER_REGISTRY }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${VAR_PUBLIC_URL}" ]; then
+            echo "public_url=${VAR_PUBLIC_URL}" >> "$GITHUB_OUTPUT"
+            echo "public_check_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "public_url=${DEFAULT_PUBLIC_URL}" >> "$GITHUB_OUTPUT"
+            echo "public_check_enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "deploy_dir=${SECRET_DEPLOY_DIR:-${DEFAULT_DEPLOY_DIR}}" >> "$GITHUB_OUTPUT"
+          echo "vps_port=${SECRET_VPS_PORT:-${DEFAULT_VPS_SSH_PORT}}" >> "$GITHUB_OUTPUT"
+          echo "docker_registry=${DOCKERHUB_USERNAME:-${DOCKER_USERNAME:-${DEFAULT_DOCKER_REGISTRY}}}" >> "$GITHUB_OUTPUT"
+
   tag:
     name: Compute version tag
     runs-on: ubuntu-latest
@@ -179,6 +222,7 @@ jobs:
     name: Build Next.js application
     runs-on: ubuntu-latest
     needs:
+      - config
       - tag
       - lint-typecheck
       - unit-tests
@@ -203,13 +247,13 @@ jobs:
           NEXT_TELEMETRY_DISABLED: "1"
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
           NEXTAUTH_SECRET: ci-build-secret-not-for-production
-          NEXTAUTH_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
-          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
+          NEXTAUTH_URL: ${{ needs.config.outputs.public_url }}
+          NEXT_PUBLIC_APP_URL: ${{ needs.config.outputs.public_url }}
 
   docker-build:
     name: Build and scan Docker image
     runs-on: ubuntu-latest
-    needs: [tag, build]
+    needs: [config, tag, build]
     permissions:
       contents: read
       security-events: write
@@ -219,6 +263,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Prepare .dockerignore (source setup/)
+        run: cp setup/.dockerignore .dockerignore
 
       - name: Build Docker image (load locally)
         id: build
@@ -232,7 +279,7 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}
             ${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.short_sha }}
           build-args: |
-            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
+            NEXT_PUBLIC_APP_URL=${{ needs.config.outputs.public_url }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -258,7 +305,7 @@ jobs:
   docker-push:
     name: Push image to Docker Hub and GHCR
     runs-on: ubuntu-latest
-    needs: [tag, docker-build]
+    needs: [config, tag, docker-build]
     if: |
       github.event_name != 'pull_request' &&
       (
@@ -269,6 +316,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     outputs:
       digest: ${{ steps.push.outputs.digest }}
     steps:
@@ -278,11 +328,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Prepare .dockerignore (source setup/)
+        run: cp setup/.dockerignore .dockerignore
+
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PASS="${DOCKERHUB_PASSWORD:-${DOCKER_PASSWORD:-}}"
+          if [ -z "${PASS}" ]; then
+            echo "::error::Secret DOCKERHUB_PASSWORD ou DOCKER_PASSWORD requis"
+            exit 1
+          fi
+          echo "${PASS}" | docker login -u "${{ needs.config.outputs.docker_registry }}" --password-stdin
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -296,14 +354,14 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+            ${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ needs.tag.outputs.docker_tag }}
             type=raw,value=${{ needs.tag.outputs.short_sha }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
 
       - name: Build and push image (multi-registry)
         id: push
@@ -315,7 +373,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
+            NEXT_PUBLIC_APP_URL=${{ needs.config.outputs.public_url }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
@@ -336,7 +394,7 @@ jobs:
   docker-sign:
     name: Sign image with cosign (keyless OIDC)
     runs-on: ubuntu-latest
-    needs: [tag, docker-push]
+    needs: [config, tag, docker-push]
     if: |
       github.event_name != 'pull_request' &&
       (
@@ -348,12 +406,20 @@ jobs:
       contents: read
       packages: write
       id-token: write
+    env:
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PASS="${DOCKERHUB_PASSWORD:-${DOCKER_PASSWORD:-}}"
+          if [ -z "${PASS}" ]; then
+            echo "::error::Secret DOCKERHUB_PASSWORD ou DOCKER_PASSWORD requis"
+            exit 1
+          fi
+          echo "${PASS}" | docker login -u "${{ needs.config.outputs.docker_registry }}" --password-stdin
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
@@ -361,13 +427,13 @@ jobs:
       - name: Sign Docker Hub image
         env:
           COSIGN_EXPERIMENTAL: "true"
-          IMAGE_REF: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}@${{ needs.docker-push.outputs.digest }}
+          IMAGE_REF: ${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}@${{ needs.docker-push.outputs.digest }}
         run: cosign sign --yes "${IMAGE_REF}"
 
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
-    needs: [tag, docker-push, docker-sign]
+    needs: [config, tag, docker-push, docker-sign]
     if: |
       github.event_name != 'pull_request' &&
       (
@@ -377,52 +443,69 @@ jobs:
       )
     permissions:
       contents: read
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Validate required secrets
         shell: bash
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           missing=()
           [ -z "${VPS_HOST}" ] && missing+=("VPS_HOST")
-          [ -z "${VPS_USERNAME}" ] && missing+=("VPS_USERNAME")
           [ -z "${VPS_SSH_KEY}" ] && missing+=("VPS_SSH_KEY")
+          if [ -z "${VPS_USERNAME}" ] && [ -z "${VPS_USER}" ]; then
+            missing+=("VPS_USERNAME ou VPS_USER")
+          fi
+          if [ -z "${DOCKERHUB_USERNAME}" ] && [ -z "${DOCKER_USERNAME}" ]; then
+            missing+=("DOCKERHUB_USERNAME ou DOCKER_USERNAME")
+          fi
+          if [ -z "${DOCKERHUB_PASSWORD}" ] && [ -z "${DOCKER_PASSWORD}" ]; then
+            missing+=("DOCKERHUB_PASSWORD ou DOCKER_PASSWORD")
+          fi
           if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Secrets VPS manquants : ${missing[*]}"
+            echo "::error::Secrets manquants : ${missing[*]}"
             exit 1
           fi
-          echo "Secrets VPS présents"
+          echo "Secrets VPS et Docker Hub présents"
 
-      - name: Copy compose.prod.yaml to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "setup/compose.prod.yaml"
-          target: "${{ secrets.VPS_DEPLOY_DIR || '~/id-foot' }}/"
-          strip_components: 1
-          overwrite: true
+      - name: Resolve SSH username
+        id: ssh
+        shell: bash
+        run: |
+          if [ -n "${VPS_USERNAME}" ]; then
+            echo "username=${VPS_USERNAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "username=${VPS_USER}" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Deploy via SSH (pull & restart)
+      - name: Deploy via SSH (docker run)
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE: ${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          APP_HOST_PORT: ${{ env.APP_HOST_PORT }}
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          DEPLOY_DIR: ${{ needs.config.outputs.deploy_dir }}
         with:
           host: ${{ secrets.VPS_HOST }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          username: ${{ secrets.VPS_USERNAME }}
+          port: ${{ needs.config.outputs.vps_port }}
+          username: ${{ steps.ssh.outputs.username }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: FRONT_IMAGE,DOCKERHUB_USERNAME,DOCKERHUB_PASSWORD,DEPLOY_DIR
+          envs: IMAGE,DOCKERHUB_USERNAME,DOCKER_USERNAME,DOCKERHUB_PASSWORD,DOCKER_PASSWORD,APP_HOST_PORT,CONTAINER_NAME,DEPLOY_DIR
           script: |
             set -eu
 
-            DEPLOY_DIR="${DEPLOY_DIR:-$HOME/id-foot}"
-            cd "$DEPLOY_DIR"
+            DOCKER_USER="${DOCKERHUB_USERNAME:-${DOCKER_USERNAME:-}}"
+            DOCKER_PASS="${DOCKERHUB_PASSWORD:-${DOCKER_PASSWORD:-}}"
 
             SUDO=""
             if [ "$(id -u)" -ne 0 ]; then
@@ -440,48 +523,72 @@ jobs:
               $SUDO systemctl enable --now docker
             fi
 
-            echo "==> Compose : $(docker compose version)"
+            docker network create id-foot-network 2>/dev/null || true
 
             if [ ! -f "$DEPLOY_DIR/.env" ]; then
-              echo "Fichier $DEPLOY_DIR/.env absent."
-              echo "Créez-le à partir de setup/.env.example (DATABASE_URL, NEXTAUTH_*, POSTGRES_*)."
+              echo "ERREUR : $DEPLOY_DIR/.env introuvable."
+              echo "Créez-le à partir de setup/.env.example (DATABASE_URL, NEXTAUTH_*, etc.)."
               exit 1
             fi
 
-            if [ -n "${DOCKERHUB_USERNAME:-}" ] && [ -n "${DOCKERHUB_PASSWORD:-}" ]; then
-              echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            fi
+            echo "==> Connexion Docker Hub"
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
-            export FRONT_IMAGE
-            echo "==> Image cible : $FRONT_IMAGE"
+            echo "==> Pull image : $IMAGE"
+            docker pull "$IMAGE"
 
-            docker compose -f compose.prod.yaml pull app
-            docker compose -f compose.prod.yaml up -d --remove-orphans --force-recreate
+            echo "==> Arrêt de l'ancien conteneur (si existant)"
+            docker stop "$CONTAINER_NAME" 2>/dev/null || true
+            docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+            echo "==> Démarrage du nouveau conteneur"
+            docker run -d \
+              --name "$CONTAINER_NAME" \
+              --restart unless-stopped \
+              --network id-foot-network \
+              -p "127.0.0.1:${APP_HOST_PORT}:3000" \
+              --env-file "$DEPLOY_DIR/.env" \
+              -v id-foot-uploads:/usr/src/app/public/uploads \
+              "$IMAGE"
+
+            echo "==> Nettoyage"
             docker image prune -f
-            docker compose -f compose.prod.yaml ps
-
             docker logout || true
-        env:
-          FRONT_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          DEPLOY_DIR: ${{ secrets.VPS_DEPLOY_DIR }}
+
+            echo "==> État du conteneur"
+            docker ps --filter "name=^${CONTAINER_NAME}$"
+
+            echo "==> Healthcheck local (port ${APP_HOST_PORT})"
+            for i in $(seq 1 18); do
+              HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:${APP_HOST_PORT}/" || echo 000)"
+              if [ "$HTTP_CODE" != "000" ]; then
+                echo "App OK — HTTP $HTTP_CODE"
+                exit 0
+              fi
+              echo "En attente ($i/18)..."
+              sleep 5
+            done
+
+            echo "App ne répond pas — logs :"
+            docker logs --tail 100 "$CONTAINER_NAME" || true
+            exit 1
 
       - name: Deploy summary
         shell: bash
         run: |
           {
             echo "### Déploiement ID FOOT"
-            echo "- Image : \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}\`"
+            echo "- Image : \`${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}\`"
             echo "- Digest : \`${{ needs.docker-push.outputs.digest }}\`"
             echo "- Hôte : \`${{ secrets.VPS_HOST }}\`"
-            echo "- URL : ${{ vars.NEXT_PUBLIC_SITE_URL || '(configurer NEXT_PUBLIC_SITE_URL)' }}"
+            echo "- Port local : \`${{ env.APP_HOST_PORT }}\`"
+            echo "- URL : ${{ needs.config.outputs.public_url }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   smoke-test:
     name: Smoke test post-deploy
     runs-on: ubuntu-latest
-    needs: [deploy]
+    needs: [config, deploy]
     if: |
       github.event_name != 'pull_request' &&
       (
@@ -491,23 +598,39 @@ jobs:
       )
     permissions:
       contents: read
+    env:
+      VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+      VPS_USER: ${{ secrets.VPS_USER }}
     steps:
+      - name: Resolve SSH username
+        id: ssh
+        shell: bash
+        run: |
+          if [ -n "${VPS_USERNAME}" ]; then
+            echo "username=${VPS_USERNAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "username=${VPS_USER}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Healthcheck SSH (conteneur + HTTP local)
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_HOST_PORT: ${{ env.APP_HOST_PORT }}
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
         with:
           host: ${{ secrets.VPS_HOST }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          username: ${{ secrets.VPS_USERNAME }}
+          port: ${{ needs.config.outputs.vps_port }}
+          username: ${{ steps.ssh.outputs.username }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: DEPLOY_DIR,APP_PORT
+          envs: APP_HOST_PORT,CONTAINER_NAME
           script: |
             set -eu
-            DEPLOY_DIR="${DEPLOY_DIR:-$HOME/id-foot}"
-            APP_PORT="${APP_PORT:-3000}"
+            APP_PORT="${APP_HOST_PORT:-4003}"
+            CONTAINER="${CONTAINER_NAME:-id-foot-app}"
 
-            RUNNING="$(docker ps --filter 'name=^id-foot-app$' --format '{{.Names}}')"
-            if [ "$RUNNING" != "id-foot-app" ]; then
-              echo "Conteneur id-foot-app absent ou arrêté"
+            RUNNING="$(docker ps --filter "name=^${CONTAINER}$" --format '{{.Names}}')"
+            if [ "$RUNNING" != "$CONTAINER" ]; then
+              echo "Conteneur $CONTAINER absent ou arrêté"
               docker ps -a
               exit 1
             fi
@@ -519,7 +642,7 @@ jobs:
               exit 1
             fi
 
-            echo "Healthcheck app : $(docker inspect -f '{{.State.Health.Status}}' id-foot-app 2>/dev/null || echo none)"
+            echo "Healthcheck app : $(docker inspect -f '{{.State.Health.Status}}' "$CONTAINER" 2>/dev/null || echo none)"
 
             i=1
             while [ "$i" -le 18 ]; do
@@ -534,17 +657,14 @@ jobs:
             done
 
             echo "App ne répond pas après 90s — derniers logs :"
-            docker logs --tail 200 id-foot-app || true
+            docker logs --tail 200 "$CONTAINER" || true
             exit 1
-        env:
-          DEPLOY_DIR: ${{ secrets.VPS_DEPLOY_DIR }}
-          APP_PORT: ${{ vars.APP_PORT }}
 
       - name: Public HTTP check (optionnel)
-        if: vars.NEXT_PUBLIC_SITE_URL != ''
+        if: needs.config.outputs.public_check_enabled == 'true'
         shell: bash
         env:
-          PUBLIC_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+          PUBLIC_URL: ${{ needs.config.outputs.public_url }}
         run: |
           set -euo pipefail
           echo "==> Probe publique : $PUBLIC_URL"
@@ -568,6 +688,6 @@ jobs:
           {
             echo "### Smoke test ID FOOT"
             echo "- Conteneurs \`id-foot-app\` + \`id-foot-db\` vérifiés sur \`${{ secrets.VPS_HOST }}\`"
-            echo "- Endpoint local : http://127.0.0.1:${{ vars.APP_PORT || '3000' }}/"
-            echo "- Endpoint public : ${{ vars.NEXT_PUBLIC_SITE_URL || '(non configuré)' }}"
+            echo "- Endpoint local : http://127.0.0.1:${{ env.APP_HOST_PORT }}/"
+            echo "- Endpoint public : ${{ needs.config.outputs.public_url }}"
           } >> "$GITHUB_STEP_SUMMARY"

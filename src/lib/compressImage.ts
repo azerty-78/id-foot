@@ -11,7 +11,7 @@ export async function compressImageForUpload(file: File): Promise<File> {
     return file;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const objectUrl = URL.createObjectURL(file);
     const image = new Image();
 

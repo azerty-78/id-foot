@@ -6,7 +6,7 @@ let savedBodyScrollY = 0;
 /** Verrouille le scroll (fix iOS Safari : position fixed + restauration du scroll). */
 export function lockBodyScroll(): () => void {
   if (typeof document === "undefined") {
-    return () => undefined;
+    return () => {};
   }
 
   bodyScrollLockCount += 1;
@@ -50,10 +50,13 @@ type AudioContextConstructor = typeof AudioContext;
 export function createAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
 
-  const win = window as Window & {
-    webkitAudioContext?: AudioContextConstructor;
-  };
-  const Ctor = win.AudioContext ?? win.webkitAudioContext;
+  const Ctor =
+    globalThis.AudioContext ??
+    (
+      globalThis as typeof globalThis & {
+        webkitAudioContext?: AudioContextConstructor;
+      }
+    ).webkitAudioContext;
 
   if (!Ctor) return null;
 

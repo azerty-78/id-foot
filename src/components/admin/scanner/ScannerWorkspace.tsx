@@ -310,7 +310,7 @@ export function ScannerWorkspace() {
     if (!sessionReady || autoStartAttemptedRef.current) return;
     autoStartAttemptedRef.current = true;
 
-    let unsubscribePermission = () => undefined;
+    let unsubscribePermission: () => void = () => {};
 
     void (async () => {
       await waitForViewportPaint();

@@ -27,11 +27,36 @@ type PlayerLicenseCardProps = {
   className?: string;
 };
 
-const PHOTO_PX = { default: 76, compact: 68 } as const;
-const QR_PX = { default: 92, compact: 80 } as const;
+/** Grille 500×330 : QR 250px, quiet zone 16px → SVG ≈ 218px */
+const QR_INNER_PX = { default: 218, compact: 174 } as const;
 
 function getInitials(prenom: string, nom: string): string {
   return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
+}
+
+function LicenseField({
+  label,
+  value,
+  highlight = false,
+  variant = "default",
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+  variant?: "default" | "name";
+}) {
+  return (
+    <div
+      className={`player-license-card-field ${variant === "name" ? "player-license-card-field--name" : ""}`.trim()}
+    >
+      <dt className="player-license-card-field-label">{label}</dt>
+      <dd
+        className={`player-license-card-field-value ${highlight ? "player-license-card-field-value--highlight" : ""}`.trim()}
+      >
+        {value}
+      </dd>
+    </div>
+  );
 }
 
 export function PlayerLicenseCard({
@@ -41,10 +66,8 @@ export function PlayerLicenseCard({
   compact = false,
   className = "",
 }: PlayerLicenseCardProps) {
-  const shortId = player.id.slice(0, 8).toUpperCase();
-  const sizeKey = compact ? "compact" : "default";
-  const photoPx = PHOTO_PX[sizeKey];
-  const qrPx = QR_PX[sizeKey];
+  const qrInnerPx = QR_INNER_PX[compact ? "compact" : "default"];
+  const fullName = `${player.prenom} ${player.nom}`;
 
   return (
     <article
@@ -64,43 +87,38 @@ export function PlayerLicenseCard({
       </header>
 
       <div className="player-license-card-main">
-        <div
-          className="player-license-card-photo"
-          style={{ width: photoPx, height: photoPx }}
-        >
-          {player.photo ? (
-            <Image
-              src={player.photo}
-              alt={`${player.prenom} ${player.nom}`}
-              width={photoPx}
-              height={photoPx}
-              unoptimized
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <span>{getInitials(player.prenom, player.nom)}</span>
-          )}
-        </div>
-
-        <div className="player-license-card-info">
-          <p className="player-license-card-name">
-            {player.prenom} {player.nom}
-          </p>
-          <p className="player-license-card-meta">
-            {player.numero != null && (
-              <span className="player-license-card-numero">#{player.numero}</span>
+        <div className="player-license-card-identity">
+          <div className="player-license-card-photo">
+            {player.photo ? (
+              <Image
+                src={player.photo}
+                alt={fullName}
+                width={140}
+                height={140}
+                unoptimized
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span>{getInitials(player.prenom, player.nom)}</span>
             )}
-            {player.poste && <span>{player.poste}</span>}
-          </p>
-          <p className="player-license-card-team">{player.equipe.nom}</p>
+          </div>
+
+          <dl className="player-license-card-fields">
+            <LicenseField label="Nom" value={fullName} variant="name" />
+            <div className="player-license-card-field-row">
+              <LicenseField
+                label="Dorsal"
+                value={player.numero != null ? `#${player.numero}` : "—"}
+                highlight={player.numero != null}
+              />
+              <LicenseField label="Poste" value={player.poste?.trim() || "—"} />
+            </div>
+          </dl>
         </div>
 
         <div className="player-license-card-qr-zone">
-          <div
-            className="player-license-card-qr"
-            style={{ width: qrPx, height: qrPx }}
-          >
-            <PlayerCardQr token={player.qrToken} size={qrPx - 8} />
+          <div className="player-license-card-qr">
+            <PlayerCardQr token={player.qrToken} size={qrInnerPx} />
           </div>
           <span className="player-license-card-scan-hint">Scanner ici</span>
         </div>
@@ -108,7 +126,7 @@ export function PlayerLicenseCard({
 
       <footer className="player-license-card-footer">
         <span className="player-license-card-licence">Licence joueur</span>
-        <span className="player-license-card-id">ID {shortId}</span>
+        <span className="player-license-card-club">{player.equipe.nom}</span>
       </footer>
 
       {!compact && (
