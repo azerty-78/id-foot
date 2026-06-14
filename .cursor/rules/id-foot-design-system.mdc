@@ -1,0 +1,53 @@
+---
+description: Charte graphique ID FOOT — couleurs, composants, layout admin
+alwaysApply: true
+---
+
+# ID FOOT — Design System
+
+Appliquer **systématiquement** cette charte pour tout composant, page ou élément UI.
+
+## Couleurs
+- Fond admin : `gray-50` (#F7F8FA) — jamais blanc pur pour le fond global
+- Surfaces (cards, tables, header) : blanc `#FFFFFF`
+- Sidebar : navy `#0D1B2A` — toujours
+- Accent / CTA / focus / actif : green `#39E75F`
+- Texte corps : `gray-600` · Titres : navy
+
+## Cartes
+- `card-default` : white, border 0.5px gray-200, radius-lg, padding 16×18, shadow-sm
+- `card-navy` : fond navy (carte identité joueur)
+- `card-accent` : border 1.5px green, shadow-green
+- `stat-card` : gray-50, border gray-100, radius-md
+
+## Boutons
+- Primary / Secondary / Outline / Ghost / Danger — classes `.btn-*`
+- Tailles : default, `.btn-sm`, `.btn-icon` (36×36)
+- **Toujours** une icône Lucide à gauche du texte sur les boutons d'action
+- `aria-label` obligatoire sur boutons icône seuls
+
+## Badges
+- Pilule 100px · `.badge-success|navy|gray|danger|warning`
+
+## Modals
+- Overlay `rgba(13,27,42,0.5)` · panel max 420px, radius-xl, padding 24px, shadow-lg
+- Footer : annuler `btn-ghost btn-sm` · confirmer `btn-primary btn-sm` ou `btn-danger btn-sm`
+
+## Toasts (bas droite, max 320px)
+- `toast-success` : navy, border-left green, icône Check
+- `toast-error` : white, border-left danger, icône AlertCircle
+
+## Layout admin
+- Sidebar fixe 240px + zone principale flex-1
+- Content : bg gray-50, padding 24px
+- Header sticky blanc shadow-sm dans la zone principale
+
+## Icônes
+- **Uniquement** Lucide React · 16px boutons · hériter couleur parent
+- Contexte : User/Users, Shield, Trophy, QrCode, LayoutDashboard, Plus, Pencil, Trash2, Download, Search, Eye, ArrowLeft, LogOut, CheckCircle, AlertCircle
+
+## Règles
+- Pas de dégradés (sauf filigrane carte identité)
+- Transitions 0.15s ease · gap 8/12/16/24px
+- Pas de border-radius sur bordures unilatérales seules
+- Mobile : sidebar → drawer overlay + hamburger

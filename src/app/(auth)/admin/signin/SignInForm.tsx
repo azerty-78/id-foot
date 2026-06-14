@@ -1,25 +1,27 @@
 "use client";
 
-import { ArrowLeft, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState, type FormEvent } from "react";
 import {
-  AdminCard,
   FieldLabel,
-  GhostLink,
+  InputWithIcon,
   PrimaryButton,
 } from "@/components/admin/ui";
 import { AppLogo } from "@/components/brand/AppLogo";
+import { useToast } from "@/components/providers/ToastProvider";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/admin/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -37,78 +39,114 @@ export default function SignInForm() {
       });
 
       if (result?.error) {
-        setError("Connexion impossible. Vérifiez vos identifiants.");
+        const message = "Connexion impossible. Vérifiez vos identifiants.";
+        setError(message);
+        showToast("error", message);
         return;
       }
 
+      showToast("success", "Connexion réussie.");
       router.push(result?.url ?? callbackUrl);
       router.refresh();
     } catch {
-      setError("Une erreur est survenue lors de la connexion.");
+      const message = "Une erreur est survenue lors de la connexion.";
+      setError(message);
+      showToast("error", message);
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <AdminCard className="overflow-hidden">
-      <div className="bg-gradient-to-br from-brand-dark via-[#0d1219] to-black px-6 py-8">
-        <AppLogo size="lg" />
-        <p className="mt-3 text-sm text-white/70">Connexion administration</p>
+    <div className="login-layout">
+      <div className="login-panel-navy">
+        <AppLogo size="xl" />
+        <p className="login-tagline">
+          Système d&apos;identification et de gestion des licences joueurs ID FOOT.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 p-6">
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Mode provisoire : saisissez un email valide pour accéder à l&apos;admin.
-          L&apos;authentification réelle sera activée ultérieurement.
-        </div>
-
-        {error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
+      <div className="login-panel-form">
+        <div className="login-form-inner">
+          <div className="mb-8 lg:hidden">
+            <AppLogo size="md" />
           </div>
-        )}
 
-        <div>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@football-id.com"
-            className="admin-input"
-          />
-        </div>
-
-        <div>
-          <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="admin-input"
-          />
-          <p className="mt-1.5 text-xs text-slate-400">
-            Mot de passe ignoré pour le moment (développement).
+          <h1 className="text-h2">Connexion</h1>
+          <p className="text-body mt-2">
+            Accédez à l&apos;espace d&apos;administration ID FOOT.
           </p>
-        </div>
 
-        <PrimaryButton type="submit" icon={LogIn} disabled={submitting} className="w-full">
-          {submitting ? "Connexion..." : "Se connecter"}
-        </PrimaryButton>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div className="rounded-[var(--radius-md)] border border-warning/30 bg-[#fef4e4] px-4 py-3 text-[13px] leading-relaxed text-[#b07500]">
+              Mode provisoire : saisissez un email valide. Le mot de passe est ignoré
+              en développement.
+            </div>
 
-        <div className="text-center">
-          <GhostLink href="/" icon={ArrowLeft}>
-            Retour à l&apos;accueil
-          </GhostLink>
+            {error && (
+              <div className="rounded-[var(--radius-md)] border border-danger/20 bg-[#fdeaea] px-4 py-3 text-[13px] text-danger">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <InputWithIcon icon={Mail}>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@id-foot.com"
+                  className="admin-input"
+                />
+              </InputWithIcon>
+            </div>
+
+            <div>
+              <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
+              <div className="password-field-wrap">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="admin-input"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} strokeWidth={2} />
+                  ) : (
+                    <Eye size={18} strokeWidth={2} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <PrimaryButton
+              type="submit"
+              icon={LogIn}
+              disabled={submitting}
+              className="w-full"
+            >
+              {submitting ? "Connexion..." : "Se connecter"}
+            </PrimaryButton>
+
+            <Link href="#" className="login-forgot">
+              Mot de passe oublié ?
+            </Link>
+          </form>
         </div>
-      </form>
-    </AdminCard>
+      </div>
+    </div>
   );
 }

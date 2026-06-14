@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
@@ -371,6 +372,34 @@ export function UserAvatar({ initials }: { initials: string }) {
   );
 }
 
+export function PlayerAvatar({
+  photo,
+  prenom,
+  nom,
+  className = "",
+}: {
+  photo?: string | null;
+  prenom: string;
+  nom: string;
+  className?: string;
+}) {
+  const initials = `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
+
+  if (photo) {
+    return (
+      <Image
+        src={photo}
+        alt={`${prenom} ${nom}`}
+        width={32}
+        height={32}
+        className={`player-avatar-photo ${className}`}
+      />
+    );
+  }
+
+  return <span className={`player-avatar ${className}`}>{initials}</span>;
+}
+
 export function AdminModal({
   open,
   title,
@@ -387,28 +416,29 @@ export function AdminModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4 backdrop-blur-sm">
-      <div className="admin-card w-full max-w-lg overflow-hidden rounded-[var(--radius-lg)]">
-        <div className="border-b border-gray-100 px-6 py-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-section-label">Formulaire</p>
-              <h2 className="text-h2 mt-1">{title}</h2>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-[var(--radius-sm)] p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-              aria-label="Fermer"
-            >
-              ✕
-            </button>
-          </div>
+    <div className="modal-overlay" onClick={onClose} role="presentation">
+      <div
+        className="modal-panel"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <div className="modal-header">
+          <h2 id="modal-title" className="modal-title">
+            {title}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="modal-close"
+            aria-label="Fermer"
+          >
+            ✕
+          </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
-        <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-4">
-          {footer}
-        </div>
+        <div className="modal-body">{children}</div>
+        <div className="modal-footer">{footer}</div>
       </div>
     </div>
   );

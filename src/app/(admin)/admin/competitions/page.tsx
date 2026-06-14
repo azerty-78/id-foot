@@ -204,12 +204,13 @@ export default function CompetitionsPage() {
         onClose={closeModal}
         footer={
           <>
-            <OutlineButton type="button" icon={X} onClick={closeModal}>
+            <OutlineButton type="button" icon={X} size="sm" onClick={closeModal}>
               Annuler
             </OutlineButton>
             <PrimaryButton
               type="button"
               icon={Save}
+              size="sm"
               onClick={() => void handleSubmit()}
               disabled={submitting}
             >

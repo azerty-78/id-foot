@@ -21,10 +21,6 @@ import {
   PrimaryButton,
 } from "@/components/admin/ui";
 
-function getInitials(prenom: string, nom: string): string {
-  return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
-}
-
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("fr-FR", {
     day: "2-digit",

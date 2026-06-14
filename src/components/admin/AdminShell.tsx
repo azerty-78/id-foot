@@ -1,6 +1,6 @@
 "use client";
 
-import { Fingerprint, Home } from "lucide-react";
+import { Fingerprint, Home, Menu } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -33,33 +33,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <div className="admin-shell min-h-screen">
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
-        <button
-          type="button"
-          onClick={() => setMenuOpen(true)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-gray-200 text-navy"
-          aria-label="Ouvrir le menu"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
-        </button>
-
-        <Link href="/admin/dashboard" className="sidebar-brand-text">
-          <span className="sidebar-brand-id">ID </span>
-          <span className="sidebar-brand-foot">FOOT</span>
-        </Link>
-
-        <span className="user-avatar" aria-hidden>
-          {initials}
-        </span>
-      </header>
-
+    <div className="admin-layout">
       {menuOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-navy/50 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-40 bg-[rgba(13,27,42,0.5)] lg:hidden"
           aria-label="Fermer le menu"
           onClick={closeMenu}
         />
@@ -74,7 +52,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/admin/dashboard"
             onClick={closeMenu}
-            className="flex min-w-0 flex-1 items-center gap-10px gap-[10px]"
+            className="flex min-w-0 flex-1 items-center gap-[10px]"
           >
             <span className="sidebar-brand-icon">
               <Fingerprint size={18} strokeWidth={2.5} />
@@ -88,7 +66,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={closeMenu}
-            className="rounded-[var(--radius-sm)] p-2 text-white/60 hover:bg-white/10 lg:hidden"
+            className="modal-close text-white/70 lg:hidden"
             aria-label="Fermer le menu"
           >
             ✕
@@ -120,9 +98,31 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="min-h-screen px-4 py-6 lg:ml-[240px] lg:px-8 lg:py-8">
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
+      <div className="admin-main lg:ml-[240px]">
+        <header className="admin-topbar-sticky flex items-center justify-between px-4 py-3 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            className="btn btn-ghost btn-icon"
+            aria-label="Ouvrir le menu"
+          >
+            <Menu size={18} strokeWidth={2} />
+          </button>
+
+          <Link href="/admin/dashboard" className="text-[15px] font-bold tracking-wide">
+            <span className="text-navy">ID </span>
+            <span className="text-green">FOOT</span>
+          </Link>
+
+          <span className="user-avatar" aria-hidden>
+            {initials}
+          </span>
+        </header>
+
+        <div className="admin-content-area">
+          <div className="mx-auto max-w-7xl">{children}</div>
+        </div>
+      </div>
     </div>
   );
 }

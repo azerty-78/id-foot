@@ -1,7 +1,6 @@
 "use client";
 
 import { Download, Eye, Trash2, UserPlus } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   AdminCard,
@@ -11,37 +10,13 @@ import {
   GhostLink,
   LoadingState,
   PageToolbar,
+  PlayerAvatar,
   PrimaryButton,
   PrimaryLink,
   StatusBadge,
 } from "@/components/admin/ui";
+import { useToast } from "@/components/providers/ToastProvider";
 import { usePlayers, useTeams, type Player } from "@/hooks/useApi";
-
-function getInitials(prenom: string, nom: string): string {
-  return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
-}
-
-function PlayerAvatar({ player }: { player: Player }) {
-  const initials = getInitials(player.prenom, player.nom);
-
-  if (player.photo) {
-    return (
-      <Image
-        src={player.photo}
-        alt={`${player.prenom} ${player.nom}`}
-        width={40}
-        height={40}
-        className="h-10 w-10 rounded-full object-cover"
-      />
-    );
-  }
-
-  return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white ring-2 ring-brand/20">
-      {initials}
-    </div>
-  );
-}
 
 export default function PlayersPage() {
   const [search, setSearch] = useState("");
@@ -66,6 +41,7 @@ export default function PlayersPage() {
 
   const { players, loading, error, refetch } = usePlayers(filters);
   const { teams, loading: teamsLoading } = useTeams();
+  const { showToast } = useToast();
 
   async function handleDownloadCard(id: string) {
     try {
@@ -84,8 +60,9 @@ export default function PlayersPage() {
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
+      showToast("success", "Carte PDF téléchargée.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur inconnue");
+      showToast("error", err instanceof Error ? err.message : "Erreur inconnue");
     }
   }
 
@@ -107,8 +84,9 @@ export default function PlayersPage() {
       }
 
       refetch();
+      showToast("success", "Joueur supprimé.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur inconnue");
+      showToast("error", err instanceof Error ? err.message : "Erreur inconnue");
     }
   }
 
@@ -167,7 +145,11 @@ export default function PlayersPage() {
             {players.map((player) => (
               <AdminCard key={player.id} className="p-4">
                 <div className="flex items-start gap-3">
-                  <PlayerAvatar player={player} />
+                  <PlayerAvatar
+                    photo={player.photo}
+                    prenom={player.prenom}
+                    nom={player.nom}
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-slate-900">
                       {player.prenom} {player.nom}
@@ -229,7 +211,11 @@ export default function PlayersPage() {
                 {players.map((player) => (
                   <tr key={player.id}>
                     <td>
-                      <PlayerAvatar player={player} />
+                      <PlayerAvatar
+                    photo={player.photo}
+                    prenom={player.prenom}
+                    nom={player.nom}
+                  />
                     </td>
                     <td className="font-medium">
                       {player.prenom} {player.nom}
