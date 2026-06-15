@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Search, Trophy, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { OutlineButton } from "@/components/admin/ui";
+import { ShareCompetitionSignInButton } from "@/components/public/ShareCompetitionSignInButton";
 import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
 
 const PAGE_SIZE = 12;
@@ -98,42 +99,50 @@ export function HomeCompetitionsSection({
         <>
           <div className="home-competitions-grid">
             {paginated.map((competition) => (
-              <a
-                key={competition.id}
-                href={buildCompetitionSignInHref(competition.slug)}
-                className="home-competition-card"
-              >
-                <div className="home-competition-card-media">
-                  {competition.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={competition.image}
-                      alt=""
-                      className="home-competition-card-image"
-                    />
-                  ) : (
-                    <div
-                      className="home-competition-card-placeholder"
-                      aria-hidden
-                    >
-                      <Trophy size={28} />
-                    </div>
-                  )}
-                  <span className="home-competition-card-year">
-                    {competition.annee}
-                  </span>
+              <article key={competition.id} className="home-competition-card">
+                <a
+                  href={buildCompetitionSignInHref(competition.slug)}
+                  className="home-competition-card-link"
+                >
+                  <div className="home-competition-card-media">
+                    {competition.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={competition.image}
+                        alt=""
+                        className="home-competition-card-image"
+                      />
+                    ) : (
+                      <div
+                        className="home-competition-card-placeholder"
+                        aria-hidden
+                      >
+                        <Trophy size={28} />
+                      </div>
+                    )}
+                    <span className="home-competition-card-year">
+                      {competition.annee}
+                    </span>
+                  </div>
+                  <div className="home-competition-card-body">
+                    <h3 className="text-h3">{competition.nom}</h3>
+                    {competition.lieu ? (
+                      <p className="text-body mt-1">{competition.lieu}</p>
+                    ) : null}
+                    <p className="home-competition-card-meta">
+                      {competition._count?.equipes ?? 0} équipe
+                      {(competition._count?.equipes ?? 0) > 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </a>
+                <div className="home-competition-card-actions">
+                  <ShareCompetitionSignInButton
+                    nom={competition.nom}
+                    slug={competition.slug}
+                    className="home-competition-card-share"
+                  />
                 </div>
-                <div className="home-competition-card-body">
-                  <h3 className="text-h3">{competition.nom}</h3>
-                  {competition.lieu ? (
-                    <p className="text-body mt-1">{competition.lieu}</p>
-                  ) : null}
-                  <p className="home-competition-card-meta">
-                    {competition._count?.equipes ?? 0} équipe
-                    {(competition._count?.equipes ?? 0) > 1 ? "s" : ""}
-                  </p>
-                </div>
-              </a>
+              </article>
             ))}
           </div>
 

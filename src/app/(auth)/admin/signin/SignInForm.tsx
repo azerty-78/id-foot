@@ -164,7 +164,11 @@ export default function SignInForm() {
           </header>
 
           <p className="text-section-label">Administration</p>
-          <h1 className="text-h2 mt-2">Connexion</h1>
+          <h1 className="text-h2 mt-2">
+            {competition
+              ? `Se connecter pour gérer ${competition.nom}`
+              : "Connexion"}
+          </h1>
           <p className="login-card-lead">{renderLeadText()}</p>
 
           {competitionSlug && competition ? (
