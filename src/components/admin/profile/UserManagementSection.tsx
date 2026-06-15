@@ -278,15 +278,19 @@ export function UserManagementSection({
     }
   }
 
-  async function deleteUser(user: PublicUser) {
-    const confirmed = window.confirm(
-      `Supprimer le gestionnaire ${user.nom} ? Cette action est irréversible.`,
-    );
-    if (!confirmed) return;
+  function openDeleteModal(user: PublicUser) {
+    setSelectedUser(user);
+    setFormError(null);
+    setModalMode("delete");
+  }
 
-    setBusyUserId(user.id);
+  async function confirmDeleteUser() {
+    if (!selectedUser) return;
+
+    setSubmitting(true);
+    setBusyUserId(selectedUser.id);
     try {
-      const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/users/${selectedUser.id}`, { method: "DELETE" });
       const data = (await res.json()) as { error?: string };
 
       if (!res.ok) {
@@ -294,11 +298,13 @@ export function UserManagementSection({
         return;
       }
 
-      setUsers((prev) => prev.filter((item) => item.id !== user.id));
+      setUsers((prev) => prev.filter((item) => item.id !== selectedUser.id));
+      closeModal();
       showToast("success", "Gestionnaire supprimé.");
     } catch {
       showToast("error", "Erreur réseau. Réessayez.");
     } finally {
+      setSubmitting(false);
       setBusyUserId(null);
     }
   }
@@ -310,7 +316,9 @@ export function UserManagementSection({
         ? "Modifier le gestionnaire"
         : modalMode === "password"
           ? "Changer le mot de passe"
-          : "";
+          : modalMode === "delete"
+            ? "Supprimer le gestionnaire"
+            : "";
 
   return (
     <FormSection
@@ -324,9 +332,19 @@ export function UserManagementSection({
         onSearchChange={setSearch}
         searchPlaceholder="Rechercher par nom ou email…"
         action={
-          <PrimaryButton type="button" icon={Plus} onClick={openCreateModal}>
-            Nouveau gestionnaire
-          </PrimaryButton>
+          <div className="flex flex-wrap gap-2">
+            <OutlineButton
+              type="button"
+              icon={RefreshCw}
+              onClick={() => void refreshUsers()}
+              loading={refreshing}
+            >
+              Actualiser
+            </OutlineButton>
+            <PrimaryButton type="button" icon={Plus} onClick={openCreateModal}>
+              Nouveau gestionnaire
+            </PrimaryButton>
+          </div>
         }
       />
 
@@ -410,7 +428,7 @@ export function UserManagementSection({
                           type="button"
                           size="sm"
                           icon={Trash2}
-                          onClick={() => void deleteUser(user)}
+                          onClick={() => openDeleteModal(user)}
                           disabled={busy || isSelf}
                         >
                           Supprimer
@@ -433,31 +451,53 @@ export function UserManagementSection({
         onClose={closeModal}
         busy={submitting}
         footer={
-          <>
-            <GhostButton type="button" onClick={closeModal} disabled={submitting}>
-              Annuler
-            </GhostButton>
-            <PrimaryButton
-              type="submit"
-              form="manager-user-form"
-              icon={Save}
-              loading={submitting}
-            >
-              Enregistrer
-            </PrimaryButton>
-          </>
+          modalMode === "delete" ? (
+            <>
+              <GhostButton type="button" onClick={closeModal} disabled={submitting}>
+                Annuler
+              </GhostButton>
+              <DangerButton
+                type="button"
+                icon={Trash2}
+                onClick={() => void confirmDeleteUser()}
+                disabled={submitting}
+              >
+                Supprimer
+              </DangerButton>
+            </>
+          ) : (
+            <>
+              <GhostButton type="button" onClick={closeModal} disabled={submitting}>
+                Annuler
+              </GhostButton>
+              <PrimaryButton
+                type="submit"
+                form="manager-user-form"
+                icon={Save}
+                loading={submitting}
+              >
+                Enregistrer
+              </PrimaryButton>
+            </>
+          )
         }
       >
-        <form
-          id="manager-user-form"
-          onSubmit={(e) => {
-            if (modalMode === "create") void handleCreate(e);
-            else if (modalMode === "edit") void handleEdit(e);
-            else if (modalMode === "password") void handlePasswordReset(e);
-            else e.preventDefault();
-          }}
-          className="space-y-4"
-        >
+        {modalMode === "delete" && selectedUser ? (
+          <p className="text-body">
+            Supprimer le gestionnaire <strong>{selectedUser.nom}</strong> (
+            {selectedUser.email}) ? Cette action est irréversible.
+          </p>
+        ) : (
+          <form
+            id="manager-user-form"
+            onSubmit={(e) => {
+              if (modalMode === "create") void handleCreate(e);
+              else if (modalMode === "edit") void handleEdit(e);
+              else if (modalMode === "password") void handlePasswordReset(e);
+              else e.preventDefault();
+            }}
+            className="space-y-4"
+          >
           {modalMode !== "password" && (
             <>
               <div>
@@ -526,7 +566,8 @@ export function UserManagementSection({
           )}
 
           <FieldError message={formError ?? undefined} />
-        </form>
+          </form>
+        )}
       </AdminModal>
     </FormSection>
   );
