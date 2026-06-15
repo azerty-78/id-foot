@@ -5,22 +5,23 @@ export function useBlobObjectUrl(file: File | null): string | null {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
+    if (!file) return;
 
     let cancelled = false;
     const reader = new FileReader();
 
     reader.onload = () => {
-      if (!cancelled && typeof reader.result === "string") {
-        setUrl(reader.result);
-      }
+      if (cancelled || typeof reader.result !== "string") return;
+      requestAnimationFrame(() => {
+        if (!cancelled) setUrl(reader.result as string);
+      });
     };
 
     reader.onerror = () => {
-      if (!cancelled) setUrl(null);
+      if (cancelled) return;
+      requestAnimationFrame(() => {
+        if (!cancelled) setUrl(null);
+      });
     };
 
     reader.readAsDataURL(file);
@@ -30,5 +31,6 @@ export function useBlobObjectUrl(file: File | null): string | null {
     };
   }, [file]);
 
+  if (!file) return null;
   return url;
 }
