@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const contentSecurityPolicy = [
+const productionContentSecurityPolicy = [
   "default-src https: data: 'unsafe-inline' 'unsafe-eval'",
   "img-src https: data: blob:",
   "media-src https: data: blob:",
@@ -16,13 +16,18 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   async headers() {
+    // CSP HTTPS-only en prod ; en dev localhost est en http:// et serait bloqué
+    if (process.env.NODE_ENV !== "production") {
+      return [];
+    }
+
     return [
       {
         source: "/(.*)",
         headers: [
           {
             key: "Content-Security-Policy",
-            value: contentSecurityPolicy,
+            value: productionContentSecurityPolicy,
           },
         ],
       },
