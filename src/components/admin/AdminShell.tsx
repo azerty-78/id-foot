@@ -2,27 +2,22 @@
 
 import {
   Home,
-  LayoutDashboard,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  QrCode,
-  Shield,
-  Trophy,
-  User,
-  Users,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
+import { InactiveSessionGuard } from "@/components/admin/InactiveSessionGuard";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
 import { AppLogo } from "@/components/brand/AppLogo";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
+import { getAdminPageTitle, getMobileTopbarBrand } from "@/lib/adminNav";
 import type { AuthUser } from "@/lib/auth/scope";
 
 type AdminShellCompetition = {
@@ -64,46 +59,6 @@ function subscribeSidebarCollapsed(onStoreChange: () => void): () => void {
     window.removeEventListener("storage", onChange);
     window.removeEventListener(SIDEBAR_COLLAPSED_EVENT, onChange);
   };
-}
-
-type MobileTopbarBrand = {
-  href: string;
-  icon: LucideIcon;
-  primary: string;
-  accent?: string;
-};
-
-function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
-  if (pathname.startsWith("/admin/scanner")) {
-    return { href: "/admin/scanner", icon: QrCode, primary: "Scan ", accent: "QR" };
-  }
-  if (pathname.startsWith("/admin/players")) {
-    return { href: "/admin/players", icon: Users, primary: "Joueurs" };
-  }
-  if (pathname.startsWith("/admin/teams")) {
-    return { href: "/admin/teams", icon: Shield, primary: "Équipes" };
-  }
-  if (pathname.startsWith("/admin/competitions")) {
-    return { href: "/admin/competitions", icon: Trophy, primary: "Compétitions" };
-  }
-  if (pathname.startsWith("/admin/profil")) {
-    return { href: "/admin/profil", icon: User, primary: "Profil" };
-  }
-  return { href: "/admin/dashboard", icon: LayoutDashboard, primary: "Dashboard" };
-}
-
-function getAdminPageTitle(pathname: string): string {
-  if (pathname.startsWith("/admin/scanner")) return "Scanner QR";
-  if (pathname === "/admin/players/cards") return "Cartes licences";
-  if (pathname === "/admin/players/new") return "Ajouter un joueur";
-  if (/^\/admin\/players\/[^/]+\/edit\/?$/.test(pathname)) return "Modifier le joueur";
-  if (/^\/admin\/players\/[^/]+\/?$/.test(pathname)) return "Fiche joueur";
-  if (pathname.startsWith("/admin/players")) return "Joueurs";
-  if (pathname.startsWith("/admin/teams")) return "Équipes";
-  if (pathname.startsWith("/admin/competitions")) return "Compétitions";
-  if (pathname.startsWith("/admin/profil")) return "Profil";
-  if (pathname.startsWith("/admin/dashboard")) return "Dashboard";
-  return "Administration";
 }
 
 export function AdminShell({
@@ -153,6 +108,7 @@ export function AdminShell({
     <div
       className={`admin-layout ${sidebarCollapsed ? "admin-layout--sidebar-collapsed" : ""}`}
     >
+      <InactiveSessionGuard />
       {menuOpen && (
         <button
           type="button"
@@ -204,7 +160,11 @@ export function AdminShell({
 
         <div className="sidebar-footer mt-auto border-t border-white/[0.08] px-4 py-4">
           {user.email && (
-            <div className="sidebar-user mb-3 flex items-center gap-2 px-3">
+            <Link
+              href="/admin/profil"
+              onClick={closeMenu}
+              className="sidebar-user mb-3 flex items-center gap-2 px-3 transition hover:opacity-90"
+            >
               <span className="user-avatar">{initials}</span>
               <div className="min-w-0">
                 <p className="sidebar-user-email truncate text-[11px] font-semibold text-white/80">
@@ -219,7 +179,7 @@ export function AdminShell({
                   </p>
                 ) : null}
               </div>
-            </div>
+            </Link>
           )}
 
           <SidebarSignOut onNavigate={closeMenu} collapsed={sidebarCollapsed} />
@@ -265,16 +225,11 @@ export function AdminShell({
           </Link>
 
           <Link
-            href="/admin/dashboard"
+            href="/admin/profil"
             className="admin-topbar-logo touch-target"
-            aria-label={brandLogoLabel}
+            aria-label="Mon profil"
           >
-            <AppLogo
-              size="sm"
-              src={brandLogoSrc}
-              alt={brandLogoAlt}
-              className="admin-topbar-logo-image"
-            />
+            <span className="user-avatar user-avatar--topbar">{initials}</span>
           </Link>
         </header>
 
@@ -298,7 +253,7 @@ export function AdminShell({
           </div>
         </div>
 
-        <MobileBottomNav />
+        {!isScannerPage ? <MobileBottomNav role={user.role} /> : null}
       </div>
     </div>
   );

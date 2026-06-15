@@ -1,37 +1,22 @@
 "use client";
 
-import {
-  LayoutDashboard,
-  QrCode,
-  Shield,
-  Trophy,
-  Users,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isNavItemActive } from "@/hooks/useAdminBackPath";
+import type { UserRole } from "@prisma/client";
+import { getMobileNavItems, isNavItemActive } from "@/lib/adminNav";
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  highlight?: boolean;
-};
-
-const navItems: NavItem[] = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/competitions", label: "Compétitions", icon: Trophy },
-  { href: "/admin/scanner", label: "Scanner", icon: QrCode, highlight: true },
-  { href: "/admin/players", label: "Joueurs", icon: Users },
-  { href: "/admin/teams", label: "Équipes", icon: Shield },
-];
-
-export function MobileBottomNav() {
+export function MobileBottomNav({ role }: { role: UserRole }) {
   const pathname = usePathname();
+  const navItems = getMobileNavItems(role);
 
   return (
-    <nav className="mobile-bottom-nav lg:hidden" aria-label="Navigation principale">
+    <nav
+      className="mobile-bottom-nav lg:hidden"
+      aria-label="Navigation principale"
+      style={{
+        gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))`,
+      }}
+    >
       {navItems.map((item) => {
         const Icon = item.icon;
         const active = isNavItemActive(pathname, item.href);

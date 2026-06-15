@@ -106,8 +106,17 @@ export const authOptions: NextAuthOptions = {
 
       token.userCheckedAt = Date.now();
 
-      if (!dbUser?.active) {
+      if (!dbUser) {
         token.active = false;
+        delete token.sub;
+        delete token.id;
+        return token;
+      }
+
+      if (!dbUser.active) {
+        token.active = false;
+        delete token.sub;
+        delete token.id;
         return token;
       }
 
@@ -120,12 +129,20 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
+        const isActive = Boolean(token.sub && token.active !== false);
+
+        if (!isActive) {
+          session.user.active = false;
+          return session;
+        }
+
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.role = token.role as typeof session.user.role;
         session.user.competitionId =
           (token.competitionId as string | null | undefined) ?? null;
+        session.user.active = true;
       }
       return session;
     },

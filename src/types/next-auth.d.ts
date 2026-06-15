@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       role: UserRole;
       competitionId: string | null;
+      active: boolean;
     };
   }
 
