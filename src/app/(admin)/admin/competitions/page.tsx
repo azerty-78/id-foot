@@ -442,7 +442,7 @@ export default function CompetitionsPage() {
               type="button"
               icon={Trash2}
               size="sm"
-              loading={deleting}
+              disabled={deleting}
               onClick={() => void confirmDelete()}
             >
               {deleting ? "Suppression…" : "Supprimer définitivement"}
