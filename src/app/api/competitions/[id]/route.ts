@@ -67,6 +67,9 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     const user = await requireApiUser();
     if (isAuthResponse(user)) return user;
 
+    const roleDenied = assertRole(user, "ADMIN", "SUPER_ADMIN");
+    if (roleDenied) return roleDenied;
+
     const { id } = await params;
     const body = (await req.json()) as UpdateCompetitionBody;
     const { nom, annee, lieu, image } = parseCompetitionPayload(body);
@@ -120,7 +123,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
     const user = await requireApiUser();
     if (isAuthResponse(user)) return user;
 
-    const roleDenied = assertRole(user, "ADMIN");
+    const roleDenied = assertRole(user, "ADMIN", "SUPER_ADMIN");
     if (roleDenied) return roleDenied;
 
     const { id } = await params;

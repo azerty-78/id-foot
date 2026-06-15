@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { PlayerCardQr } from "./PlayerCardQr";
 import { PrintButton } from "./PrintButton";
 
+export const dynamic = "force-dynamic";
+
 type PlayerCardPageProps = {
   params: Promise<{ id: string }>;
 };

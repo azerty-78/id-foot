@@ -22,6 +22,7 @@ import {
 import { AdminModal } from "@/components/admin/AdminModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useCompetitions, type Competition } from "@/hooks/useApi";
+import { canManageCompetition } from "@/lib/adminNav";
 import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
 import { validateCompetition } from "@/lib/validators";
 
@@ -36,7 +37,9 @@ const emptyForm: FormState = { nom: "", annee: "", lieu: "", image: "" };
 
 export default function CompetitionsPage() {
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN";
+  const role = session?.user?.role;
+  const canEdit = canManageCompetition(role ?? "MANAGER");
+  const canDelete = role === "ADMIN" || role === "SUPER_ADMIN";
   const { competitions, loading, error, refetch } = useCompetitions();
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
@@ -208,7 +211,7 @@ export default function CompetitionsPage() {
       showToast("success", "Compétition et données associées supprimées.");
       closeDeleteModal();
 
-      if (isAdmin) {
+      if (role === "ADMIN") {
         await signOut({ callbackUrl: "/" });
         return;
       }
@@ -295,15 +298,17 @@ export default function CompetitionsPage() {
                   >
                     Connexion
                   </OutlineLink>
-                  <OutlineButton
-                    type="button"
-                    icon={Pencil}
-                    size="sm"
-                    onClick={() => openEditModal(competition)}
-                  >
-                    Modifier
-                  </OutlineButton>
-                  {isAdmin ? (
+                  {canEdit ? (
+                    <OutlineButton
+                      type="button"
+                      icon={Pencil}
+                      size="sm"
+                      onClick={() => openEditModal(competition)}
+                    >
+                      Modifier
+                    </OutlineButton>
+                  ) : null}
+                  {canDelete ? (
                     <DangerButton
                       type="button"
                       icon={Trash2}

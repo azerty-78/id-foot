@@ -1,20 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-
-const ROOT_PATHS = new Set([
-  "/admin/dashboard",
-  "/admin/scanner",
-  "/admin/players",
-  "/admin/teams",
-  "/admin/competitions",
-  "/admin/profil",
-]);
+import { ADMIN_ROOT_PATHS } from "@/lib/adminNav";
 
 export function useAdminBackPath(): string | null {
   const pathname = usePathname();
 
-  if (ROOT_PATHS.has(pathname)) {
+  if (ADMIN_ROOT_PATHS.has(pathname)) {
     return null;
   }
 
@@ -39,34 +31,8 @@ export function useAdminBackPath(): string | null {
   return "/admin/dashboard";
 }
 
+export { isNavItemActive } from "@/lib/adminNav";
+
 export function isAdminRootPath(pathname: string): boolean {
-  return ROOT_PATHS.has(pathname);
-}
-
-export function isNavItemActive(pathname: string, href: string): boolean {
-  if (href === "/admin/dashboard") {
-    return pathname === "/admin/dashboard" || pathname === "/admin";
-  }
-
-  if (href === "/admin/players") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  if (href === "/admin/teams") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  if (href === "/admin/competitions") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  if (href === "/admin/scanner") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  if (href === "/admin/profil") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return ADMIN_ROOT_PATHS.has(pathname);
 }

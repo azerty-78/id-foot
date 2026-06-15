@@ -2182,7 +2182,7 @@ body {
 
 .admin-content-area--scanner {
   padding: 0;
-  padding-bottom: var(--mobile-bottomnav-h);
+  padding-bottom: 0;
   overflow: hidden;
 }
 
@@ -2193,6 +2193,12 @@ body {
   }
 }
 
+.user-avatar--topbar {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+}
+
 .mobile-bottom-nav {
   position: fixed;
   right: 0;
@@ -2200,7 +2206,6 @@ body {
   left: 0;
   z-index: 45;
   display: grid;
-  grid-template-columns: 1fr 1fr 1.2fr 1fr 1fr;
   align-items: end;
   gap: 2px;
   border-top: 1px solid var(--gray-200);
