@@ -1,3 +1,4 @@
+import { requiresCameraUserGesture } from "@/lib/browserCompat";
 import type { RecentScan } from "./types";
 
 const SESSION_KEY = "idfoot-scanner-session";
@@ -122,9 +123,14 @@ export function shouldAttemptCameraAutoStart(
   wasGrantedBefore: boolean,
 ): boolean {
   if (permission === "denied") return false;
+
+  // Mobile : jamais d'auto-start sans geste — sauf permission déjà accordée.
+  if (requiresCameraUserGesture()) {
+    return permission === "granted";
+  }
+
   if (permission === "granted") return true;
   if (wasGrantedBefore) return true;
 
-  // iOS / Android renvoient souvent "prompt" ou "unknown" même après accord.
   return permission === "prompt" || permission === "unknown";
 }

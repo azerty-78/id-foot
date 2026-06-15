@@ -1,5 +1,4 @@
 import { jsPDF } from "jspdf";
-import { PREVIEW_PLAYER_LICENSE } from "@/lib/playerCardMock";
 import { prisma } from "@/lib/prisma";
 import {
   loadPlayerPhotoBuffer,
@@ -126,13 +125,5 @@ export async function generateAllPlayerCardsPdf(options?: {
     addCardPage(doc, page.dataUri, index === 0);
   });
 
-  return Buffer.from(doc.output("arraybuffer"));
-}
-
-/** PDF de démonstration (joueur fictif) pour itérer sur le design. */
-export async function generatePreviewPlayerCard(): Promise<Buffer> {
-  const { dataUri } = await renderCardPdfPage(PREVIEW_PLAYER_LICENSE);
-  const doc = createCardPdf();
-  addCardPage(doc, dataUri, true);
   return Buffer.from(doc.output("arraybuffer"));
 }

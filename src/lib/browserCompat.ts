@@ -87,3 +87,26 @@ export function isMobileSafari(): boolean {
 
   return isIOS && /WebKit/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua);
 }
+
+/** Téléphone / tablette — pas le mode responsive desktop. */
+export function isMobileDevice(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const coarsePointer =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches;
+  const narrowViewport = window.innerWidth < 1024;
+
+  return coarsePointer || narrowViewport;
+}
+
+/** getUserMedia exige HTTPS (sauf localhost). */
+export function isSecureCameraContext(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.isSecureContext;
+}
+
+/** iOS / Android : la caméra doit être demandée via un geste utilisateur. */
+export function requiresCameraUserGesture(): boolean {
+  return isMobileDevice();
+}

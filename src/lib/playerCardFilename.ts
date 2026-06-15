@@ -22,10 +22,6 @@ export function buildCompetitionCardsFilename(competitionNom: string): string {
   return `${sanitizePdfFilename(competitionNom)}.pdf`;
 }
 
-export function buildPreviewCardFilename(): string {
-  return "carte-joueur-apercu.pdf";
-}
-
 export function pdfContentDisposition(filename: string): string {
   const asciiFallback = filename.replace(/[^\x20-\x7E]/g, "_");
   const encoded = encodeURIComponent(filename);

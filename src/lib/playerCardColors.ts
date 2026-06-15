@@ -21,12 +21,13 @@ export const CARD_COLORS = {
 export const CARD_RENDER_WIDTH = 500;
 export const CARD_RENDER_HEIGHT = 330;
 
-/** Zone QR carte (alignée PlayerLicenseCard + globals.css) */
-export const CARD_QR_BOX = 250;
-export const CARD_QR_QUIET = 16;
-export const CARD_QR_INNER = CARD_QR_BOX - CARD_QR_QUIET * 2;
-/** Ajustement PDF — QR centré et inset dans le cadre blanc (évite débordement) */
-export const CARD_QR_PDF_SIZE_TRIM = 24;
+/** Zone QR PDF (500×330) — cadre blanc + marges intérieures */
+export const CARD_QR_BOX = 226;
+export const CARD_QR_PDF_PAD_TOP = 12;
+export const CARD_QR_PDF_PAD_BOTTOM = 28;
+export const CARD_QR_PDF_PAD_X = 20;
+export const CARD_QR_INNER =
+  CARD_QR_BOX - CARD_QR_PDF_PAD_TOP - CARD_QR_PDF_PAD_BOTTOM;
 /** Espace entre le nom et la ligne dorsal / poste (PDF) */
 export const CARD_NAME_TO_STATS_GAP = 14;
 
