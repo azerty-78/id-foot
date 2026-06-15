@@ -1,25 +1,36 @@
 import { useEffect, useState } from "react";
 
-/** URL objet pour prévisualiser un fichier local (setState différé hors corps synchrone de l'effet). */
+/** Prévisualisation locale — data: URL (compatible CSP sans blob:). */
 export function useBlobObjectUrl(file: File | null): string | null {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!file) return;
 
-    const objectUrl = URL.createObjectURL(file);
-    const frame = requestAnimationFrame(() => {
-      setUrl(objectUrl);
-    });
+    let cancelled = false;
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (cancelled || typeof reader.result !== "string") return;
+      requestAnimationFrame(() => {
+        if (!cancelled) setUrl(reader.result as string);
+      });
+    };
+
+    reader.onerror = () => {
+      if (cancelled) return;
+      requestAnimationFrame(() => {
+        if (!cancelled) setUrl(null);
+      });
+    };
+
+    reader.readAsDataURL(file);
 
     return () => {
-      cancelAnimationFrame(frame);
-      URL.revokeObjectURL(objectUrl);
-      requestAnimationFrame(() => {
-        setUrl((current) => (current === objectUrl ? null : current));
-      });
+      cancelled = true;
     };
   }, [file]);
 
+  if (!file) return null;
   return url;
 }

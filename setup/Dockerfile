@@ -4,7 +4,7 @@
 ARG NODE_VERSION=22.15.0
 
 FROM node:${NODE_VERSION}-alpine AS base
-RUN apk add --no-cache libc6-compat openssl wget
+RUN apk add --no-cache libc6-compat openssl wget fontconfig ttf-dejavu
 WORKDIR /usr/src/app
 
 FROM base AS deps
@@ -24,6 +24,7 @@ ENV NEXTAUTH_URL=https://id-foot.kobecorporation.com
 
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
+RUN npm run icons:generate
 RUN npx prisma generate
 RUN npm run build
 
@@ -48,6 +49,8 @@ COPY setup/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh \
   && mkdir -p public/uploads/photos \
   && chown -R nextjs:nodejs public .next/static \
+  && fc-cache -f \
+  && fc-list | grep -qi "dejavu sans" \
   && test -f public/id-foot-nobg.png \
   && test -f public/brand/icon.png \
   && test -f public/favicon.ico

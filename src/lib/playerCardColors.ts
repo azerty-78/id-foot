@@ -31,4 +31,4 @@ export const CARD_QR_INNER =
 /** Espace entre le nom et la ligne dorsal / poste (PDF) */
 export const CARD_NAME_TO_STATS_GAP = 14;
 
-export const CARD_FONT = "'Inter', Inter, 'Segoe UI', system-ui, Arial, sans-serif";
+export const CARD_FONT = "'DejaVu Sans', sans-serif";

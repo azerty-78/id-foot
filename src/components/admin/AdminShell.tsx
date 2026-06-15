@@ -15,7 +15,7 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
@@ -25,6 +25,7 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 
 const SIDEBAR_COLLAPSED_KEY = "id-foot-sidebar-collapsed";
+const SIDEBAR_COLLAPSED_EVENT = "id-foot-sidebar-collapsed-change";
 
 function readSidebarCollapsed(): boolean {
   if (typeof window === "undefined") return false;
@@ -45,6 +46,16 @@ function getInitials(name?: string | null, email?: string | null): string {
   }
   if (email) return email.slice(0, 2).toUpperCase();
   return "IF";
+}
+
+function subscribeSidebarCollapsed(onStoreChange: () => void): () => void {
+  const onChange = () => onStoreChange();
+  window.addEventListener("storage", onChange);
+  window.addEventListener(SIDEBAR_COLLAPSED_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(SIDEBAR_COLLAPSED_EVENT, onChange);
+  };
 }
 
 type MobileTopbarBrand = {
@@ -85,7 +96,11 @@ function getAdminPageTitle(pathname: string): string {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed);
+  const sidebarCollapsed = useSyncExternalStore(
+    subscribeSidebarCollapsed,
+    readSidebarCollapsed,
+    () => false,
+  );
   const pathname = usePathname();
   const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
@@ -98,16 +113,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
+
   const toggleSidebarCollapsed = useCallback(() => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
+    const next = !readSidebarCollapsed();
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+    } catch {
+      /* ignore */
+    }
+    window.dispatchEvent(new Event(SIDEBAR_COLLAPSED_EVENT));
   }, []);
 
   useHistoryOverlay(menuOpen, closeMenu, "admin-sidebar");
