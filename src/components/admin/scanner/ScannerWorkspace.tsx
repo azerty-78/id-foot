@@ -6,11 +6,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GhostButton, PrimaryButton } from "@/components/admin/ui";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
-import { isMobileSafari } from "@/lib/browserCompat";
+import { isMobileDevice, isMobileSafari } from "@/lib/browserCompat";
+import {
+  getCameraErrorMessage,
+  getScannerCameraBlockedMessage,
+  pickCameraStartTarget,
+  type CameraStartTarget,
+} from "./cameraUtils";
 import { extractToken } from "./extractToken";
 import { ManualPlayerSearchPanel } from "./ManualPlayerSearchPanel";
 import { playErrorTone, playSuccessChime } from "./playScanSound";
-import { queryCameraPermission, markScannerCameraGranted, subscribeCameraPermission, isCameraPermissionDeniedError, shouldAttemptCameraAutoStart } from "./scannerSession";
+import {
+  queryCameraPermission,
+  markScannerCameraGranted,
+  subscribeCameraPermission,
+  isCameraPermissionDeniedError,
+  shouldAttemptCameraAutoStart,
+} from "./scannerSession";
 import { RecentScansStrip } from "./RecentScansStrip";
 import { ScanSuccessOverlay } from "./ScanSuccessOverlay";
 import type { ScanPhase, ValidatedPlayer } from "./types";
@@ -22,6 +34,7 @@ const SCAN_BOX_MIN = 200;
 const SCAN_BOX_MAX_MOBILE = 280;
 const SCAN_BOX_MAX_DESKTOP = 300;
 const RESIZE_RESTART_DELTA = 48;
+const CAMERA_START_TIMEOUT_MS = 12000;
 
 type CameraStatus = "idle" | "needs-gesture" | "starting" | "active" | "denied";
 
@@ -31,6 +44,53 @@ function waitForViewportPaint(): Promise<void> {
       requestAnimationFrame(() => resolve());
     });
   });
+}
+
+async function waitForViewportReady(
+  viewport: HTMLElement | null,
+  attempts = 8,
+): Promise<{ width: number; height: number }> {
+  for (let i = 0; i < attempts; i += 1) {
+    const rect = viewport?.getBoundingClientRect();
+    const width = rect?.width ?? 0;
+    const height = rect?.height ?? 0;
+
+    if (width >= 80 && height >= 80) {
+      return { width, height };
+    }
+
+    await waitForViewportPaint();
+  }
+
+  return {
+    width: viewport?.getBoundingClientRect().width ?? window.innerWidth,
+    height: viewport?.getBoundingClientRect().height ?? window.innerHeight,
+  };
+}
+
+async function startHtml5QrcodeCamera(
+  scanner: Html5Qrcode,
+  targets: CameraStartTarget[],
+  scanConfig: {
+    fps: number;
+    qrbox: (width: number, height: number) => { width: number; height: number };
+    aspectRatio: number;
+    disableFlip: boolean;
+  },
+  onScan: (decodedText: string) => void,
+): Promise<void> {
+  let lastError: unknown;
+
+  for (const target of targets) {
+    try {
+      await scanner.start(target, scanConfig, onScan, () => undefined);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("Impossible d'ouvrir la caméra.");
 }
 
 function computeScanBoxSize(
@@ -86,7 +146,10 @@ export function ScannerWorkspace() {
   const [player, setPlayer] = useState<ValidatedPlayer | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [manualOpen, setManualOpen] = useState(false);
-  const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
+  const [cameraStatus, setCameraStatus] = useState<CameraStatus>("needs-gesture");
+  const [cameraPromptMessage, setCameraPromptMessage] = useState<string | null>(
+    () => getScannerCameraBlockedMessage(),
+  );
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -209,21 +272,39 @@ export function ScannerWorkspace() {
   const startScanner = useCallback(async (): Promise<boolean> => {
     if (scannerRef.current || startInFlightRef.current || manualOpen) return false;
 
+    const blockedMessage = getScannerCameraBlockedMessage();
+    if (blockedMessage) {
+      setCameraPromptMessage(blockedMessage);
+      setCameraStatus("needs-gesture");
+      return false;
+    }
+
     startInFlightRef.current = true;
     setCameraStatus("starting");
+    setCameraPromptMessage(null);
     setErrorMessage(null);
 
     const viewport = viewportRef.current;
-    const rect = viewport?.getBoundingClientRect();
-    const viewfinderWidth = rect?.width ?? window.innerWidth;
-    const viewfinderHeight = rect?.height ?? window.innerHeight;
-    const isMobile = window.innerWidth < 1024;
+    const isMobile = isMobileDevice();
+    const { width: viewfinderWidth, height: viewfinderHeight } =
+      await waitForViewportReady(viewport);
 
     applyScanBoxSize(viewport, viewfinderWidth, viewfinderHeight, isMobile);
     lastViewportSizeRef.current = {
       width: viewfinderWidth,
       height: viewfinderHeight,
     };
+
+    const startTimeout = window.setTimeout(() => {
+      if (startInFlightRef.current) {
+        startInFlightRef.current = false;
+        setCameraStatus("needs-gesture");
+        setCameraPromptMessage(
+          "La caméra met trop de temps à répondre. Appuyez sur « Activer la caméra » pour réessayer.",
+        );
+        void stopScanner();
+      }
+    }, CAMERA_START_TIMEOUT_MS);
 
     try {
       const scanner = new Html5Qrcode("qr-reader");
@@ -244,36 +325,46 @@ export function ScannerWorkspace() {
         void lookupToken(decodedText);
       };
 
-      try {
-        await scanner.start(
-          { facingMode: { ideal: "environment" } },
-          scanConfig,
-          onScan,
-          () => undefined,
+      const primaryTarget = await pickCameraStartTarget();
+      const cameraTargets: CameraStartTarget[] = [
+        primaryTarget,
+        { facingMode: { ideal: "environment" } },
+        { facingMode: "environment" },
+        { facingMode: { ideal: "user" } },
+        { facingMode: "user" },
+      ].filter((target, index, list) => {
+        const key =
+          typeof target === "string" ? target : JSON.stringify(target);
+        return (
+          list.findIndex((item) =>
+            typeof item === "string"
+              ? item === key
+              : JSON.stringify(item) === key,
+          ) === index
         );
-      } catch {
-        await scanner.start(
-          { facingMode: "environment" },
-          scanConfig,
-          onScan,
-          () => undefined,
-        );
-      }
+      });
+
+      await startHtml5QrcodeCamera(scanner, cameraTargets, scanConfig, onScan);
 
       setCameraStatus("active");
+      setCameraPromptMessage(null);
       markScannerCameraGranted();
       return true;
     } catch (error) {
       await stopScanner();
 
       const permission = await queryCameraPermission();
+      const message = getCameraErrorMessage(error);
+      setCameraPromptMessage(message);
+
       if (isCameraPermissionDeniedError(error) || permission === "denied") {
-        setCameraStatus(permission === "denied" ? "denied" : "needs-gesture");
+        setCameraStatus("denied");
       } else {
         setCameraStatus("needs-gesture");
       }
       return false;
     } finally {
+      window.clearTimeout(startTimeout);
       startInFlightRef.current = false;
     }
   }, [lookupToken, manualOpen, stopScanner]);
@@ -376,7 +467,8 @@ export function ScannerWorkspace() {
     function onVisibilityChange() {
       if (document.visibilityState !== "visible") return;
       if (manualOpen || phase !== "scanning") return;
-      if (cameraStatus === "denied") return;
+      if (cameraStatus === "denied" || cameraStatus === "needs-gesture") return;
+      if (isMobileDevice() && cameraStatus !== "active") return;
       if (!scannerRef.current && !startInFlightRef.current) {
         void startScanner();
       }
@@ -399,16 +491,17 @@ export function ScannerWorkspace() {
 
     const observer = new ResizeObserver(() => {
       const rect = viewport.getBoundingClientRect();
-      const isMobile = window.innerWidth < 1024;
+      const isMobile = isMobileDevice();
       applyScanBoxSize(viewport, rect.width, rect.height, isMobile);
 
       const prev = lastViewportSizeRef.current;
       const widthDelta = Math.abs(rect.width - prev.width);
       const heightDelta = Math.abs(rect.height - prev.height);
+      const restartDelta = isMobile ? RESIZE_RESTART_DELTA * 2 : RESIZE_RESTART_DELTA;
 
       if (
-        widthDelta < RESIZE_RESTART_DELTA &&
-        heightDelta < RESIZE_RESTART_DELTA
+        widthDelta < restartDelta &&
+        heightDelta < restartDelta
       ) {
         return;
       }
@@ -441,11 +534,17 @@ export function ScannerWorkspace() {
   }, [clearErrorTimer, stopScanner]);
 
   const showCameraPrompt =
-    (cameraStatus === "needs-gesture" || cameraStatus === "denied") &&
+    (cameraStatus === "needs-gesture" ||
+      cameraStatus === "denied" ||
+      cameraStatus === "idle") &&
     phase !== "success" &&
     phase !== "loading" &&
     phase !== "error";
   const showCameraLoading = cameraStatus === "starting";
+  const defaultCameraPromptText =
+    cameraStatus === "denied"
+      ? "L'accès a été refusé. Autorisez la caméra dans les paramètres du navigateur, puis réessayez."
+      : "Appuyez pour activer la caméra arrière. Le navigateur vous demandera confirmation.";
 
   return (
     <div className="scanner-workspace scanner-workspace--mobile">
@@ -504,9 +603,7 @@ export function ScannerWorkspace() {
                 </span>
                 <p className="scanner-camera-prompt-title">Accès caméra</p>
                 <p className="scanner-camera-prompt-text">
-                  {cameraStatus === "denied"
-                    ? "L'accès a été refusé. Autorisez la caméra dans les paramètres du navigateur, puis réessayez."
-                    : "Appuyez pour activer la caméra arrière. Le navigateur vous demandera confirmation."}
+                  {cameraPromptMessage ?? defaultCameraPromptText}
                 </p>
                 <PrimaryButton
                   type="button"
