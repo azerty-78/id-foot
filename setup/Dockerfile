@@ -4,7 +4,7 @@
 ARG NODE_VERSION=22.15.0
 
 FROM node:${NODE_VERSION}-alpine AS base
-RUN apk add --no-cache libc6-compat openssl wget
+RUN apk add --no-cache libc6-compat openssl wget fontconfig ttf-dejavu
 WORKDIR /usr/src/app
 
 FROM base AS deps
@@ -24,6 +24,11 @@ ENV NEXTAUTH_URL=https://id-foot.kobecorporation.com
 
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
+RUN mkdir -p assets/fonts \
+  && cp node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 assets/fonts/ \
+  && cp node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 assets/fonts/ \
+  && cp node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2 assets/fonts/ \
+  && cp node_modules/@fontsource/inter/files/inter-latin-900-normal.woff2 assets/fonts/
 RUN npm run icons:generate
 RUN npx prisma generate
 RUN npm run build
@@ -38,6 +43,7 @@ RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /usr/src/app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /usr/src/app/assets ./assets
 COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /usr/src/app/package.json ./package.json

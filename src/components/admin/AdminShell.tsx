@@ -15,7 +15,7 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { MobileBottomNav } from "@/components/admin/MobileBottomNav";
@@ -85,7 +85,7 @@ function getAdminPageTitle(pathname: string): string {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
@@ -98,6 +98,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
+
+  useEffect(() => {
+    setSidebarCollapsed(readSidebarCollapsed());
+  }, []);
+
   const toggleSidebarCollapsed = useCallback(() => {
     setSidebarCollapsed((prev) => {
       const next = !prev;
