@@ -15,6 +15,10 @@ import {
 import { PublicFooter, PublicHeader } from "@/components/public/PublicShell";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
+  ADMIN_COMPETITION_HOME,
+  buildCompetitionSignInHref,
+} from "@/lib/competitionSlug";
+import {
   validateCompetition,
   validateCompetitionOwner,
 } from "@/lib/validators";
@@ -145,12 +149,12 @@ export default function CreateCompetitionPage() {
           "success",
           "Compétition créée. Connectez-vous avec votre compte propriétaire.",
         );
-        router.push(`/${competition.slug}`);
+        router.push(buildCompetitionSignInHref(competition.slug));
         return;
       }
 
       showToast("success", "Compétition et compte propriétaire créés.");
-      router.push(`/${competition.slug}`);
+      router.push(ADMIN_COMPETITION_HOME);
       router.refresh();
     } catch (err) {
       setFormError(

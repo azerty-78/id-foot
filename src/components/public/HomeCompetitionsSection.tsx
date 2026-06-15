@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Search, Trophy, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { OutlineButton } from "@/components/admin/ui";
+import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
 
 const PAGE_SIZE = 12;
 
@@ -16,10 +17,6 @@ export type HomeCompetitionItem = {
   createdAt: string;
   _count?: { equipes: number };
 };
-
-function buildSignInHref(slug: string): string {
-  return `/admin/signin?competition=${encodeURIComponent(slug)}`;
-}
 
 export function HomeCompetitionsSection({
   competitions,
@@ -103,7 +100,7 @@ export function HomeCompetitionsSection({
             {paginated.map((competition) => (
               <a
                 key={competition.id}
-                href={buildSignInHref(competition.slug)}
+                href={buildCompetitionSignInHref(competition.slug)}
                 className="home-competition-card"
               >
                 <div className="home-competition-card-media">

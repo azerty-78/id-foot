@@ -1,12 +1,18 @@
 import { LogIn } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CompetitionWorkspace } from "@/components/public/HomeSections";
 import {
   PublicFooter,
   PublicHeader,
 } from "@/components/public/PublicShell";
 import { SecondaryLink } from "@/components/admin/ui";
-import { RESERVED_COMPETITION_SLUGS } from "@/lib/competitionSlug";
+import {
+  ADMIN_COMPETITION_HOME,
+  buildCompetitionSignInHref,
+  RESERVED_COMPETITION_SLUGS,
+} from "@/lib/competitionSlug";
+import { getAuthUser } from "@/lib/auth/server";
+import { canAccessCompetition } from "@/lib/auth/scope";
 import { prisma } from "@/lib/prisma";
 
 type PageProps = {
@@ -31,12 +37,17 @@ export default async function CompetitionPublicPage({ params }: PageProps) {
     notFound();
   }
 
+  const user = await getAuthUser();
+  if (user && canAccessCompetition(user, competition.id)) {
+    redirect(ADMIN_COMPETITION_HOME);
+  }
+
   return (
     <div className="home-shell flex flex-col">
       <PublicHeader
         action={
           <SecondaryLink
-            href={`/admin/signin?competition=${encodeURIComponent(slug)}`}
+            href={buildCompetitionSignInHref(slug)}
             icon={LogIn}
             size="sm"
           >

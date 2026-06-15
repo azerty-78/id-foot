@@ -7,6 +7,7 @@ import {
   Users,
 } from "lucide-react";
 import { OutlineLink, PrimaryLink } from "@/components/admin/ui";
+import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
 
 export const competitionFeatureCards = [
   {
@@ -178,10 +179,6 @@ type CompetitionCardData = {
   _count?: { equipes: number };
 };
 
-function buildSignInHref(slug: string): string {
-  return `/admin/signin?competition=${encodeURIComponent(slug)}`;
-}
-
 export function CompetitionsGrid({
   competitions,
 }: {
@@ -203,7 +200,7 @@ export function CompetitionsGrid({
       {competitions.map((competition) => (
         <a
           key={competition.id}
-          href={buildSignInHref(competition.slug)}
+          href={buildCompetitionSignInHref(competition.slug)}
           className="home-competition-card"
         >
           <div className="home-competition-card-media">

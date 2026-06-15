@@ -9,6 +9,17 @@ export const RESERVED_COMPETITION_SLUGS = new Set([
   "_next",
 ]);
 
+/** Destination après connexion ou création de compte lié à une compétition. */
+export const ADMIN_COMPETITION_HOME = "/admin/dashboard";
+
+export function buildCompetitionSignInHref(slug: string): string {
+  const params = new URLSearchParams({
+    competition: slug,
+    callbackUrl: ADMIN_COMPETITION_HOME,
+  });
+  return `/admin/signin?${params.toString()}`;
+}
+
 export function slugifyCompetitionName(nom: string): string {
   const slug = nom
     .normalize("NFD")

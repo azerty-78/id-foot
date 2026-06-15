@@ -12,13 +12,19 @@ import {
 } from "@/components/admin/ui";
 import { AppLogo } from "@/components/brand/AppLogo";
 import { useToast } from "@/components/providers/ToastProvider";
+import {
+  ADMIN_COMPETITION_HOME,
+  buildCompetitionSignInHref,
+} from "@/lib/competitionSlug";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/admin/dashboard";
   const competitionSlug = searchParams.get("competition") ?? "";
+  const callbackUrl = competitionSlug
+    ? ADMIN_COMPETITION_HOME
+    : (searchParams.get("callbackUrl") ?? ADMIN_COMPETITION_HOME);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

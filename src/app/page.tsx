@@ -52,7 +52,8 @@ export default async function HomePage() {
             <p className="text-body home-hero-text">
               ID FOOT centralise l&apos;identification des joueurs, la génération
               des cartes licence et le contrôle d&apos;accès par QR code sur le
-              terrain. Choisissez une compétition ci-dessous ou créez la vôtre.
+              terrain. Choisissez une compétition ci-dessous pour vous connecter
+              à son espace d&apos;administration.
             </p>
           </div>
         </section>
