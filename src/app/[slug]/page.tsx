@@ -15,6 +15,8 @@ import { getAuthUser } from "@/lib/auth/server";
 import { canAccessCompetition } from "@/lib/auth/scope";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };

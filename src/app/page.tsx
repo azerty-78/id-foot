@@ -11,6 +11,8 @@ import {
 } from "@/components/public/PublicShell";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const competitions = await prisma.competition.findMany({
     orderBy: { createdAt: "asc" },

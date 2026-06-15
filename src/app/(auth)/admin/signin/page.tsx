@@ -6,6 +6,8 @@ import { getAppBaseUrl } from "@/lib/competitionSlug";
 import { prisma } from "@/lib/prisma";
 import SignInForm, { type SignInCompetitionPreview } from "./SignInForm";
 
+export const dynamic = "force-dynamic";
+
 type SignInPageProps = {
   searchParams: Promise<{ competition?: string; callbackUrl?: string }>;
 };
