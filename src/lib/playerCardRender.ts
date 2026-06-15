@@ -1,5 +1,6 @@
 import path from "path";
 import type sharp from "sharp";
+import { ensureCardFontsConfigured } from "@/lib/playerCardFont";
 import { buildPlayerCardSvg, type CardRenderPlayer } from "@/lib/playerCardSvg";
 
 /** DPI Sharp pour le SVG → PNG (coordonnées composées = unités SVG × scale). */
@@ -38,6 +39,8 @@ export async function renderPlayerCardPng(
   qrPng: Buffer,
   photoPng: Buffer | null,
 ): Promise<Buffer> {
+  ensureCardFontsConfigured();
+
   const { svg, layout } = buildPlayerCardSvg(joueur, {
     hasPhoto: photoPng != null,
   });

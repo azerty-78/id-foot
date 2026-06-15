@@ -1,49 +1,29 @@
 import fs from "fs";
 import path from "path";
 
-const FONT_WEIGHTS = [400, 700, 800, 900] as const;
+let fontConfigReady = false;
 
-let cachedDefs: string | null = null;
-
-function resolveFontFile(weight: number): string | null {
-  const filename = `inter-latin-${weight}-normal.woff2`;
-  const candidates = [
-    path.join(process.cwd(), "assets", "fonts", filename),
-    path.join(
-      process.cwd(),
-      "node_modules",
-      "@fontsource",
-      "inter",
-      "files",
-      filename,
-    ),
-  ];
-
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
-  }
-
-  return null;
-}
+const CARD_FONT_DIR = path.join("assets", "fonts");
 
 /**
- * Polices Inter embarquées en base64 pour Sharp/librsvg (Alpine n'a pas de polices système).
+ * Configure fontconfig pour librsvg/Sharp (Docker Alpine + dev local).
+ * Les @font-face WOFF2 ne sont pas supportés par librsvg.
  */
-export function getInterFontFaceDefs(): string {
-  if (cachedDefs !== null) return cachedDefs;
+export function ensureCardFontsConfigured(): void {
+  if (fontConfigReady) return;
 
-  const faces: string[] = [];
+  const fontsDir = path.join(process.cwd(), CARD_FONT_DIR);
+  const fontsConf = path.join(fontsDir, "fonts.conf");
 
-  for (const weight of FONT_WEIGHTS) {
-    const fontPath = resolveFontFile(weight);
-    if (!fontPath) continue;
-
-    const data = fs.readFileSync(fontPath).toString("base64");
-    faces.push(
-      `@font-face{font-family:'Inter';font-style:normal;font-weight:${weight};src:url(data:font/woff2;base64,${data}) format('woff2');}`,
-    );
+  if (fs.existsSync(fontsConf)) {
+    process.env.FONTCONFIG_FILE = fontsConf;
+    process.env.FONTCONFIG_PATH = fontsDir;
   }
 
-  cachedDefs = faces.join("");
-  return cachedDefs;
+  fontConfigReady = true;
+}
+
+/** Pas de @font-face embarqué — polices TTF via fontconfig. */
+export function getInterFontFaceDefs(): string {
+  return "";
 }

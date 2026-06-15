@@ -25,10 +25,9 @@ ENV NEXTAUTH_URL=https://id-foot.kobecorporation.com
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p assets/fonts \
-  && cp node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 assets/fonts/ \
-  && cp node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 assets/fonts/ \
-  && cp node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2 assets/fonts/ \
-  && cp node_modules/@fontsource/inter/files/inter-latin-900-normal.woff2 assets/fonts/
+  && cp /usr/share/fonts/dejavu/DejaVuSans.ttf assets/fonts/ \
+  && cp /usr/share/fonts/dejavu/DejaVuSans-Bold.ttf assets/fonts/ \
+  && fc-cache -f
 RUN npm run icons:generate
 RUN npx prisma generate
 RUN npm run build
@@ -54,7 +53,10 @@ COPY setup/entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x ./entrypoint.sh \
   && mkdir -p public/uploads/photos \
-  && chown -R nextjs:nodejs public .next/static \
+  && chown -R nextjs:nodejs public .next/static assets \
+  && fc-cache -f \
+  && test -f assets/fonts/DejaVuSans.ttf \
+  && test -f assets/fonts/fonts.conf \
   && test -f public/id-foot-nobg.png \
   && test -f public/brand/icon.png \
   && test -f public/favicon.ico
