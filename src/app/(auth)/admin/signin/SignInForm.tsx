@@ -130,6 +130,21 @@ export default function SignInForm() {
     return "Connectez-vous pour administrer cette compétition.";
   }
 
+  function renderCardLogo() {
+    if (competition?.image) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={competition.image}
+          alt={competition.nom}
+          className="login-card-header-logo login-card-header-logo--competition"
+        />
+      );
+    }
+
+    return <AppLogo size="lg" />;
+  }
+
   return (
     <div className="login-page">
       <header className="login-page-header">
@@ -144,9 +159,9 @@ export default function SignInForm() {
 
       <main className="login-page-main">
         <div className="login-card">
-          <div className="login-card-brand">
-            <AppLogo size="md" />
-          </div>
+          <header className="login-card-header">
+            {renderCardLogo()}
+          </header>
 
           <p className="text-section-label">Administration</p>
           <h1 className="text-h2 mt-2">Connexion</h1>
@@ -154,18 +169,9 @@ export default function SignInForm() {
 
           {competitionSlug && competition ? (
             <div className="login-competition-badge">
-              {competition.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={competition.image}
-                  alt=""
-                  className="login-competition-badge-image"
-                />
-              ) : (
-                <div className="login-competition-badge-icon" aria-hidden>
-                  <Trophy size={20} />
-                </div>
-              )}
+              <div className="login-competition-badge-icon" aria-hidden>
+                <Trophy size={20} />
+              </div>
               <div className="login-competition-badge-body">
                 <p className="login-competition-badge-name">{competition.nom}</p>
                 <p className="login-competition-badge-meta">
