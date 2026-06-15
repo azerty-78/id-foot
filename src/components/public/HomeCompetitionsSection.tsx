@@ -1,8 +1,18 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Search, Trophy, UserRound } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LogIn,
+  MapPin,
+  Search,
+  Trophy,
+  UserRound,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { OutlineButton } from "@/components/admin/ui";
+import { OutlineButton, SecondaryLink } from "@/components/admin/ui";
 import { ShareCompetitionSignInButton } from "@/components/public/ShareCompetitionSignInButton";
 import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
 
@@ -62,8 +72,8 @@ export function HomeCompetitionsSection({
           Tournois sur ID FOOT
         </h2>
         <p className="text-body home-section-lead">
-          Recherchez une compétition et connectez-vous à son espace pour gérer
-          clubs, joueurs et scanner QR.
+          Parcourez les compétitions, accédez à leur espace public ou partagez
+          le lien de connexion pour l&apos;administration.
         </p>
       </div>
 
@@ -98,52 +108,77 @@ export function HomeCompetitionsSection({
       ) : (
         <>
           <div className="home-competitions-grid">
-            {paginated.map((competition) => (
-              <article key={competition.id} className="home-competition-card">
-                <a
-                  href={buildCompetitionSignInHref(competition.slug)}
-                  className="home-competition-card-link"
-                >
-                  <div className="home-competition-card-media">
-                    {competition.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={competition.image}
-                        alt=""
-                        className="home-competition-card-image"
-                      />
-                    ) : (
-                      <div
-                        className="home-competition-card-placeholder"
-                        aria-hidden
-                      >
-                        <Trophy size={28} />
+            {paginated.map((competition) => {
+              const teamCount = competition._count?.equipes ?? 0;
+
+              return (
+                <article key={competition.id} className="home-competition-card">
+                  <Link
+                    href={`/${competition.slug}`}
+                    className="home-competition-card-link"
+                  >
+                    <div className="home-competition-card-media">
+                      {competition.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={competition.image}
+                          alt={competition.nom}
+                          className="home-competition-card-image"
+                        />
+                      ) : (
+                        <div
+                          className="home-competition-card-placeholder"
+                          aria-hidden
+                        >
+                          <Trophy size={32} />
+                        </div>
+                      )}
+                      <div className="home-competition-card-overlay" aria-hidden />
+                      <div className="home-competition-card-badges">
+                        <span className="home-competition-card-year">
+                          {competition.annee}
+                        </span>
+                        <span className="home-competition-card-teams">
+                          <Users size={12} aria-hidden />
+                          {teamCount} équipe{teamCount > 1 ? "s" : ""}
+                        </span>
                       </div>
-                    )}
-                    <span className="home-competition-card-year">
-                      {competition.annee}
-                    </span>
+                    </div>
+
+                    <div className="home-competition-card-body">
+                      <h3 className="home-competition-card-title">
+                        {competition.nom}
+                      </h3>
+                      {competition.lieu ? (
+                        <p className="home-competition-card-place">
+                          <MapPin size={14} aria-hidden />
+                          <span>{competition.lieu}</span>
+                        </p>
+                      ) : null}
+                      <p className="home-competition-card-cta">
+                        Voir la compétition
+                      </p>
+                    </div>
+                  </Link>
+
+                  <div className="home-competition-card-footer">
+                    <ShareCompetitionSignInButton
+                      nom={competition.nom}
+                      slug={competition.slug}
+                      className="home-competition-card-share"
+                    />
+                    <SecondaryLink
+                      href={buildCompetitionSignInHref(competition.slug)}
+                      icon={LogIn}
+                      size="sm"
+                      className="home-competition-card-signin"
+                    >
+                      Se connecter
+                    </SecondaryLink>
                   </div>
-                  <div className="home-competition-card-body">
-                    <h3 className="text-h3">{competition.nom}</h3>
-                    {competition.lieu ? (
-                      <p className="text-body mt-1">{competition.lieu}</p>
-                    ) : null}
-                    <p className="home-competition-card-meta">
-                      {competition._count?.equipes ?? 0} équipe
-                      {(competition._count?.equipes ?? 0) > 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </a>
-                <div className="home-competition-card-actions">
-                  <ShareCompetitionSignInButton
-                    nom={competition.nom}
-                    slug={competition.slug}
-                    className="home-competition-card-share"
-                  />
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
 
           {totalPages > 1 ? (

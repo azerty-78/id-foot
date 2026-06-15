@@ -2511,7 +2511,7 @@ body {
 
 .home-competitions-grid {
   display: grid;
-  gap: 16px;
+  gap: 20px;
 }
 
 .home-competition-card {
@@ -2526,7 +2526,7 @@ body {
 }
 
 .home-competition-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: rgba(57, 231, 95, 0.45);
   box-shadow: var(--shadow-green);
 }
@@ -2535,23 +2535,19 @@ body {
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-width: 0;
   color: inherit;
   text-decoration: none;
 }
 
-.home-competition-card-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 18px 16px;
-}
-
-.home-competition-card-share {
-  width: 100%;
+.home-competition-card-link:hover .home-competition-card-cta {
+  color: var(--green);
 }
 
 .home-competition-card-media {
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
   background: var(--gray-100);
 }
 
@@ -2559,6 +2555,23 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.home-competition-card:hover .home-competition-card-image {
+  transform: scale(1.03);
+}
+
+.home-competition-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(13, 27, 42, 0.08) 0%,
+    rgba(13, 27, 42, 0) 42%,
+    rgba(13, 27, 42, 0.55) 100%
+  );
+  pointer-events: none;
 }
 
 .home-competition-card-placeholder {
@@ -2567,24 +2580,103 @@ body {
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--gray-400);
-  background: linear-gradient(180deg, var(--gray-50), var(--white));
+  color: var(--green-dim);
+  background: linear-gradient(145deg, var(--navy) 0%, #162438 55%, var(--gray-100) 100%);
+}
+
+.home-competition-card-badges {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 1;
+}
+
+.home-competition-card-year,
+.home-competition-card-teams {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 9999px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .home-competition-card-year {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  border-radius: 9999px;
   background: rgba(13, 27, 42, 0.82);
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
   color: var(--white);
 }
 
+.home-competition-card-teams {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--navy);
+}
+
 .home-competition-card-body {
-  padding: 16px 18px 18px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px 14px;
+}
+
+.home-competition-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--navy);
+}
+
+.home-competition-card-place {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--gray-600);
+}
+
+.home-competition-card-place span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.home-competition-card-cta {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green-dim);
+  transition: color 0.15s ease;
+}
+
+.home-competition-card-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  border-top: 0.5px solid var(--gray-200);
+  background: var(--gray-50);
+  padding: 12px 14px 14px;
+}
+
+.home-competition-card-share,
+.home-competition-card-signin {
+  width: 100%;
+  justify-content: center;
 }
 
 .home-competition-card-meta {

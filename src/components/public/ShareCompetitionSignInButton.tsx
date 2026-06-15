@@ -31,7 +31,7 @@ export function ShareCompetitionSignInButton({
         void shareCompetitionSignInLink({ nom, slug }, showToast);
       }}
     >
-      Partager le lien
+      Partager
     </OutlineButton>
   );
 }
