@@ -38,7 +38,7 @@ export async function pickCameraStartTarget(): Promise<CameraStartTarget> {
   }
 }
 
-export async function pickCameraStartTarget(): Promise<CameraStartTarget> {
+export function getCameraErrorMessage(error: unknown): string {
   const blocked = getScannerCameraBlockedMessage();
   if (blocked) return blocked;
 
