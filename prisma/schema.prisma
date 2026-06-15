@@ -9,8 +9,10 @@ datasource db {
 model Competition {
   id        String   @id @default(uuid())
   nom       String
+  slug      String   @unique
   annee     Int
   lieu      String?
+  image     String?
   createdAt DateTime @default(now())
   equipes   Equipe[]
 }

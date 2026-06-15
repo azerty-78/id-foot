@@ -68,3 +68,7 @@ export async function savePlayerPhoto(file: File): Promise<string> {
 export async function saveTeamLogo(file: File): Promise<string> {
   return savePlayerPhoto(file);
 }
+
+export async function saveCompetitionImage(file: File): Promise<string> {
+  return savePlayerPhoto(file);
+}

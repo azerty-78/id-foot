@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { handlePrismaError } from "@/lib/api/http";
+import {
+  ensureUniqueCompetitionSlug,
+  slugifyCompetitionName,
+} from "@/lib/competitionSlug";
+import { prisma } from "@/lib/prisma";
 
 type CreateCompetitionBody = {
   nom: string;
   annee: number | string;
   lieu?: string | null;
+  image?: string | null;
 };
+
+function parseCompetitionPayload(body: CreateCompetitionBody) {
+  const nom = body.nom?.trim() ?? "";
+  const annee = Number.parseInt(String(body.annee), 10);
+  const lieu = body.lieu?.trim() || null;
+  const image = body.image?.trim() || null;
+
+  return { nom, annee, lieu, image };
+}
 
 export async function GET() {
   try {
@@ -14,7 +28,7 @@ export async function GET() {
       include: {
         _count: { select: { equipes: true } },
       },
-      orderBy: { annee: "desc" },
+      orderBy: [{ annee: "desc" }, { createdAt: "desc" }],
     });
 
     return NextResponse.json(competitions);
@@ -26,20 +40,25 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CreateCompetitionBody;
-    const annee = Number.parseInt(String(body.annee), 10);
+    const { nom, annee, lieu, image } = parseCompetitionPayload(body);
 
-    if (!body.nom || Number.isNaN(annee)) {
+    if (!nom || Number.isNaN(annee)) {
       return NextResponse.json(
         { error: "Nom et année requis." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
+    const baseSlug = slugifyCompetitionName(nom);
+    const slug = await ensureUniqueCompetitionSlug(prisma, baseSlug);
+
     const competition = await prisma.competition.create({
       data: {
-        nom: body.nom.trim(),
+        nom,
+        slug,
         annee,
-        lieu: body.lieu?.trim() || null,
+        lieu,
+        image,
       },
       include: {
         _count: { select: { equipes: true } },

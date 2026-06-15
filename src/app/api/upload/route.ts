@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { savePlayerPhoto, saveTeamLogo } from "@/lib/upload";
+import { saveCompetitionImage, savePlayerPhoto, saveTeamLogo } from "@/lib/upload";
 
 export const runtime = "nodejs";
 
@@ -17,7 +17,11 @@ export async function POST(req: NextRequest) {
     }
 
     const url =
-      kind === "logo" ? await saveTeamLogo(file) : await savePlayerPhoto(file);
+      kind === "logo"
+        ? await saveTeamLogo(file)
+        : kind === "competition"
+          ? await saveCompetitionImage(file)
+          : await savePlayerPhoto(file);
 
     return NextResponse.json({ url });
   } catch (error) {
