@@ -17,7 +17,8 @@
     "docker:up": "docker compose -f setup/compose.yaml --env-file setup/.env up db -d",
     "docker:up:prod": "docker compose -f setup/compose.yaml --env-file setup/.env --profile production up --build -d",
     "docker:down": "docker compose -f setup/compose.yaml --env-file setup/.env --profile production down",
-    "docker:logs": "docker compose -f setup/compose.yaml --env-file setup/.env logs -f"
+    "docker:logs": "docker compose -f setup/compose.yaml --env-file setup/.env logs -f",
+    "icons:generate": "node scripts/generate-brand-icons.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
@@ -52,6 +53,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "to-ico": "^1.1.5",
     "typescript": "^5"
   }
 }

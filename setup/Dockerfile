@@ -49,7 +49,8 @@ RUN chmod +x ./entrypoint.sh \
   && mkdir -p public/uploads/photos \
   && chown -R nextjs:nodejs public .next/static \
   && test -f public/id-foot-nobg.png \
-  && test -f public/brand/icon.png
+  && test -f public/brand/icon.png \
+  && test -f public/favicon.ico
 
 USER nextjs
 
