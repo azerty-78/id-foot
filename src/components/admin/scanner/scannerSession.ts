@@ -1,4 +1,4 @@
-import { isMobileDevice, requiresCameraUserGesture } from "@/lib/browserCompat";
+import { requiresCameraUserGesture } from "@/lib/browserCompat";
 import type { RecentScan } from "./types";
 
 const SESSION_KEY = "idfoot-scanner-session";
@@ -133,10 +133,4 @@ export function shouldAttemptCameraAutoStart(
   if (wasGrantedBefore) return true;
 
   return permission === "prompt" || permission === "unknown";
-}
-
-export function initialCameraStatus(): "needs-gesture" | "idle" {
-  return requiresCameraUserGesture() || isMobileDevice()
-    ? "needs-gesture"
-    : "idle";
 }

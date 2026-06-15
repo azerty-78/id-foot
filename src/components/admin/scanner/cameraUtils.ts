@@ -38,30 +38,7 @@ export async function pickCameraStartTarget(): Promise<CameraStartTarget> {
   }
 }
 
-export async function probeCameraAccess(
-  target: CameraStartTarget,
-): Promise<boolean> {
-  if (!navigator.mediaDevices?.getUserMedia) return false;
-
-  const videoConstraints: MediaTrackConstraints =
-    typeof target === "string" ? { deviceId: { exact: target } } : target;
-
-  let stream: MediaStream | null = null;
-
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints,
-      audio: false,
-    });
-    return true;
-  } catch {
-    return false;
-  } finally {
-    stream?.getTracks().forEach((track) => track.stop());
-  }
-}
-
-export function getCameraErrorMessage(error: unknown): string {
+export async function pickCameraStartTarget(): Promise<CameraStartTarget> {
   const blocked = getScannerCameraBlockedMessage();
   if (blocked) return blocked;
 
