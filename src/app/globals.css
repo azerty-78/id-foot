@@ -2523,6 +2523,18 @@ body {
   color: var(--navy);
 }
 
+.delete-impact-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--gray-600);
+}
+
+.delete-impact-list li::marker {
+  color: var(--danger);
+}
+
 .home-steps-grid {
   display: grid;
   gap: 12px;

@@ -10,7 +10,7 @@ export type Competition = {
   lieu: string | null;
   image: string | null;
   createdAt: string;
-  _count?: { equipes: number };
+  _count?: { equipes: number; users?: number };
 };
 
 export type Team = {

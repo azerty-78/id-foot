@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handlePrismaError } from "@/lib/api/http";
+import { handlePrismaError, jsonError } from "@/lib/api/http";
 import {
+  assertRole,
   denyUnlessCompetitionAccess,
   isAuthResponse,
   requireApiUser,
@@ -119,15 +120,55 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
     const user = await requireApiUser();
     if (isAuthResponse(user)) return user;
 
+    const roleDenied = assertRole(user, "ADMIN");
+    if (roleDenied) return roleDenied;
+
     const { id } = await params;
+
+    const existing = await prisma.competition.findUnique({
+      where: { id },
+      select: { id: true, nom: true },
+    });
+
+    if (!existing) {
+      return jsonError("Compétition introuvable.", 404);
+    }
+
     const denied = denyUnlessCompetitionAccess(user, id);
     if (denied) return denied;
 
-    await prisma.competition.delete({
-      where: { id },
+    const equipes = await prisma.equipe.findMany({
+      where: { competitionId: id },
+      select: { id: true },
+    });
+    const equipeIds = equipes.map((equipe) => equipe.id);
+
+    const deleted = await prisma.$transaction(async (tx) => {
+      const joueurs =
+        equipeIds.length > 0
+          ? await tx.joueur.deleteMany({
+              where: { equipeId: { in: equipeIds } },
+            })
+          : { count: 0 };
+
+      const equipesDeleted = await tx.equipe.deleteMany({
+        where: { competitionId: id },
+      });
+
+      const users = await tx.user.deleteMany({
+        where: { competitionId: id },
+      });
+
+      await tx.competition.delete({ where: { id } });
+
+      return {
+        joueurs: joueurs.count,
+        equipes: equipesDeleted.count,
+        users: users.count,
+      };
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deleted });
   } catch (error) {
     return handlePrismaError(error);
   }
