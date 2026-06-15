@@ -170,9 +170,11 @@ export default function CreateCompetitionPage() {
     <div className="home-shell flex flex-col">
       <PublicHeader backHref="/" backLabel="Retour à l'accueil" />
 
-      <main className="home-main flex-1">
+      <main className="home-main home-main--form flex-1">
         <div className="create-competition-page">
-          <div className="create-competition-card">
+          <div
+            className={`create-competition-card${submitting ? " form-card-busy" : ""}`}
+          >
             <p className="text-section-label">Inscription</p>
             <h1 className="text-h1 mt-2">Créer une compétition</h1>
             <p className="text-body mt-3">

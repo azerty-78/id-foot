@@ -1,12 +1,14 @@
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-import { handlePrismaError } from "@/lib/api/http";
+import { handlePrismaError, jsonError } from "@/lib/api/http";
 import {
   ensureUniqueCompetitionSlug,
   slugifyCompetitionName,
 } from "@/lib/competitionSlug";
 import { prisma } from "@/lib/prisma";
 import { validateCompetition, validateCompetitionOwner } from "@/lib/validators";
+
+export const runtime = "nodejs";
 
 type RegisterCompetitionBody = {
   nom: string;
@@ -23,7 +25,17 @@ type RegisterCompetitionBody = {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as RegisterCompetitionBody;
+    let body: RegisterCompetitionBody;
+    try {
+      body = (await req.json()) as RegisterCompetitionBody;
+    } catch {
+      return jsonError("Corps de requête JSON invalide.", 400);
+    }
+
+    if (!body?.owner) {
+      return jsonError("Informations du propriétaire requises.", 400);
+    }
+
     const nom = body.nom?.trim() ?? "";
     const annee = Number.parseInt(String(body.annee), 10);
     const lieu = body.lieu?.trim() || null;
