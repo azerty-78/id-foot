@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { Eye, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import {
@@ -12,6 +12,7 @@ import {
   FormSubmitOverlay,
   LoadingState,
   OutlineButton,
+  OutlineLink,
   PageHeader,
   PrimaryButton,
   StatusBadge,
@@ -259,6 +260,13 @@ export default function CompetitionsPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
+                <OutlineLink
+                  href={`/${competition.slug}`}
+                  icon={Eye}
+                  size="sm"
+                >
+                  Page publique
+                </OutlineLink>
                 <OutlineButton
                   type="button"
                   icon={Pencil}

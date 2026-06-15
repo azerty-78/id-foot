@@ -174,6 +174,37 @@ export function validateCompetition(data: unknown): ValidationResult {
   return { valid: errors.length === 0, errors };
 }
 
+export function validateCompetitionOwner(data: unknown): ValidationResult {
+  const errors: string[] = [];
+
+  if (!isRecord(data)) {
+    return { valid: false, errors: ["Données propriétaire invalides."] };
+  }
+
+  const nom = getString(data.nom);
+  if (!nom || nom.length < 2) {
+    errors.push("Le nom du propriétaire est requis (minimum 2 caractères).");
+  }
+
+  const email = getString(data.email)?.toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.push("Un email valide est requis.");
+  }
+
+  const password = typeof data.password === "string" ? data.password : "";
+  if (password.length < 8) {
+    errors.push("Le mot de passe doit contenir au moins 8 caractères.");
+  }
+
+  const confirmPassword =
+    typeof data.confirmPassword === "string" ? data.confirmPassword : "";
+  if (password !== confirmPassword) {
+    errors.push("Les mots de passe ne correspondent pas.");
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
 function parseOptionalNumero(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
 
