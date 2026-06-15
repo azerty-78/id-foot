@@ -248,6 +248,10 @@ jobs:
           NEXTAUTH_SECRET: ci-build-secret-not-for-production
           NEXTAUTH_URL: ${{ needs.config.outputs.public_url }}
           NEXT_PUBLIC_APP_URL: ${{ needs.config.outputs.public_url }}
+          GOD_MODE_EMAIL: ci-god@example.com
+          GOD_MODE_PASSWORD: ci-god-password
+          GOD_MODE_NAME: God Mod CI
+          GOD_MODE_SESSION_SECRET: ci-god-mode-secret-not-for-production
 
   docker-build:
     name: Build and scan Docker image

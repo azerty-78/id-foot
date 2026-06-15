@@ -3,9 +3,9 @@ import { GodModeLogin } from "@/components/god-mode/GodModeLogin";
 import { GodModePanel } from "@/components/god-mode/GodModePanel";
 import {
   adminUserSelect,
+  getValidatedGodModeSession,
 } from "@/lib/god-mode/auth";
 import { isGodModeConfigured } from "@/lib/god-mode/config";
-import { getGodModeSession } from "@/lib/god-mode/session";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export default async function GodModePage() {
     );
   }
 
-  const session = await getGodModeSession();
+  const session = await getValidatedGodModeSession();
 
   if (!session) {
     return (

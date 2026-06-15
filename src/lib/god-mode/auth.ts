@@ -19,10 +19,6 @@ export async function ensureGodModeUser() {
     select: { passwordHash: true },
   });
 
-  const passwordHash = existing
-    ? existing.passwordHash
-    : await bcrypt.hash(config.password, 12);
-
   if (existing) {
     const passwordMatches = await bcrypt.compare(
       config.password,
@@ -105,6 +101,35 @@ export async function authenticateGodMode(
     email: user.email,
     name: user.nom,
     exp: 0,
+  };
+}
+
+export async function getValidatedGodModeSession(): Promise<GodModeSession | null> {
+  const session = await getGodModeSession();
+  if (!session) return null;
+
+  const config = getGodModeConfig();
+  if (!config || session.email !== config.email) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.sub },
+    select: { id: true, nom: true, email: true, role: true, active: true },
+  });
+
+  if (
+    !user ||
+    user.role !== "SUPER_ADMIN" ||
+    !user.active ||
+    user.email !== config.email
+  ) {
+    return null;
+  }
+
+  return {
+    sub: user.id,
+    email: user.email,
+    name: user.nom,
+    exp: session.exp,
   };
 }
 

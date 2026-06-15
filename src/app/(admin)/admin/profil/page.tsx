@@ -3,6 +3,7 @@ import { ProfilView } from "@/components/admin/profile/ProfilView";
 import { getAuthUser } from "@/lib/auth/server";
 import {
   canManageCompetitionUsers,
+  sortCompetitionUsers,
   userPublicSelect,
 } from "@/lib/auth/users";
 import { prisma } from "@/lib/prisma";
@@ -26,11 +27,13 @@ export default async function ProfilPage() {
 
   const initialUsers =
     canManageCompetitionUsers(user) && user.competitionId
-      ? await prisma.user.findMany({
-          where: { competitionId: user.competitionId },
-          select: userPublicSelect,
-          orderBy: [{ role: "asc" }, { nom: "asc" }],
-        })
+      ? sortCompetitionUsers(
+          await prisma.user.findMany({
+            where: { competitionId: user.competitionId },
+            select: userPublicSelect,
+            orderBy: [{ role: "asc" }, { nom: "asc" }],
+          }),
+        )
       : [];
 
   return (
