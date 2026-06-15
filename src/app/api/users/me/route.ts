@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePrismaError, jsonError } from "@/lib/api/http";
-import {
-  assertRole,
-  isAuthResponse,
-  requireApiUser,
-} from "@/lib/auth/api";
+import { isAuthResponse, requireApiUser } from "@/lib/auth/api";
 import { userPublicSelect } from "@/lib/auth/users";
 import { prisma } from "@/lib/prisma";
 import { validateUserNom } from "@/lib/validators";

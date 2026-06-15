@@ -17,22 +17,16 @@ import { roleLabel } from "@/lib/auth/users";
 
 type ProfileAccountSectionProps = {
   initialUser: PublicUser;
-  onUserUpdated: (user: PublicUser) => void;
 };
 
 export function ProfileAccountSection({
   initialUser,
-  onUserUpdated,
 }: ProfileAccountSectionProps) {
   const { update } = useSession();
   const { showToast } = useToast();
   const [nom, setNom] = useState(initialUser.nom);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setNom(initialUser.nom);
-  }, [initialUser.nom]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,7 +46,6 @@ export function ProfileAccountSection({
         return;
       }
 
-      onUserUpdated(data);
       await update({ name: data.nom });
       showToast("success", "Nom mis à jour.");
     } catch {

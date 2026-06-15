@@ -9,7 +9,7 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AdminModal } from "@/components/admin/AdminModal";
 import {
   AdminTable,
@@ -19,7 +19,6 @@ import {
   FieldLabel,
   FormSection,
   GhostButton,
-  LoadingState,
   OutlineButton,
   PageToolbar,
   PrimaryButton,
@@ -48,13 +47,14 @@ type ModalMode = "create" | "edit" | "password" | null;
 export function UserManagementSection({
   currentUserId,
   competitionId,
+  initialUsers,
 }: {
   currentUserId: string;
   competitionId: string;
+  initialUsers: PublicUser[];
 }) {
   const { showToast } = useToast();
-  const [users, setUsers] = useState<PublicUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState(initialUsers);
   const [search, setSearch] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [selectedUser, setSelectedUser] = useState<PublicUser | null>(null);
@@ -62,29 +62,6 @@ export function UserManagementSection({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
-
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/users");
-      const data = (await res.json()) as PublicUser[] & { error?: string };
-      if (!res.ok) {
-        showToast("error", data.error ?? "Impossible de charger les utilisateurs.");
-        setUsers([]);
-        return;
-      }
-      setUsers(data);
-    } catch {
-      showToast("error", "Erreur réseau lors du chargement.");
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
-
-  useEffect(() => {
-    void fetchUsers();
-  }, [fetchUsers]);
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -304,9 +281,7 @@ export function UserManagementSection({
         }
       />
 
-      {loading ? (
-        <LoadingState message="Chargement des utilisateurs…" />
-      ) : filteredUsers.length === 0 ? (
+      {filteredUsers.length === 0 ? (
         <EmptyState
           message={
             search
