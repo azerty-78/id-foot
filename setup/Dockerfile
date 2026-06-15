@@ -52,8 +52,8 @@ RUN chmod +x ./entrypoint.sh \
   && fc-cache -f \
   && fc-list | grep -qi "dejavu sans" \
   && test -f public/id-foot-nobg.png \
-  && test -f public/brand/icon.png \
-  && test -f public/favicon.ico
+  && test -f public/icon.png \
+  && test -f public/brand/icon.png
 
 USER nextjs
 
