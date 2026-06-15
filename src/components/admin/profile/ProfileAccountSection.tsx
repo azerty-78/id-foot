@@ -2,7 +2,8 @@
 
 import { LogOut, Save, User } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   FieldError,
   FieldHint,
@@ -23,6 +24,7 @@ export function ProfileAccountSection({
   initialUser,
 }: ProfileAccountSectionProps) {
   const { update } = useSession();
+  const router = useRouter();
   const { showToast } = useToast();
   const [nom, setNom] = useState(initialUser.nom);
   const [submitting, setSubmitting] = useState(false);
@@ -47,6 +49,7 @@ export function ProfileAccountSection({
       }
 
       await update({ name: data.nom });
+      router.refresh();
       showToast("success", "Nom mis à jour.");
     } catch {
       setError("Erreur réseau. Réessayez.");
