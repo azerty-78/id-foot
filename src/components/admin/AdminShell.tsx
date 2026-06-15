@@ -28,6 +28,7 @@ type AdminShellCompetition = {
   id: string;
   nom: string;
   slug: string;
+  image: string | null;
 };
 
 const SIDEBAR_COLLAPSED_KEY = "id-foot-sidebar-collapsed";
@@ -123,6 +124,9 @@ export function AdminShell({
   const topbarBrand = getMobileTopbarBrand(pathname);
   const pageTitle = getAdminPageTitle(pathname);
   const TopbarIcon = topbarBrand.icon;
+  const brandLogoSrc = competition?.image ?? null;
+  const brandLogoAlt = competition?.nom ?? "ID FOOT";
+  const brandLogoLabel = competition?.nom ?? "ID FOOT";
 
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
@@ -163,9 +167,14 @@ export function AdminShell({
             href="/admin/dashboard"
             onClick={closeMenu}
             className="sidebar-brand-link flex min-w-0 flex-1 items-center gap-[10px]"
-            title="ID FOOT"
+            title={brandLogoLabel}
           >
-            <AppLogo size="sm" className="sidebar-brand-logo rounded-md" />
+            <AppLogo
+              size="sm"
+              src={brandLogoSrc}
+              alt={brandLogoAlt}
+              className="sidebar-brand-logo rounded-md"
+            />
             <span className="sidebar-brand-text hidden min-[380px]:inline">
               <span className="sidebar-brand-id">ID </span>
               <span className="sidebar-brand-foot">FOOT</span>
@@ -253,9 +262,14 @@ export function AdminShell({
           <Link
             href="/admin/dashboard"
             className="admin-topbar-logo touch-target"
-            aria-label="ID FOOT"
+            aria-label={brandLogoLabel}
           >
-            <AppLogo size="sm" className="admin-topbar-logo-image" />
+            <AppLogo
+              size="sm"
+              src={brandLogoSrc}
+              alt={brandLogoAlt}
+              className="admin-topbar-logo-image"
+            />
           </Link>
         </header>
 

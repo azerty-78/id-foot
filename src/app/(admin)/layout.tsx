@@ -19,7 +19,7 @@ export default async function AdminLayout({
     user.competitionId && user.role !== "SUPER_ADMIN"
       ? await prisma.competition.findUnique({
           where: { id: user.competitionId },
-          select: { id: true, nom: true, slug: true },
+          select: { id: true, nom: true, slug: true, image: true },
         })
       : null;
 
