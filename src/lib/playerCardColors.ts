@@ -25,8 +25,9 @@ export const CARD_RENDER_HEIGHT = 330;
 export const CARD_QR_BOX = 250;
 export const CARD_QR_QUIET = 16;
 export const CARD_QR_INNER = CARD_QR_BOX - CARD_QR_QUIET * 2;
-/** Ajustement PDF — remonte et réduit légèrement le QR dans le cadre blanc */
-export const CARD_QR_PDF_OFFSET_Y = -4;
-export const CARD_QR_PDF_SIZE_TRIM = 6;
+/** Ajustement PDF — QR centré et inset dans le cadre blanc (évite débordement) */
+export const CARD_QR_PDF_SIZE_TRIM = 24;
+/** Espace entre le nom et la ligne dorsal / poste (PDF) */
+export const CARD_NAME_TO_STATS_GAP = 14;
 
 export const CARD_FONT = "'Inter', Inter, 'Segoe UI', system-ui, Arial, sans-serif";

@@ -3,7 +3,7 @@ import {
   CARD_FONT,
   CARD_QR_BOX,
   CARD_QR_INNER,
-  CARD_QR_PDF_OFFSET_Y,
+  CARD_NAME_TO_STATS_GAP,
   CARD_QR_PDF_SIZE_TRIM,
   CARD_QR_QUIET,
   CARD_RENDER_HEIGHT,
@@ -72,8 +72,8 @@ function computeLayout(): PlayerCardLayout {
   const qrBoxX = Math.round(rightX + (rightW - CARD_QR_BOX) / 2);
   const qrBoxY = Math.round(contentTop + 2);
   const qrInnerSize = CARD_QR_INNER - CARD_QR_PDF_SIZE_TRIM;
-  const qrInnerX = qrBoxX + CARD_QR_QUIET + Math.round(CARD_QR_PDF_SIZE_TRIM / 2);
-  const qrInnerY = qrBoxY + CARD_QR_QUIET + CARD_QR_PDF_OFFSET_Y;
+  const qrInnerX = qrBoxX + Math.round((CARD_QR_BOX - qrInnerSize) / 2);
+  const qrInnerY = qrBoxY + Math.round((CARD_QR_BOX - qrInnerSize) / 2);
 
   return {
     width: W,
@@ -129,7 +129,7 @@ export function buildPlayerCardSvg(
     : `<rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoPlaceholder}"/>
        <text x="${photoX + photoSize / 2}" y="${photoY + photoSize / 2 + 7}" text-anchor="middle" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="22" font-weight="700">${escapeXml(getInitials(joueur.prenom, joueur.nom))}</text>`;
 
-  const rowY = fieldY + 28;
+  const rowY = fieldY + 16 + 18 + CARD_NAME_TO_STATS_GAP;
   const fontFaceStyles = getInterFontFaceDefs();
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
