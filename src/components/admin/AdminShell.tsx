@@ -9,6 +9,7 @@ import {
   QrCode,
   Shield,
   Trophy,
+  User,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -85,6 +86,9 @@ function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
   if (pathname.startsWith("/admin/competitions")) {
     return { href: "/admin/competitions", icon: Trophy, primary: "Compétitions" };
   }
+  if (pathname.startsWith("/admin/profil")) {
+    return { href: "/admin/profil", icon: User, primary: "Profil" };
+  }
   return { href: "/admin/dashboard", icon: LayoutDashboard, primary: "Dashboard" };
 }
 
@@ -97,6 +101,7 @@ function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/players")) return "Joueurs";
   if (pathname.startsWith("/admin/teams")) return "Équipes";
   if (pathname.startsWith("/admin/competitions")) return "Compétitions";
+  if (pathname.startsWith("/admin/profil")) return "Profil";
   if (pathname.startsWith("/admin/dashboard")) return "Dashboard";
   return "Administration";
 }

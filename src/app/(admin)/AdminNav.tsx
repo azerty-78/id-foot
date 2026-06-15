@@ -6,6 +6,7 @@ import {
   QrCode,
   Shield,
   Trophy,
+  User,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -27,6 +28,7 @@ const mainNav: NavItem[] = [
 ];
 
 const toolsNav: NavItem[] = [
+  { href: "/admin/profil", label: "Profil", icon: User },
   { href: "/admin/scanner", label: "Scanner QR", icon: QrCode },
 ];
 
