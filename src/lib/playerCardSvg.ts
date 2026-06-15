@@ -37,6 +37,80 @@ export type PlayerCardLayout = {
   qrInnerSize: number;
 };
 
+const NAME_FONT_SIZE = 17;
+const NAME_LINE_HEIGHT = 20;
+/** Gras 800 — légèrement plus large pour anticiper le débordement vers le QR */
+const NAME_CHAR_WIDTH_RATIO = 0.62;
+const NAME_WIDTH_SAFETY = 6;
+
+function estimateTextWidth(text: string, fontSize: number): number {
+  return text.length * fontSize * NAME_CHAR_WIDTH_RATIO;
+}
+
+function wrapPlayerName(text: string, maxWidthPx: number, fontSize: number): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return ["—"];
+
+  const words = trimmed.split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+
+    if (estimateTextWidth(candidate, fontSize) <= maxWidthPx) {
+      current = candidate;
+      continue;
+    }
+
+    if (current) {
+      lines.push(current);
+      current = word;
+      continue;
+    }
+
+    // Mot seul plus large que la colonne : coupe par caractères
+    let chunk = "";
+    for (const char of word) {
+      const next = chunk + char;
+      if (estimateTextWidth(next, fontSize) <= maxWidthPx) {
+        chunk = next;
+      } else {
+        if (chunk) lines.push(chunk);
+        chunk = char;
+      }
+    }
+    current = chunk;
+  }
+
+  if (current) {
+    lines.push(current);
+  }
+
+  return lines.length > 0 ? lines : [trimmed];
+}
+
+function buildNameTextSvg(fieldX: number, fieldY: number, fieldW: number, fullName: string): {
+  svg: string;
+  statsRowY: number;
+} {
+  const nameStartY = fieldY + 16;
+  const nameLines = wrapPlayerName(fullName, fieldW - NAME_WIDTH_SAFETY, NAME_FONT_SIZE);
+  const nameBlockHeight = nameLines.length * NAME_LINE_HEIGHT;
+  const statsRowY = nameStartY + nameBlockHeight + CARD_NAME_TO_STATS_GAP;
+
+  const tspans = nameLines
+    .map((line, index) => {
+      const dy = index === 0 ? 0 : NAME_LINE_HEIGHT;
+      return `<tspan x="${fieldX}" dy="${dy}">${escapeXml(line)}</tspan>`;
+    })
+    .join("");
+
+  const svg = `<text x="${fieldX}" y="${nameStartY}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="${NAME_FONT_SIZE}" font-weight="800" letter-spacing="-0.34">${tspans}</text>`;
+
+  return { svg, statsRowY };
+}
+
 function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -122,6 +196,12 @@ export function buildPlayerCardSvg(
   const poste = joueur.poste?.trim() || "—";
 
   const { qrBoxX, qrBoxY, qrBoxSize } = layout;
+  const { svg: nameTextSvg, statsRowY: rowY } = buildNameTextSvg(
+    fieldX,
+    fieldY,
+    fieldW,
+    fullName,
+  );
 
   const sepX = leftX + leftW;
   const bodyBottom = H - footerH;
@@ -132,7 +212,6 @@ export function buildPlayerCardSvg(
     : `<rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoPlaceholder}"/>
        <text x="${photoX + photoSize / 2}" y="${photoY + photoSize / 2 + 7}" text-anchor="middle" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="22" font-weight="700">${escapeXml(getInitials(joueur.prenom, joueur.nom))}</text>`;
 
-  const rowY = fieldY + 16 + 18 + CARD_NAME_TO_STATS_GAP;
   const fontFaceStyles = getInterFontFaceDefs();
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -174,7 +253,7 @@ export function buildPlayerCardSvg(
 
   <!-- Nom -->
   <text x="${fieldX}" y="${fieldY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">NOM</text>
-  <text x="${fieldX}" y="${fieldY + 16}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="17" font-weight="800" letter-spacing="-0.34">${escapeXml(fullName)}</text>
+  ${nameTextSvg}
 
   <!-- Dorsal / Poste -->
   <line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>

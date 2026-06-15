@@ -3599,6 +3599,9 @@ body {
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.15;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .player-license-card-field-row {
