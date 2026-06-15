@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePrismaError } from "@/lib/api/http";
+import { getAuthUser } from "@/lib/auth/server";
+import { canAccessCompetition } from "@/lib/auth/scope";
 import {
   ensureUniqueCompetitionSlug,
   slugifyCompetitionName,
@@ -29,6 +31,7 @@ function parseCompetitionPayload(body: UpdateCompetitionBody) {
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+    const user = await getAuthUser();
     const competition = await prisma.competition.findUnique({
       where: { id },
       include: {
@@ -42,6 +45,10 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
         { error: "Compétition introuvable" },
         { status: 404 },
       );
+    }
+
+    if (user && !canAccessCompetition(user, competition.id)) {
+      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
     }
 
     return NextResponse.json(competition);
@@ -69,6 +76,11 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         { error: "Compétition introuvable." },
         { status: 404 },
       );
+    }
+
+    const user = await getAuthUser();
+    if (user && !canAccessCompetition(user, existing.id)) {
+      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
     }
 
     const baseSlug = slugifyCompetitionName(nom);
@@ -100,6 +112,11 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+    const user = await getAuthUser();
+    if (user && !canAccessCompetition(user, id)) {
+      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+    }
+
     await prisma.competition.delete({
       where: { id },
     });

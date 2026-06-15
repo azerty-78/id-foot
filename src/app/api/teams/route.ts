@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handlePrismaError } from "@/lib/api/http";
+import { getAuthUser } from "@/lib/auth/server";
+import {
+  canAccessCompetition,
+  getCompetitionScope,
+  teamWhereForScope,
+} from "@/lib/auth/scope";
 
 type CreateEquipeBody = {
   nom: string;
@@ -10,7 +16,11 @@ type CreateEquipeBody = {
 
 export async function GET() {
   try {
+    const user = await getAuthUser();
+    const scope = getCompetitionScope(user);
+
     const equipes = await prisma.equipe.findMany({
+      where: teamWhereForScope(scope),
       include: {
         competition: true,
         _count: { select: { joueurs: true } },
@@ -33,6 +43,11 @@ export async function POST(req: NextRequest) {
         { error: "Nom et compétition requis." },
         { status: 400 }
       );
+    }
+
+    const user = await getAuthUser();
+    if (user && !canAccessCompetition(user, body.competitionId)) {
+      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
     }
 
     const equipe = await prisma.equipe.create({

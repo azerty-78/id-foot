@@ -2266,6 +2266,21 @@ body {
   gap: 8px;
 }
 
+.home-header-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-600);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.home-header-back:hover {
+  color: var(--navy);
+}
+
 .home-scan-cta {
   box-shadow: var(--shadow-green);
 }
@@ -2539,6 +2554,27 @@ body {
   flex-direction: column;
   gap: 16px;
   margin-top: 24px;
+}
+
+.create-competition-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 0.5px solid var(--gray-200);
+}
+
+.create-competition-section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.create-competition-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--navy);
 }
 
 .create-competition-form-row {

@@ -35,7 +35,11 @@ export default async function CompetitionPublicPage({ params }: PageProps) {
     <div className="home-shell flex flex-col">
       <PublicHeader
         action={
-          <SecondaryLink href="/admin/signin" icon={LogIn} size="sm">
+          <SecondaryLink
+            href={`/admin/signin?competition=${encodeURIComponent(slug)}`}
+            icon={LogIn}
+            size="sm"
+          >
             Connexion
           </SecondaryLink>
         }

@@ -1,19 +1,32 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { AppLogo } from "@/components/brand/AppLogo";
 import { PrimaryLink } from "@/components/admin/ui";
 import type { LucideIcon } from "lucide-react";
 
 type PublicHeaderProps = {
   action?: ReactNode;
+  backHref?: string;
+  backLabel?: string;
 };
 
-export function PublicHeader({ action }: PublicHeaderProps) {
+export function PublicHeader({ action, backHref, backLabel }: PublicHeaderProps) {
   return (
     <header className="home-header">
       <div className="home-header-inner">
         <AppLogo href="/" size="md" className="sm:hidden" />
         <AppLogo href="/" size="lg" className="hidden sm:block" />
-        {action ? <div className="home-header-actions">{action}</div> : null}
+
+        <div className="home-header-actions">
+          {backHref ? (
+            <Link href={backHref} className="home-header-back">
+              <ArrowLeft size={16} aria-hidden />
+              <span>{backLabel ?? "Retour"}</span>
+            </Link>
+          ) : null}
+          {action}
+        </div>
       </div>
     </header>
   );

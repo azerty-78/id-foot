@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePrismaError } from "@/lib/api/http";
+import { getAuthUser } from "@/lib/auth/server";
+import {
+  canAccessCompetition,
+  competitionWhereForScope,
+  getCompetitionScope,
+} from "@/lib/auth/scope";
 import {
   ensureUniqueCompetitionSlug,
   slugifyCompetitionName,
@@ -24,7 +30,11 @@ function parseCompetitionPayload(body: CreateCompetitionBody) {
 
 export async function GET() {
   try {
+    const user = await getAuthUser();
+    const scope = getCompetitionScope(user);
+
     const competitions = await prisma.competition.findMany({
+      where: competitionWhereForScope(scope),
       include: {
         _count: { select: { equipes: true } },
       },

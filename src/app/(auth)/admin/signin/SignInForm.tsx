@@ -18,6 +18,7 @@ export default function SignInForm() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/admin/dashboard";
+  const competitionSlug = searchParams.get("competition") ?? "";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,12 +35,15 @@ export default function SignInForm() {
       const result = await signIn("credentials", {
         email,
         password,
+        competitionSlug,
         redirect: false,
         callbackUrl,
       });
 
       if (result?.error) {
-        const message = "Connexion impossible. Vérifiez vos identifiants.";
+        const message = competitionSlug
+          ? "Connexion impossible. Vérifiez vos identifiants pour cette compétition."
+          : "Connexion impossible. Vérifiez vos identifiants.";
         setError(message);
         showToast("error", message);
         return;
@@ -74,14 +78,17 @@ export default function SignInForm() {
 
           <h1 className="text-h2">Connexion</h1>
           <p className="text-body mt-2">
-            Accédez à l&apos;espace d&apos;administration ID FOOT.
+            {competitionSlug
+              ? "Connectez-vous pour administrer cette compétition."
+              : "Accédez à l'espace d'administration ID FOOT."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            <div className="rounded-[var(--radius-md)] border border-warning/30 bg-[#fef4e4] px-4 py-3 text-[13px] leading-relaxed text-[#b07500]">
-              Mode provisoire : saisissez un email valide. Le mot de passe est ignoré
-              en développement.
-            </div>
+            {competitionSlug ? (
+              <div className="rounded-[var(--radius-md)] border border-[rgba(57,231,95,0.35)] bg-[var(--green-bg)] px-4 py-3 text-[13px] leading-relaxed text-[var(--green-dim)]">
+                Connexion réservée aux comptes autorisés pour cette compétition.
+              </div>
+            ) : null}
 
             {error && (
               <div className="rounded-[var(--radius-md)] border border-danger/20 bg-[#fdeaea] px-4 py-3 text-[13px] text-danger">
@@ -112,6 +119,7 @@ export default function SignInForm() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
