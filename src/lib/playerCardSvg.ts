@@ -4,8 +4,9 @@ import {
   CARD_QR_BOX,
   CARD_QR_INNER,
   CARD_NAME_TO_STATS_GAP,
-  CARD_QR_PDF_SIZE_TRIM,
-  CARD_QR_QUIET,
+  CARD_QR_PDF_PAD_BOTTOM,
+  CARD_QR_PDF_PAD_TOP,
+  CARD_QR_PDF_PAD_X,
   CARD_RENDER_HEIGHT,
   CARD_RENDER_WIDTH,
 } from "@/lib/playerCardColors";
@@ -69,11 +70,14 @@ function computeLayout(): PlayerCardLayout {
   const photoX = leftX + (leftW - identityPadR - photoSize) / 2;
   const photoY = contentTop;
 
-  const qrBoxX = Math.round(rightX + (rightW - CARD_QR_BOX) / 2);
-  const qrBoxY = Math.round(contentTop + 2);
-  const qrInnerSize = CARD_QR_INNER - CARD_QR_PDF_SIZE_TRIM;
-  const qrInnerX = qrBoxX + Math.round((CARD_QR_BOX - qrInnerSize) / 2);
-  const qrInnerY = qrBoxY + Math.round((CARD_QR_BOX - qrInnerSize) / 2);
+  const footerH = 35;
+  const footerTop = H - footerH;
+  const qrBoxSize = CARD_QR_BOX;
+  const qrBoxX = Math.round(rightX + (rightW - qrBoxSize) / 2);
+  const qrBoxY = Math.max(contentTop, footerTop - qrBoxSize - 12);
+  const qrInnerSize = CARD_QR_INNER;
+  const qrInnerX = qrBoxX + CARD_QR_PDF_PAD_X;
+  const qrInnerY = qrBoxY + CARD_QR_PDF_PAD_TOP;
 
   return {
     width: W,
@@ -83,7 +87,7 @@ function computeLayout(): PlayerCardLayout {
     photoSize,
     qrBoxX,
     qrBoxY,
-    qrBoxSize: CARD_QR_BOX,
+    qrBoxSize,
     qrInnerX,
     qrInnerY,
     qrInnerSize,
