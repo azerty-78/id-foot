@@ -143,15 +143,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <PanelLeftClose size={18} strokeWidth={2} />
             )}
           </button>
-
-          <button
-            type="button"
-            onClick={closeMenu}
-            className="modal-close text-white/70 lg:hidden"
-            aria-label="Fermer le menu"
-          >
-            ✕
-          </button>
         </div>
 
         <AdminNav onNavigate={closeMenu} collapsed={sidebarCollapsed} />

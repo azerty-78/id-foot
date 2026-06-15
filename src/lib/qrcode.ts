@@ -2,9 +2,10 @@ import path from "path";
 import type sharp from "sharp";
 import QRCode from "qrcode";
 import { QR_LOGO_PUBLIC_PATH, getQrLogoSize } from "@/lib/qrBrand";
+import { CARD_QR_INNER } from "@/lib/playerCardColors";
 
-/** Taille QR pour rendu carte (218px inner @ 500px → marge qualité scan) */
-export const CARD_QR_PIXEL_SIZE = 256;
+/** Taille QR = zone intérieure du cadre carte (218px @ 500px) */
+export const CARD_QR_PIXEL_SIZE = CARD_QR_INNER;
 
 let cachedLogoPng: Buffer | null = null;
 let sharpModule: typeof sharp | null = null;

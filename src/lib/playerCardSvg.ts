@@ -1,6 +1,11 @@
 import {
   CARD_COLORS,
   CARD_FONT,
+  CARD_QR_BOX,
+  CARD_QR_INNER,
+  CARD_NAME_TO_STATS_GAP,
+  CARD_QR_PDF_SIZE_TRIM,
+  CARD_QR_QUIET,
   CARD_RENDER_HEIGHT,
   CARD_RENDER_WIDTH,
 } from "@/lib/playerCardColors";
@@ -24,9 +29,12 @@ export type PlayerCardLayout = {
   photoX: number;
   photoY: number;
   photoSize: number;
-  qrLeft: number;
-  qrTop: number;
-  qrInner: number;
+  qrBoxX: number;
+  qrBoxY: number;
+  qrBoxSize: number;
+  qrInnerX: number;
+  qrInnerY: number;
+  qrInnerSize: number;
 };
 
 function escapeXml(value: string): string {
@@ -61,11 +69,11 @@ function computeLayout(): PlayerCardLayout {
   const photoX = leftX + (leftW - identityPadR - photoSize) / 2;
   const photoY = contentTop;
 
-  const qrBox = 250;
-  const qrQuiet = 16;
-  const qrInner = qrBox - qrQuiet * 2;
-  const qrX = rightX + (rightW - qrBox) / 2;
-  const qrY = contentTop + 2;
+  const qrBoxX = Math.round(rightX + (rightW - CARD_QR_BOX) / 2);
+  const qrBoxY = Math.round(contentTop + 2);
+  const qrInnerSize = CARD_QR_INNER - CARD_QR_PDF_SIZE_TRIM;
+  const qrInnerX = qrBoxX + Math.round((CARD_QR_BOX - qrInnerSize) / 2);
+  const qrInnerY = qrBoxY + Math.round((CARD_QR_BOX - qrInnerSize) / 2);
 
   return {
     width: W,
@@ -73,9 +81,12 @@ function computeLayout(): PlayerCardLayout {
     photoX: Math.round(photoX),
     photoY: Math.round(photoY),
     photoSize,
-    qrLeft: Math.round(qrX + qrQuiet),
-    qrTop: Math.round(qrY + qrQuiet),
-    qrInner,
+    qrBoxX,
+    qrBoxY,
+    qrBoxSize: CARD_QR_BOX,
+    qrInnerX,
+    qrInnerY,
+    qrInnerSize,
   };
 }
 
@@ -107,9 +118,7 @@ export function buildPlayerCardSvg(
   const dorsal = joueur.numero != null ? `#${joueur.numero}` : "—";
   const poste = joueur.poste?.trim() || "—";
 
-  const qrBox = 250;
-  const qrX = layout.qrLeft - 16;
-  const qrY = layout.qrTop - 2;
+  const { qrBoxX, qrBoxY, qrBoxSize } = layout;
 
   const sepX = leftX + leftW;
   const bodyBottom = H - footerH;
@@ -120,7 +129,7 @@ export function buildPlayerCardSvg(
     : `<rect x="${photoX}" y="${photoY}" width="${photoSize}" height="${photoSize}" rx="16" fill="${CARD_COLORS.photoPlaceholder}"/>
        <text x="${photoX + photoSize / 2}" y="${photoY + photoSize / 2 + 7}" text-anchor="middle" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="22" font-weight="700">${escapeXml(getInitials(joueur.prenom, joueur.nom))}</text>`;
 
-  const rowY = fieldY + 28;
+  const rowY = fieldY + 16 + 18 + CARD_NAME_TO_STATS_GAP;
   const fontFaceStyles = getInterFontFaceDefs();
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -164,16 +173,17 @@ export function buildPlayerCardSvg(
   <text x="${fieldX}" y="${fieldY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">NOM</text>
   <text x="${fieldX}" y="${fieldY + 16}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="17" font-weight="800" letter-spacing="-0.34">${escapeXml(fullName)}</text>
 
-  <!-- Dorsal / Poste (valeurs seules) -->
+  <!-- Dorsal / Poste -->
   <line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
-  <text x="${fieldX}" y="${rowY + 12}" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="14" font-weight="900">${escapeXml(dorsal)}</text>
-  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 12}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
+  <text x="${fieldX}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">DORSAL</text>
+  <text x="${fieldX}" y="${rowY + 15}" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="14" font-weight="900">${escapeXml(dorsal)}</text>
+  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">POSTE</text>
+  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
 
   <!-- QR (cadre blanc — image composée ensuite) -->
   <g>
-    <rect x="${qrX}" y="${qrY}" width="${qrBox}" height="${qrBox}" rx="10" fill="${CARD_COLORS.white}" stroke="${CARD_COLORS.green}" stroke-width="2"/>
+    <rect x="${qrBoxX}" y="${qrBoxY}" width="${qrBoxSize}" height="${qrBoxSize}" rx="10" fill="${CARD_COLORS.white}" stroke="${CARD_COLORS.green}" stroke-width="2"/>
   </g>
-  <text x="${qrX + qrBox / 2}" y="${qrY + qrBox + 12}" text-anchor="middle" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.4">SCANNER ICI</text>
 
   <!-- Footer -->
   <rect x="0" y="${H - footerH}" width="${W}" height="${footerH}" fill="${CARD_COLORS.footerOverlay}"/>

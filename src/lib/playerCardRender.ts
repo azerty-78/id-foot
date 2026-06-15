@@ -44,11 +44,11 @@ export async function renderPlayerCardPng(
   const renderer = await getSharp();
 
   try {
-    const qrPixelSize = Math.round(layout.qrInner * RENDER_SCALE);
+    const qrPixelSize = Math.round(layout.qrInnerSize * RENDER_SCALE);
     const photoPixelSize = Math.round(layout.photoSize * RENDER_SCALE);
 
     const qrLayer = await renderer(qrPng)
-      .resize(qrPixelSize, qrPixelSize)
+      .resize(qrPixelSize, qrPixelSize, { fit: "fill" })
       .png()
       .toBuffer();
 
@@ -70,8 +70,8 @@ export async function renderPlayerCardPng(
           : []),
         {
           input: qrLayer,
-          left: Math.round(layout.qrLeft * RENDER_SCALE),
-          top: Math.round(layout.qrTop * RENDER_SCALE),
+          left: Math.round(layout.qrInnerX * RENDER_SCALE),
+          top: Math.round(layout.qrInnerY * RENDER_SCALE),
         },
       ])
       .png({ compressionLevel: 4, effort: 1 })
