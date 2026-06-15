@@ -1,8 +1,9 @@
 import { Plus } from "lucide-react";
 import {
-  CompetitionsGrid,
-  HowItWorksSection,
-} from "@/components/public/HomeSections";
+  HomeCompetitionsSection,
+  type HomeCompetitionItem,
+} from "@/components/public/HomeCompetitionsSection";
+import { HowItWorksSection } from "@/components/public/HomeSections";
 import {
   PublicFooter,
   PublicHeader,
@@ -12,11 +13,24 @@ import { prisma } from "@/lib/prisma";
 
 export default async function HomePage() {
   const competitions = await prisma.competition.findMany({
-    orderBy: [{ annee: "desc" }, { createdAt: "desc" }],
+    orderBy: { createdAt: "asc" },
     include: {
       _count: { select: { equipes: true } },
     },
   });
+
+  const competitionItems: HomeCompetitionItem[] = competitions.map(
+    (competition) => ({
+      id: competition.id,
+      nom: competition.nom,
+      slug: competition.slug,
+      annee: competition.annee,
+      lieu: competition.lieu,
+      image: competition.image,
+      createdAt: competition.createdAt.toISOString(),
+      _count: competition._count,
+    }),
+  );
 
   return (
     <div className="home-shell flex flex-col">
@@ -43,19 +57,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="home-section" aria-labelledby="competitions-title">
-          <div className="home-section-header">
-            <p className="text-section-label">Compétitions</p>
-            <h2 id="competitions-title" className="text-h2">
-              Tournois sur ID FOOT
-            </h2>
-            <p className="text-body home-section-lead">
-              Accédez à l&apos;espace dédié de chaque compétition pour gérer
-              clubs, joueurs et scanner QR.
-            </p>
-          </div>
-          <CompetitionsGrid competitions={competitions} />
-        </section>
+        <HomeCompetitionsSection competitions={competitionItems} />
 
         <HowItWorksSection />
       </main>

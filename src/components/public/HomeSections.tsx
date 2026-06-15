@@ -178,6 +178,10 @@ type CompetitionCardData = {
   _count?: { equipes: number };
 };
 
+function buildSignInHref(slug: string): string {
+  return `/admin/signin?competition=${encodeURIComponent(slug)}`;
+}
+
 export function CompetitionsGrid({
   competitions,
 }: {
@@ -199,7 +203,7 @@ export function CompetitionsGrid({
       {competitions.map((competition) => (
         <a
           key={competition.id}
-          href={`/${competition.slug}`}
+          href={buildSignInHref(competition.slug)}
           className="home-competition-card"
         >
           <div className="home-competition-card-media">

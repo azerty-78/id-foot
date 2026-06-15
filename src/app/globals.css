@@ -2477,6 +2477,52 @@ body {
   text-align: center;
 }
 
+.home-competitions-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.home-competitions-search {
+  position: relative;
+  display: block;
+}
+
+.home-competitions-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  pointer-events: none;
+}
+
+.home-competitions-search-input {
+  padding-left: 42px;
+}
+
+.home-competitions-count {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.home-competitions-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.home-competitions-pagination-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
 .home-steps-grid {
   display: grid;
   gap: 12px;
@@ -2788,6 +2834,17 @@ body {
 
   .home-competitions-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-competitions-toolbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .home-competitions-search {
+    flex: 1;
+    max-width: 420px;
   }
 
   .home-steps-grid {
