@@ -2,9 +2,9 @@
 
 import { ArrowLeft, Eye, EyeOff, LogIn, Mail, MapPin, Trophy } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import {
   FieldLabel,
   InputWithIcon,
@@ -14,65 +14,40 @@ import { AppLogo } from "@/components/brand/AppLogo";
 import { useToast } from "@/components/providers/ToastProvider";
 import { ADMIN_COMPETITION_HOME } from "@/lib/competitionSlug";
 
-type CompetitionPreview = {
+export type SignInCompetitionPreview = {
   nom: string;
   annee: number;
   lieu: string | null;
   image: string | null;
 };
 
-export default function SignInForm() {
+type SignInFormProps = {
+  competitionSlug: string;
+  competition: SignInCompetitionPreview | null;
+  callbackUrl?: string;
+};
+
+export default function SignInForm({
+  competitionSlug,
+  competition,
+  callbackUrl: callbackUrlProp,
+}: SignInFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const competitionSlug = searchParams.get("competition") ?? "";
   const callbackUrl = competitionSlug
     ? ADMIN_COMPETITION_HOME
-    : (searchParams.get("callbackUrl") ?? ADMIN_COMPETITION_HOME);
+    : (callbackUrlProp ?? ADMIN_COMPETITION_HOME);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [competition, setCompetition] = useState<CompetitionPreview | null>(
-    null,
-  );
-  const [competitionLoading, setCompetitionLoading] = useState(false);
 
   const backHref = competitionSlug ? `/${competitionSlug}` : "/";
   const backLabel = competitionSlug
     ? "Retour à la compétition"
     : "Retour à l'accueil";
-
-  useEffect(() => {
-    if (!competitionSlug) {
-      setCompetition(null);
-      return;
-    }
-
-    let cancelled = false;
-    setCompetitionLoading(true);
-
-    void fetch(
-      `/api/competitions/by-slug/${encodeURIComponent(competitionSlug)}`,
-    )
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: CompetitionPreview | null) => {
-        if (!cancelled) {
-          setCompetition(data);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setCompetitionLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [competitionSlug]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -112,10 +87,6 @@ export default function SignInForm() {
   function renderLeadText() {
     if (!competitionSlug) {
       return "Accédez à l'espace d'administration ID FOOT.";
-    }
-
-    if (competitionLoading) {
-      return "Chargement de la compétition…";
     }
 
     if (competition) {

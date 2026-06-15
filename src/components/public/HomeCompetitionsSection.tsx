@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { OutlineButton, SecondaryLink } from "@/components/admin/ui";
 import { ShareCompetitionSignInButton } from "@/components/public/ShareCompetitionSignInButton";
 import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
@@ -54,16 +54,6 @@ export function HomeCompetitionsSection({
     return filtered.slice(start, start + PAGE_SIZE);
   }, [filtered, safePage]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [query]);
-
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
-
   return (
     <section className="home-section" aria-labelledby="competitions-title">
       <div className="home-section-header">
@@ -84,7 +74,10 @@ export function HomeCompetitionsSection({
             id="competition-search"
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(1);
+            }}
             placeholder="Rechercher par nom de compétition…"
             className="admin-input home-competitions-search-input"
             autoComplete="off"
@@ -191,7 +184,7 @@ export function HomeCompetitionsSection({
                 icon={ChevronLeft}
                 size="sm"
                 disabled={safePage <= 1}
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                onClick={() => setPage(safePage - 1)}
                 aria-label="Page précédente"
               >
                 Précédent
@@ -206,9 +199,7 @@ export function HomeCompetitionsSection({
                 icon={ChevronRight}
                 size="sm"
                 disabled={safePage >= totalPages}
-                onClick={() =>
-                  setPage((current) => Math.min(totalPages, current + 1))
-                }
+                onClick={() => setPage(safePage + 1)}
                 aria-label="Page suivante"
               >
                 Suivant

@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  MapPin,
   QrCode,
   Shield,
   Trophy,
@@ -77,45 +78,68 @@ export function CompetitionWorkspace({
   teamCount = 0,
 }: CompetitionWorkspaceProps) {
   return (
-    <div className="home-hero">
-      <div className="home-hero-content">
+    <div className="competition-workspace">
+      <section
+        className={`competition-hero${competitionImage ? " competition-hero--photo" : " competition-hero--empty"}`}
+        aria-label={`Compétition ${competitionName}`}
+      >
         {competitionImage ? (
-          <div className="competition-cover">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={competitionImage}
-              alt=""
-              className="competition-cover-image"
-            />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={competitionImage}
+            alt={competitionName}
+            className="competition-hero-image"
+          />
+        ) : (
+          <div className="competition-hero-placeholder" aria-hidden>
+            <Trophy size={48} />
           </div>
-        ) : null}
+        )}
+        <div className="competition-hero-overlay" aria-hidden />
 
-        <p className="text-section-label">Compétition · {competitionYear}</p>
-        <h1 className="text-h1 home-hero-title">{competitionName}</h1>
-        {competitionPlace ? (
-          <p className="text-body home-hero-text">{competitionPlace}</p>
-        ) : null}
-        <p className="text-body home-hero-text">
-          {teamCount} équipe{teamCount > 1 ? "s" : ""} inscrite
-          {teamCount > 1 ? "s" : ""}. Gérez les licences, les clubs et le
-          contrôle QR depuis cet espace.
-        </p>
-
-        <div className="home-hero-actions">
-          <PrimaryLink href="/admin/scanner" icon={QrCode} className="w-full sm:w-auto">
-            Lancer le scanner QR
-          </PrimaryLink>
-          <OutlineLink
-            href="/admin/dashboard"
-            icon={LayoutDashboard}
-            className="w-full sm:w-auto"
-          >
-            Administration
-          </OutlineLink>
+        <div className="competition-hero-content">
+          <p className="competition-hero-label">
+            Compétition · {competitionYear}
+          </p>
+          <h1 className="competition-hero-title">{competitionName}</h1>
+          {competitionPlace ? (
+            <p className="competition-hero-place">
+              <MapPin size={16} aria-hidden />
+              <span>{competitionPlace}</span>
+            </p>
+          ) : null}
+          <p className="competition-hero-meta">
+            <Users size={15} aria-hidden />
+            <span>
+              {teamCount} équipe{teamCount > 1 ? "s" : ""} inscrite
+              {teamCount > 1 ? "s" : ""}
+            </span>
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div className="home-feature-grid">
+      <div className="home-hero">
+        <div className="home-hero-content">
+          <p className="text-body home-hero-text">
+            Gérez les licences, les clubs et le contrôle QR depuis cet espace
+            d&apos;administration.
+          </p>
+
+          <div className="home-hero-actions">
+            <PrimaryLink href="/admin/scanner" icon={QrCode} className="w-full sm:w-auto">
+              Lancer le scanner QR
+            </PrimaryLink>
+            <OutlineLink
+              href="/admin/dashboard"
+              icon={LayoutDashboard}
+              className="w-full sm:w-auto"
+            >
+              Administration
+            </OutlineLink>
+          </div>
+        </div>
+
+        <div className="home-feature-grid">
         {competitionFeatureCards.map((item) => (
           <a
             key={item.href}
@@ -132,6 +156,7 @@ export function CompetitionWorkspace({
             <p className="text-body mt-2">{item.text}</p>
           </a>
         ))}
+      </div>
       </div>
     </div>
   );
