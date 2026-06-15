@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
+import { brandAssets } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,7 +11,11 @@ export const metadata: Metadata = {
   },
   description: "Système d'identification et de gestion des licences joueurs ID FOOT.",
   manifest: "/manifest.webmanifest",
-  // Icônes onglet : src/app/icon.png + favicon.ico (générés depuis public/brand/logo.png)
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "512x512" }],
+    shortcut: "/icon.png",
+    apple: brandAssets.appleTouchIcon,
+  },
   appleWebApp: {
     capable: true,
     title: "ID FOOT",

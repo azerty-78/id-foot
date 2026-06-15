@@ -95,7 +95,10 @@ export default function TeamsPage() {
 
   function openCreateModal() {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({
+      ...emptyForm,
+      competitionId: competitions.length === 1 ? competitions[0].id : "",
+    });
     setLogoFile(null);
     setFormError(null);
     setIsModalOpen(true);

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handlePrismaError, jsonError } from "@/lib/api/http";
+import {
+  denyUnlessCompetitionAccess,
+  getTeamCompetitionId,
+  isAuthResponse,
+  requireApiUser,
+  requirePlayerAccess,
+} from "@/lib/auth/api";
 import { toJoueurDbFields, validateJoueur } from "@/lib/validators";
 import { parseCreateJoueurInput } from "@/types/player";
 
@@ -14,7 +21,13 @@ const joueurInclude = {
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const { id } = await params;
+    const denied = await requirePlayerAccess(user, id);
+    if (denied) return denied;
+
     const joueur = await prisma.joueur.findUnique({
       where: { id },
       include: joueurInclude,
@@ -32,7 +45,13 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const { id } = await params;
+    const denied = await requirePlayerAccess(user, id);
+    if (denied) return denied;
+
     const body = await req.json();
     const input = parseCreateJoueurInput(body);
 
@@ -44,6 +63,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     if (!validation.valid) {
       return jsonError(validation.errors[0] ?? "Données invalides.");
     }
+
+    const competitionId = await getTeamCompetitionId(input.equipeId);
+    if (!competitionId) {
+      return jsonError("Club introuvable.", 404);
+    }
+
+    const targetDenied = denyUnlessCompetitionAccess(user, competitionId);
+    if (targetDenied) return targetDenied;
 
     const joueur = await prisma.joueur.update({
       where: { id },
@@ -59,7 +86,13 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const { id } = await params;
+    const denied = await requirePlayerAccess(user, id);
+    if (denied) return denied;
+
     await prisma.joueur.delete({
       where: { id },
     });

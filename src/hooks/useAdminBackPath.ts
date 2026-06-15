@@ -8,6 +8,7 @@ const ROOT_PATHS = new Set([
   "/admin/players",
   "/admin/teams",
   "/admin/competitions",
+  "/admin/profil",
 ]);
 
 export function useAdminBackPath(): string | null {
@@ -60,6 +61,10 @@ export function isNavItemActive(pathname: string, href: string): boolean {
   }
 
   if (href === "/admin/scanner") {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  if (href === "/admin/profil") {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 

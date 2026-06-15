@@ -1,12 +1,12 @@
 /**
- * Génère favicon + icônes PWA à partir de public/brand/logo.png (source unique).
+ * Génère les icônes PWA à partir de public/brand/logo.png (source unique).
+ * L’onglet navigateur utilise src/app/icon.png (PNG) — pas de favicon.ico.
  * Usage : npm run icons:generate
  */
 import { mkdirSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
-import toIco from "to-ico";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(root, "public/brand/logo.png");
@@ -34,7 +34,7 @@ async function normalizeLogoPng(canonicalBuffer) {
 
 function pipelineFromBuffer(canonicalBuffer, size) {
   return sharp(canonicalBuffer)
-    .resize(size, size, { fit: "fill", background: BACKGROUND })
+    .resize(size, size, { fit: "contain", background: BACKGROUND })
     .png();
 }
 
@@ -43,7 +43,8 @@ async function main() {
   await normalizeLogoPng(canonicalBuffer);
 
   writeFileSync(join(root, "src/app/icon.png"), canonicalBuffer);
-  console.log("✓ src/app/icon.png (copie identique du logo officiel)");
+  writeFileSync(join(root, "public/icon.png"), canonicalBuffer);
+  console.log("✓ src/app/icon.png + public/icon.png (logo officiel PNG — favicon navigateur)");
 
   const derivedTargets = [
     ["src/app/apple-icon.png", 180],
@@ -58,18 +59,6 @@ async function main() {
     mkdirSync(dirname(full), { recursive: true });
     await pipelineFromBuffer(canonicalBuffer, size).toFile(full);
     console.log(`✓ ${relativePath} (${size}×${size})`);
-  }
-
-  const icoSizes = [16, 32, 48];
-  const ico = await toIco(
-    await Promise.all(
-      icoSizes.map((size) => pipelineFromBuffer(canonicalBuffer, size).toBuffer()),
-    ),
-  );
-
-  for (const relativePath of ["src/app/favicon.ico", "public/favicon.ico"]) {
-    writeFileSync(join(root, relativePath), ico);
-    console.log(`✓ ${relativePath}`);
   }
 }
 

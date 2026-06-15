@@ -7,16 +7,38 @@ import {
   sanitizePdfFilename,
 } from "@/lib/playerCardFilename";
 import { prisma } from "@/lib/prisma";
+import {
+  denyUnlessCompetitionAccess,
+  isAuthResponse,
+  requireApiUser,
+  requireTeamAccess,
+  scopedCompetitionId,
+} from "@/lib/auth/api";
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const equipeId = req.nextUrl.searchParams.get("equipeId") ?? undefined;
-    const competitionId =
+    const requestedCompetitionId =
       req.nextUrl.searchParams.get("competitionId") ?? undefined;
     const nom =
       req.nextUrl.searchParams.get("nom") ??
       req.nextUrl.searchParams.get("q") ??
       undefined;
+
+    const competitionId = scopedCompetitionId(user, requestedCompetitionId);
+
+    if (equipeId) {
+      const denied = await requireTeamAccess(user, equipeId);
+      if (denied) return denied;
+    }
+
+    if (competitionId) {
+      const denied = denyUnlessCompetitionAccess(user, competitionId);
+      if (denied) return denied;
+    }
 
     const buffer = await generateAllPlayerCardsPdf({
       equipeId,

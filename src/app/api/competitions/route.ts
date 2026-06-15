@@ -1,20 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { handlePrismaError, jsonError } from "@/lib/api/http";
+import {
+  isAuthResponse,
+  requireApiUser,
+} from "@/lib/auth/api";
+import {
+  competitionWhereForScope,
+  getCompetitionScope,
+} from "@/lib/auth/scope";
 import { prisma } from "@/lib/prisma";
-import { handlePrismaError } from "@/lib/api/http";
-
-type CreateCompetitionBody = {
-  nom: string;
-  annee: number | string;
-  lieu?: string | null;
-};
 
 export async function GET() {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
+    const scope = getCompetitionScope(user);
     const competitions = await prisma.competition.findMany({
+      where: competitionWhereForScope(scope),
       include: {
-        _count: { select: { equipes: true } },
+        _count: { select: { equipes: true, users: true } },
       },
-      orderBy: { annee: "desc" },
+      orderBy: [{ annee: "desc" }, { createdAt: "desc" }],
     });
 
     return NextResponse.json(competitions);
@@ -23,31 +30,9 @@ export async function GET() {
   }
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = (await req.json()) as CreateCompetitionBody;
-    const annee = Number.parseInt(String(body.annee), 10);
-
-    if (!body.nom || Number.isNaN(annee)) {
-      return NextResponse.json(
-        { error: "Nom et année requis." },
-        { status: 400 }
-      );
-    }
-
-    const competition = await prisma.competition.create({
-      data: {
-        nom: body.nom.trim(),
-        annee,
-        lieu: body.lieu?.trim() || null,
-      },
-      include: {
-        _count: { select: { equipes: true } },
-      },
-    });
-
-    return NextResponse.json(competition, { status: 201 });
-  } catch (error) {
-    return handlePrismaError(error);
-  }
+export async function POST() {
+  return jsonError(
+    "La création se fait depuis la page publique « Créer une compétition ».",
+    403,
+  );
 }

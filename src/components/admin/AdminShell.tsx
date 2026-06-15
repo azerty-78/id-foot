@@ -9,12 +9,12 @@ import {
   QrCode,
   Shield,
   Trophy,
+  User,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
@@ -23,6 +23,14 @@ import { AppLogo } from "@/components/brand/AppLogo";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
+import type { AuthUser } from "@/lib/auth/scope";
+
+type AdminShellCompetition = {
+  id: string;
+  nom: string;
+  slug: string;
+  image: string | null;
+};
 
 const SIDEBAR_COLLAPSED_KEY = "id-foot-sidebar-collapsed";
 const SIDEBAR_COLLAPSED_EVENT = "id-foot-sidebar-collapsed-change";
@@ -78,6 +86,9 @@ function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
   if (pathname.startsWith("/admin/competitions")) {
     return { href: "/admin/competitions", icon: Trophy, primary: "Compétitions" };
   }
+  if (pathname.startsWith("/admin/profil")) {
+    return { href: "/admin/profil", icon: User, primary: "Profil" };
+  }
   return { href: "/admin/dashboard", icon: LayoutDashboard, primary: "Dashboard" };
 }
 
@@ -90,11 +101,20 @@ function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/players")) return "Joueurs";
   if (pathname.startsWith("/admin/teams")) return "Équipes";
   if (pathname.startsWith("/admin/competitions")) return "Compétitions";
+  if (pathname.startsWith("/admin/profil")) return "Profil";
   if (pathname.startsWith("/admin/dashboard")) return "Dashboard";
   return "Administration";
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({
+  children,
+  user,
+  competition,
+}: {
+  children: React.ReactNode;
+  user: AuthUser;
+  competition: AdminShellCompetition | null;
+}) {
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const sidebarCollapsed = useSyncExternalStore(
     subscribeSidebarCollapsed,
@@ -105,11 +125,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
   const backPath = useAdminBackPath();
-  const { data: session } = useSession();
-  const initials = getInitials(session?.user?.name, session?.user?.email);
+  const initials = getInitials(user.name, user.email);
   const topbarBrand = getMobileTopbarBrand(pathname);
   const pageTitle = getAdminPageTitle(pathname);
   const TopbarIcon = topbarBrand.icon;
+  const brandLogoSrc = competition?.image ?? null;
+  const brandLogoAlt = competition?.nom ?? "ID FOOT";
+  const brandLogoLabel = competition?.nom ?? "ID FOOT";
 
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
@@ -150,9 +172,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             href="/admin/dashboard"
             onClick={closeMenu}
             className="sidebar-brand-link flex min-w-0 flex-1 items-center gap-[10px]"
-            title="ID FOOT"
+            title={brandLogoLabel}
           >
-            <AppLogo size="sm" className="sidebar-brand-logo rounded-md" />
+            <AppLogo
+              size="sm"
+              src={brandLogoSrc}
+              alt={brandLogoAlt}
+              className="sidebar-brand-logo rounded-md"
+            />
             <span className="sidebar-brand-text hidden min-[380px]:inline">
               <span className="sidebar-brand-id">ID </span>
               <span className="sidebar-brand-foot">FOOT</span>
@@ -176,12 +203,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <AdminNav onNavigate={closeMenu} collapsed={sidebarCollapsed} />
 
         <div className="sidebar-footer mt-auto border-t border-white/[0.08] px-4 py-4">
-          {session?.user?.email && (
+          {user.email && (
             <div className="sidebar-user mb-3 flex items-center gap-2 px-3">
               <span className="user-avatar">{initials}</span>
-              <p className="sidebar-user-email min-w-0 truncate text-[11px] text-white/45">
-                {session.user.email}
-              </p>
+              <div className="min-w-0">
+                <p className="sidebar-user-email truncate text-[11px] font-semibold text-white/80">
+                  {user.name}
+                </p>
+                <p className="sidebar-user-email min-w-0 truncate text-[11px] text-white/45">
+                  {user.email}
+                </p>
+                {competition ? (
+                  <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-wide text-green/90">
+                    {competition.nom}
+                  </p>
+                ) : null}
+              </div>
             </div>
           )}
 
@@ -230,14 +267,26 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/admin/dashboard"
             className="admin-topbar-logo touch-target"
-            aria-label="ID FOOT"
+            aria-label={brandLogoLabel}
           >
-            <AppLogo size="sm" className="admin-topbar-logo-image" />
+            <AppLogo
+              size="sm"
+              src={brandLogoSrc}
+              alt={brandLogoAlt}
+              className="admin-topbar-logo-image"
+            />
           </Link>
         </header>
 
         <header className="admin-desktop-bar">
-          <h1 className="admin-desktop-bar-title">{pageTitle}</h1>
+          <div className="min-w-0">
+            <h1 className="admin-desktop-bar-title">{pageTitle}</h1>
+            {competition ? (
+              <p className="admin-desktop-bar-subtitle truncate">
+                {competition.nom} · {competition.slug}
+              </p>
+            ) : null}
+          </div>
         </header>
 
         <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>

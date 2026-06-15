@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { PlayerCardQr } from "./PlayerCardQr";
 import { PrintButton } from "./PrintButton";
 
@@ -7,32 +8,25 @@ type PlayerCardPageProps = {
   params: Promise<{ id: string }>;
 };
 
-type PlayerData = {
-  id: string;
-  nom: string;
-  prenom: string;
-  numero: number;
-  poste: string;
-  photo: string | null;
-  qrToken: string;
-  equipe: {
-    nom: string;
-    competition: {
-      nom: string;
-    };
-  };
-};
-
-async function fetchPlayer(id: string): Promise<PlayerData | null> {
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/players/${id}`, {
-    cache: "no-store",
+async function fetchPlayer(id: string) {
+  return prisma.joueur.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      nom: true,
+      prenom: true,
+      numero: true,
+      poste: true,
+      photo: true,
+      qrToken: true,
+      equipe: {
+        select: {
+          nom: true,
+          competition: { select: { nom: true } },
+        },
+      },
+    },
   });
-
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error("Impossible de charger le joueur.");
-
-  return res.json() as Promise<PlayerData>;
 }
 
 function getInitials(prenom: string, nom: string): string {
@@ -123,10 +117,12 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
                 {player.nom} {player.prenom}
               </p>
               <p className="mt-1 text-lg font-black leading-none text-green">
-                #{player.numero}
-                <span className="ml-2 text-xs font-semibold text-green/90">
-                  {player.poste}
-                </span>
+                #{player.numero ?? "—"}
+                {player.poste ? (
+                  <span className="ml-2 text-xs font-semibold text-green/90">
+                    {player.poste}
+                  </span>
+                ) : null}
               </p>
               <p className="mt-2 truncate text-[10px] text-white/75">
                 {player.equipe.nom}

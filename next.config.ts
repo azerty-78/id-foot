@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const contentSecurityPolicy = [
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+
+const productionContentSecurityPolicy = [
   "default-src https: data: 'unsafe-inline' 'unsafe-eval'",
   "img-src https: data: blob:",
   "media-src https: data: blob:",
@@ -10,19 +14,27 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  turbopack: {
+    root: projectRoot,
+  },
   serverExternalPackages: ["sharp"],
   images: {
     // Les assets /public servis tels quels — évite les échecs Sharp en Docker Alpine
     unoptimized: true,
   },
   async headers() {
+    // CSP HTTPS-only en prod ; en dev localhost est en http:// et serait bloqué
+    if (process.env.NODE_ENV !== "production") {
+      return [];
+    }
+
     return [
       {
         source: "/(.*)",
         headers: [
           {
             key: "Content-Security-Policy",
-            value: contentSecurityPolicy,
+            value: productionContentSecurityPolicy,
           },
         ],
       },

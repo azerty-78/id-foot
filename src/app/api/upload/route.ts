@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { savePlayerPhoto, saveTeamLogo } from "@/lib/upload";
+import { isAuthResponse, requireApiUser } from "@/lib/auth/api";
+import {
+  saveCompetitionImage,
+  savePlayerPhoto,
+  saveTeamLogo,
+} from "@/lib/upload";
 
 export const runtime = "nodejs";
 
@@ -16,8 +21,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (kind !== "competition") {
+      const user = await requireApiUser();
+      if (isAuthResponse(user)) return user;
+    }
+
     const url =
-      kind === "logo" ? await saveTeamLogo(file) : await savePlayerPhoto(file);
+      kind === "logo"
+        ? await saveTeamLogo(file)
+        : kind === "competition"
+          ? await saveCompetitionImage(file)
+          : await savePlayerPhoto(file);
 
     return NextResponse.json({ url });
   } catch (error) {

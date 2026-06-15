@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handlePrismaError } from "@/lib/api/http";
+import {
+  denyUnlessCompetitionAccess,
+  isAuthResponse,
+  requireApiUser,
+} from "@/lib/auth/api";
+import {
+  getCompetitionScope,
+  teamWhereForScope,
+} from "@/lib/auth/scope";
 
 type CreateEquipeBody = {
   nom: string;
@@ -10,7 +19,12 @@ type CreateEquipeBody = {
 
 export async function GET() {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
+    const scope = getCompetitionScope(user);
     const equipes = await prisma.equipe.findMany({
+      where: teamWhereForScope(scope),
       include: {
         competition: true,
         _count: { select: { joueurs: true } },
@@ -26,14 +40,20 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const body = (await req.json()) as CreateEquipeBody;
 
     if (!body.nom || !body.competitionId) {
       return NextResponse.json(
         { error: "Nom et compétition requis." },
-        { status: 400 }
+        { status: 400 },
       );
     }
+
+    const denied = denyUnlessCompetitionAccess(user, body.competitionId);
+    if (denied) return denied;
 
     const equipe = await prisma.equipe.create({
       data: {

@@ -1,6 +1,8 @@
 "use client";
 
-import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { AlertTriangle, Eye, ImagePlus, Pencil, Save, Trash2, X } from "lucide-react";
+import Image from "next/image";
+import { signOut, useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import {
   AdminCard,
@@ -9,8 +11,10 @@ import {
   FieldError,
   FieldLabel,
   FormSubmitOverlay,
+  GhostButton,
   LoadingState,
   OutlineButton,
+  OutlineLink,
   PageHeader,
   PrimaryButton,
   StatusBadge,
@@ -18,33 +22,39 @@ import {
 import { AdminModal } from "@/components/admin/AdminModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useCompetitions, type Competition } from "@/hooks/useApi";
+import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
 import { validateCompetition } from "@/lib/validators";
 
 type FormState = {
   nom: string;
   annee: string;
   lieu: string;
+  image: string;
 };
 
-const emptyForm: FormState = { nom: "", annee: "", lieu: "" };
+const emptyForm: FormState = { nom: "", annee: "", lieu: "", image: "" };
 
 export default function CompetitionsPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const { competitions, loading, error, refetch } = useCompetitions();
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingCompetition, setDeletingCompetition] =
+    useState<Competition | null>(null);
+  const [deleteJoueurCount, setDeleteJoueurCount] = useState<number | null>(null);
+  const [deleteStatsLoading, setDeleteStatsLoading] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
-
-  function openCreateModal() {
-    setEditingId(null);
-    setForm(emptyForm);
-    setFormError(null);
-    setIsModalOpen(true);
-  }
 
   function openEditModal(competition: Competition) {
     setEditingId(competition.id);
@@ -52,25 +62,85 @@ export default function CompetitionsPage() {
       nom: competition.nom,
       annee: String(competition.annee),
       lieu: competition.lieu ?? "",
+      image: competition.image ?? "",
     });
+    setImageFile(null);
+    setImagePreview(competition.image);
     setFormError(null);
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
   }
 
-  function resetModal() {
-    setIsModalOpen(false);
+  function resetEditModal() {
+    setIsEditModalOpen(false);
     setEditingId(null);
     setForm(emptyForm);
+    setImageFile(null);
+    setImagePreview(null);
     setFormError(null);
   }
 
-  function closeModal() {
+  function closeEditModal() {
     if (submitting) return;
-    resetModal();
+    resetEditModal();
+  }
+
+  async function openDeleteModal(competition: Competition) {
+    setDeletingCompetition(competition);
+    setDeleteJoueurCount(null);
+    setDeleteStatsLoading(true);
+    setIsDeleteModalOpen(true);
+
+    try {
+      const res = await fetch(
+        `/api/players?competitionId=${encodeURIComponent(competition.id)}`,
+      );
+      if (res.ok) {
+        const players = (await res.json()) as unknown[];
+        setDeleteJoueurCount(players.length);
+      }
+    } catch {
+      setDeleteJoueurCount(null);
+    } finally {
+      setDeleteStatsLoading(false);
+    }
+  }
+
+  function closeDeleteModal() {
+    if (deleting) return;
+    setIsDeleteModalOpen(false);
+    setDeletingCompetition(null);
+    setDeleteJoueurCount(null);
+  }
+
+  async function uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", "competition");
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      throw new Error(data.error ?? "Erreur lors de l'upload de l'image.");
+    }
+
+    const data = (await res.json()) as { url: string };
+    return data.url;
+  }
+
+  function handleImageChange(file: File | null) {
+    setImageFile(file);
+    if (imagePreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(file ? URL.createObjectURL(file) : form.image || null);
   }
 
   async function handleSubmit() {
-    if (submitLockRef.current) return;
+    if (submitLockRef.current || !editingId) return;
 
     const payload = {
       nom: form.nom.trim(),
@@ -90,15 +160,15 @@ export default function CompetitionsPage() {
     setSubmitMessage("Enregistrement de la compétition…");
 
     try {
-      const url = editingId
-        ? `/api/competitions/${editingId}`
-        : "/api/competitions";
-      const method = editingId ? "PUT" : "POST";
+      let imageUrl = form.image.trim() || null;
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
 
-      const res = await fetch(url, {
-        method,
+      const res = await fetch(`/api/competitions/${editingId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, image: imageUrl }),
       });
 
       if (!res.ok) {
@@ -106,11 +176,8 @@ export default function CompetitionsPage() {
         throw new Error(data.error ?? "Erreur lors de l'enregistrement.");
       }
 
-      showToast(
-        "success",
-        editingId ? "Compétition mise à jour." : "Compétition créée avec succès.",
-      );
-      resetModal();
+      showToast("success", "Compétition mise à jour.");
+      resetEditModal();
       refetch();
     } catch (err) {
       setFormError(
@@ -123,17 +190,13 @@ export default function CompetitionsPage() {
     }
   }
 
-  async function handleDelete(competition: Competition) {
-    if (
-      !window.confirm(
-        `Supprimer la compétition "${competition.nom}" ?`
-      )
-    ) {
-      return;
-    }
+  async function confirmDelete() {
+    if (!deletingCompetition) return;
+
+    setDeleting(true);
 
     try {
-      const res = await fetch(`/api/competitions/${competition.id}`, {
+      const res = await fetch(`/api/competitions/${deletingCompetition.id}`, {
         method: "DELETE",
       });
 
@@ -142,9 +205,22 @@ export default function CompetitionsPage() {
         throw new Error(data.error ?? "Erreur lors de la suppression.");
       }
 
+      showToast("success", "Compétition et données associées supprimées.");
+      closeDeleteModal();
+
+      if (isAdmin) {
+        await signOut({ callbackUrl: "/" });
+        return;
+      }
+
       refetch();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur inconnue");
+      showToast(
+        "error",
+        err instanceof Error ? err.message : "Erreur lors de la suppression.",
+      );
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -152,12 +228,7 @@ export default function CompetitionsPage() {
     <div>
       <PageHeader
         title="Compétitions"
-        description="Organisez les tournois et suivez le nombre d'équipes inscrites."
-        action={
-          <PrimaryButton type="button" icon={Plus} onClick={openCreateModal}>
-            Créer une compétition
-          </PrimaryButton>
-        }
+        description="Modifiez les informations de votre compétition. La création se fait depuis la page publique d'inscription."
       />
 
       {error && (
@@ -169,49 +240,80 @@ export default function CompetitionsPage() {
       {loading ? (
         <LoadingState />
       ) : competitions.length === 0 ? (
-        <EmptyState message="Aucune compétition enregistrée pour le moment." />
+        <EmptyState message="Aucune compétition accessible avec ce compte." />
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {competitions.map((competition) => (
             <AdminCard
               key={competition.id}
-              className="group p-6 transition hover:-translate-y-0.5 hover:shadow-lg"
+              className="group overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
-              <div className="mb-5 flex items-start justify-between gap-3">
-                <div>
-                  <p className="card-meta-badge">
-                    {competition.annee}
-                  </p>
-                  <h2 className="mt-2 text-xl font-bold text-slate-900">
-                    {competition.nom}
-                  </h2>
-                  {competition.lieu && (
-                    <p className="mt-2 text-sm text-slate-500">{competition.lieu}</p>
-                  )}
+              {competition.image ? (
+                <div className="relative h-36 w-full bg-slate-100">
+                  <Image
+                    src={competition.image}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
+                  />
                 </div>
-                <StatusBadge tone="navy">
-                  {competition._count?.equipes ?? 0} équipe
-                  {(competition._count?.equipes ?? 0) > 1 ? "s" : ""}
-                </StatusBadge>
-              </div>
+              ) : (
+                <div className="flex h-36 items-center justify-center bg-slate-100 text-slate-400">
+                  <ImagePlus size={28} aria-hidden />
+                </div>
+              )}
 
-              <div className="flex flex-wrap gap-2">
-                <OutlineButton
-                  type="button"
-                  icon={Pencil}
-                  size="sm"
-                  onClick={() => openEditModal(competition)}
-                >
-                  Modifier
-                </OutlineButton>
-                <DangerButton
-                  type="button"
-                  icon={Trash2}
-                  size="sm"
-                  onClick={() => handleDelete(competition)}
-                >
-                  Supprimer
-                </DangerButton>
+              <div className="p-6">
+                <div className="mb-5 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="card-meta-badge">{competition.annee}</p>
+                    <h2 className="mt-2 text-xl font-bold text-slate-900">
+                      {competition.nom}
+                    </h2>
+                    {competition.lieu ? (
+                      <p className="mt-2 text-sm text-slate-500">
+                        {competition.lieu}
+                      </p>
+                    ) : null}
+                    <p className="mt-2 text-xs text-slate-400">
+                      /{competition.slug}
+                    </p>
+                  </div>
+                  <StatusBadge tone="navy">
+                    {competition._count?.equipes ?? 0} équipe
+                    {(competition._count?.equipes ?? 0) > 1 ? "s" : ""}
+                  </StatusBadge>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <OutlineLink
+                    href={buildCompetitionSignInHref(competition.slug)}
+                    icon={Eye}
+                    size="sm"
+                  >
+                    Connexion
+                  </OutlineLink>
+                  <OutlineButton
+                    type="button"
+                    icon={Pencil}
+                    size="sm"
+                    onClick={() => openEditModal(competition)}
+                  >
+                    Modifier
+                  </OutlineButton>
+                  {isAdmin ? (
+                    <DangerButton
+                      type="button"
+                      icon={Trash2}
+                      size="sm"
+                      onClick={() => void openDeleteModal(competition)}
+                    >
+                      Supprimer
+                    </DangerButton>
+                  ) : null}
+                </div>
               </div>
             </AdminCard>
           ))}
@@ -219,10 +321,10 @@ export default function CompetitionsPage() {
       )}
 
       <AdminModal
-        open={isModalOpen}
-        title={editingId ? "Modifier la compétition" : "Nouvelle compétition"}
-        onClose={closeModal}
-        historyKey="competition-form"
+        open={isEditModalOpen}
+        title="Modifier la compétition"
+        onClose={closeEditModal}
+        historyKey="competition-edit"
         busy={submitting}
         footer={
           <>
@@ -230,7 +332,7 @@ export default function CompetitionsPage() {
               type="button"
               icon={X}
               size="sm"
-              onClick={closeModal}
+              onClick={closeEditModal}
               disabled={submitting}
             >
               Annuler
@@ -282,8 +384,107 @@ export default function CompetitionsPage() {
               className="admin-input"
             />
           </div>
+          <div>
+            <FieldLabel htmlFor="comp-image">Image de couverture</FieldLabel>
+            <div className="create-competition-image-field">
+              {imagePreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imagePreview}
+                  alt="Aperçu"
+                  className="create-competition-image-preview"
+                />
+              ) : (
+                <div className="create-competition-image-placeholder">
+                  <ImagePlus size={24} aria-hidden />
+                </div>
+              )}
+              <input
+                ref={imageInputRef}
+                id="comp-image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="sr-only"
+                onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
+              />
+              <OutlineButton
+                type="button"
+                icon={ImagePlus}
+                size="sm"
+                onClick={() => imageInputRef.current?.click()}
+              >
+                {imagePreview ? "Changer l'image" : "Ajouter une image"}
+              </OutlineButton>
+            </div>
+          </div>
           <FieldError message={formError ?? undefined} />
         </fieldset>
+      </AdminModal>
+
+      <AdminModal
+        open={isDeleteModalOpen}
+        title="Supprimer la compétition"
+        onClose={closeDeleteModal}
+        historyKey="competition-delete"
+        busy={deleting}
+        footer={
+          <>
+            <GhostButton
+              type="button"
+              icon={X}
+              size="sm"
+              onClick={closeDeleteModal}
+              disabled={deleting}
+            >
+              Annuler
+            </GhostButton>
+            <DangerButton
+              type="button"
+              icon={Trash2}
+              size="sm"
+              disabled={deleting}
+              onClick={() => void confirmDelete()}
+            >
+              {deleting ? "Suppression…" : "Supprimer définitivement"}
+            </DangerButton>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-[var(--radius-md)] border border-danger/25 bg-[#fdeaea] px-4 py-3">
+            <AlertTriangle
+              size={20}
+              className="mt-0.5 shrink-0 text-danger"
+              aria-hidden
+            />
+            <p className="text-[13px] leading-relaxed text-danger">
+              Cette action est irréversible. Toutes les données liées à{" "}
+              <strong>{deletingCompetition?.nom}</strong> seront supprimées.
+            </p>
+          </div>
+
+          {deleteStatsLoading ? (
+            <p className="text-body text-sm">Calcul des éléments concernés…</p>
+          ) : (
+            <ul className="delete-impact-list text-body text-sm">
+              <li>
+                {deletingCompetition?._count?.equipes ?? 0} club
+                {(deletingCompetition?._count?.equipes ?? 0) > 1 ? "s" : ""}{" "}
+                (équipes)
+              </li>
+              <li>
+                {deleteJoueurCount ?? "—"} joueur
+                {deleteJoueurCount === 1 ? "" : "s"} et leurs données
+              </li>
+              <li>
+                {deletingCompetition?._count?.users ?? 0} compte
+                {(deletingCompetition?._count?.users ?? 0) > 1 ? "s" : ""}{" "}
+                utilisateur
+              </li>
+              <li>La compétition et son image de couverture</li>
+            </ul>
+          )}
+        </div>
       </AdminModal>
     </div>
   );
