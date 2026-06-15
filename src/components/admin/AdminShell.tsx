@@ -14,7 +14,6 @@ import {
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { AdminNav, SidebarSignOut } from "@/app/(admin)/AdminNav";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
@@ -23,6 +22,13 @@ import { AppLogo } from "@/components/brand/AppLogo";
 import { useAdminBackPath } from "@/hooks/useAdminBackPath";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
+import type { AuthUser } from "@/lib/auth/scope";
+
+type AdminShellCompetition = {
+  id: string;
+  nom: string;
+  slug: string;
+};
 
 const SIDEBAR_COLLAPSED_KEY = "id-foot-sidebar-collapsed";
 const SIDEBAR_COLLAPSED_EVENT = "id-foot-sidebar-collapsed-change";
@@ -94,7 +100,15 @@ function getAdminPageTitle(pathname: string): string {
   return "Administration";
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({
+  children,
+  user,
+  competition,
+}: {
+  children: React.ReactNode;
+  user: AuthUser;
+  competition: AdminShellCompetition | null;
+}) {
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const sidebarCollapsed = useSyncExternalStore(
     subscribeSidebarCollapsed,
@@ -105,8 +119,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const menuOpen = menuOpenPath === pathname;
   const isScannerPage = pathname === "/admin/scanner" || pathname.startsWith("/admin/scanner/");
   const backPath = useAdminBackPath();
-  const { data: session } = useSession();
-  const initials = getInitials(session?.user?.name, session?.user?.email);
+  const initials = getInitials(user.name, user.email);
   const topbarBrand = getMobileTopbarBrand(pathname);
   const pageTitle = getAdminPageTitle(pathname);
   const TopbarIcon = topbarBrand.icon;
@@ -176,12 +189,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <AdminNav onNavigate={closeMenu} collapsed={sidebarCollapsed} />
 
         <div className="sidebar-footer mt-auto border-t border-white/[0.08] px-4 py-4">
-          {session?.user?.email && (
+          {user.email && (
             <div className="sidebar-user mb-3 flex items-center gap-2 px-3">
               <span className="user-avatar">{initials}</span>
-              <p className="sidebar-user-email min-w-0 truncate text-[11px] text-white/45">
-                {session.user.email}
-              </p>
+              <div className="min-w-0">
+                <p className="sidebar-user-email truncate text-[11px] font-semibold text-white/80">
+                  {user.name}
+                </p>
+                <p className="sidebar-user-email min-w-0 truncate text-[11px] text-white/45">
+                  {user.email}
+                </p>
+                {competition ? (
+                  <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-wide text-green/90">
+                    {competition.nom}
+                  </p>
+                ) : null}
+              </div>
             </div>
           )}
 
@@ -237,7 +260,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <header className="admin-desktop-bar">
-          <h1 className="admin-desktop-bar-title">{pageTitle}</h1>
+          <div className="min-w-0">
+            <h1 className="admin-desktop-bar-title">{pageTitle}</h1>
+            {competition ? (
+              <p className="admin-desktop-bar-subtitle truncate">
+                {competition.nom} · {competition.slug}
+              </p>
+            ) : null}
+          </div>
         </header>
 
         <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>

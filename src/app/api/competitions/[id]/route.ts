@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePrismaError } from "@/lib/api/http";
-import { getAuthUser } from "@/lib/auth/server";
-import { canAccessCompetition } from "@/lib/auth/scope";
+import {
+  denyUnlessCompetitionAccess,
+  isAuthResponse,
+  requireApiUser,
+} from "@/lib/auth/api";
 import {
   ensureUniqueCompetitionSlug,
   slugifyCompetitionName,
@@ -30,8 +33,10 @@ function parseCompetitionPayload(body: UpdateCompetitionBody) {
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const { id } = await params;
-    const user = await getAuthUser();
     const competition = await prisma.competition.findUnique({
       where: { id },
       include: {
@@ -47,9 +52,8 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    if (user && !canAccessCompetition(user, competition.id)) {
-      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
-    }
+    const denied = denyUnlessCompetitionAccess(user, competition.id);
+    if (denied) return denied;
 
     return NextResponse.json(competition);
   } catch (error) {
@@ -59,6 +63,9 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const { id } = await params;
     const body = (await req.json()) as UpdateCompetitionBody;
     const { nom, annee, lieu, image } = parseCompetitionPayload(body);
@@ -78,10 +85,8 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const user = await getAuthUser();
-    if (user && !canAccessCompetition(user, existing.id)) {
-      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
-    }
+    const denied = denyUnlessCompetitionAccess(user, existing.id);
+    if (denied) return denied;
 
     const baseSlug = slugifyCompetitionName(nom);
     const slug =
@@ -111,11 +116,12 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const { id } = await params;
-    const user = await getAuthUser();
-    if (user && !canAccessCompetition(user, id)) {
-      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
-    }
+    const denied = denyUnlessCompetitionAccess(user, id);
+    if (denied) return denied;
 
     await prisma.competition.delete({
       where: { id },

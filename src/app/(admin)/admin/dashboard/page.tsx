@@ -2,7 +2,15 @@ import { CameraOff, Shield, Trophy, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { PageHeader, StatCard, type StatCardTone } from "@/components/admin/ui";
+import { getAuthUser } from "@/lib/auth/server";
+import {
+  competitionWhereForScope,
+  getCompetitionScope,
+  joueurWhereForScope,
+  teamWhereForScope,
+} from "@/lib/auth/scope";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 type StatItem = {
   label: string;
@@ -14,13 +22,24 @@ type StatItem = {
 };
 
 export default async function DashboardPage() {
+  const user = await getAuthUser();
+  if (!user) redirect("/admin/signin");
+
+  const scope = getCompetitionScope(user);
+  const competitionWhere = competitionWhereForScope(scope);
+  const teamWhere = teamWhereForScope(scope);
+  const playerWhere = joueurWhereForScope(scope);
+
   const [competitionsCount, equipesCount, joueurs] = await Promise.all([
-    prisma.competition.count(),
-    prisma.equipe.count(),
-    prisma.joueur.findMany({ select: { id: true, photo: true } }),
+    prisma.competition.count({ where: competitionWhere }),
+    prisma.equipe.count({ where: teamWhere }),
+    prisma.joueur.findMany({
+      where: playerWhere,
+      select: { id: true, photo: true },
+    }),
   ]);
 
-  const joueursSansPhoto = joueurs.filter((joueur) => joueur.photo === null).length;
+  const joueursSansPhoto = joueurs.filter((joueur) => !joueur.photo).length;
 
   const stats: StatItem[] = [
     {
@@ -58,7 +77,11 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title="Dashboard"
-        description="Vue d'ensemble du système d'identification des joueurs."
+        description={
+          user.role === "SUPER_ADMIN"
+            ? "Vue d'ensemble de toutes les compétitions."
+            : "Vue d'ensemble de votre compétition."
+        }
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

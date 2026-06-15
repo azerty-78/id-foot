@@ -5,6 +5,7 @@ import {
   pdfContentDisposition,
 } from "@/lib/playerCardFilename";
 import { prisma } from "@/lib/prisma";
+import { isAuthResponse, requireApiUser, requirePlayerAccess } from "@/lib/auth/api";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
@@ -12,7 +13,12 @@ type RouteParams = {
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
+
     const { id } = await params;
+    const denied = await requirePlayerAccess(user, id);
+    if (denied) return denied;
 
     const joueur = await prisma.joueur.findUnique({
       where: { id },

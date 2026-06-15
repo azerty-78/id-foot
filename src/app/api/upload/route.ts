@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveCompetitionImage, savePlayerPhoto, saveTeamLogo } from "@/lib/upload";
+import { isAuthResponse, requireApiUser } from "@/lib/auth/api";
+import {
+  saveCompetitionImage,
+  savePlayerPhoto,
+  saveTeamLogo,
+} from "@/lib/upload";
 
 export const runtime = "nodejs";
 
@@ -14,6 +19,11 @@ export async function POST(req: NextRequest) {
         { error: "Fichier image manquant ou invalide." },
         { status: 400 },
       );
+    }
+
+    if (kind !== "competition") {
+      const user = await requireApiUser();
+      if (isAuthResponse(user)) return user;
     }
 
     const url =

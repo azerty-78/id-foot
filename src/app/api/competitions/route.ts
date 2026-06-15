@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePrismaError } from "@/lib/api/http";
-import { getAuthUser } from "@/lib/auth/server";
 import {
-  canAccessCompetition,
+  isAuthResponse,
+  requireApiUser,
+  requireSuperAdmin,
+} from "@/lib/auth/api";
+import {
   competitionWhereForScope,
   getCompetitionScope,
 } from "@/lib/auth/scope";
@@ -30,9 +33,10 @@ function parseCompetitionPayload(body: CreateCompetitionBody) {
 
 export async function GET() {
   try {
-    const user = await getAuthUser();
-    const scope = getCompetitionScope(user);
+    const user = await requireApiUser();
+    if (isAuthResponse(user)) return user;
 
+    const scope = getCompetitionScope(user);
     const competitions = await prisma.competition.findMany({
       where: competitionWhereForScope(scope),
       include: {
@@ -49,6 +53,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireSuperAdmin();
+    if (isAuthResponse(user)) return user;
+
     const body = (await req.json()) as CreateCompetitionBody;
     const { nom, annee, lieu, image } = parseCompetitionPayload(body);
 

@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { UserRole } from "@prisma/client";
 
 export type AuthUser = {
@@ -48,4 +49,18 @@ export function teamWhereForScope(scope: CompetitionScope) {
     return { competitionId: scope.competitionId };
   }
   return { competitionId: "__none__" };
+}
+
+export function equipeCountWhereForScope(scope: CompetitionScope) {
+  return teamWhereForScope(scope);
+}
+
+export function joueurWhereForScope(
+  scope: CompetitionScope,
+): Prisma.JoueurWhereInput {
+  if (scope.type === "all") return {};
+  if (scope.type === "competition") {
+    return { equipe: { competitionId: scope.competitionId } };
+  }
+  return { id: "__none__" };
 }

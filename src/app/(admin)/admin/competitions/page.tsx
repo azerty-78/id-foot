@@ -2,6 +2,7 @@
 
 import { Eye, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import {
   AdminCard,
@@ -32,6 +33,8 @@ type FormState = {
 const emptyForm: FormState = { nom: "", annee: "", lieu: "", image: "" };
 
 export default function CompetitionsPage() {
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
   const { competitions, loading, error, refetch } = useCompetitions();
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
@@ -197,11 +200,17 @@ export default function CompetitionsPage() {
     <div>
       <PageHeader
         title="Compétitions"
-        description="Organisez les tournois et suivez le nombre d'équipes inscrites."
+        description={
+          isSuperAdmin
+            ? "Organisez les tournois et suivez le nombre d'équipes inscrites."
+            : "Gérez les informations de votre compétition."
+        }
         action={
-          <PrimaryButton type="button" icon={Plus} onClick={openCreateModal}>
-            Créer une compétition
-          </PrimaryButton>
+          isSuperAdmin ? (
+            <PrimaryButton type="button" icon={Plus} onClick={openCreateModal}>
+              Créer une compétition
+            </PrimaryButton>
+          ) : undefined
         }
       />
 

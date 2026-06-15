@@ -15,18 +15,18 @@ export function PublicHeader({ action, backHref, backLabel }: PublicHeaderProps)
   return (
     <header className="home-header">
       <div className="home-header-inner">
-        <AppLogo href="/" size="md" className="sm:hidden" />
-        <AppLogo href="/" size="lg" className="hidden sm:block" />
-
-        <div className="home-header-actions">
+        <div className="home-header-start">
           {backHref ? (
             <Link href={backHref} className="home-header-back">
               <ArrowLeft size={16} aria-hidden />
               <span>{backLabel ?? "Retour"}</span>
             </Link>
           ) : null}
-          {action}
+          <AppLogo href="/" size="md" className="sm:hidden" />
+          <AppLogo href="/" size="lg" className="hidden sm:block" />
         </div>
+
+        {action ? <div className="home-header-actions">{action}</div> : null}
       </div>
     </header>
   );
