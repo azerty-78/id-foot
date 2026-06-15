@@ -3,6 +3,8 @@ import {
   CARD_FONT,
   CARD_QR_BOX,
   CARD_QR_INNER,
+  CARD_QR_PDF_OFFSET_Y,
+  CARD_QR_PDF_SIZE_TRIM,
   CARD_QR_QUIET,
   CARD_RENDER_HEIGHT,
   CARD_RENDER_WIDTH,
@@ -69,8 +71,9 @@ function computeLayout(): PlayerCardLayout {
 
   const qrBoxX = Math.round(rightX + (rightW - CARD_QR_BOX) / 2);
   const qrBoxY = Math.round(contentTop + 2);
-  const qrInnerX = qrBoxX + CARD_QR_QUIET;
-  const qrInnerY = qrBoxY + CARD_QR_QUIET;
+  const qrInnerSize = CARD_QR_INNER - CARD_QR_PDF_SIZE_TRIM;
+  const qrInnerX = qrBoxX + CARD_QR_QUIET + Math.round(CARD_QR_PDF_SIZE_TRIM / 2);
+  const qrInnerY = qrBoxY + CARD_QR_QUIET + CARD_QR_PDF_OFFSET_Y;
 
   return {
     width: W,
@@ -83,7 +86,7 @@ function computeLayout(): PlayerCardLayout {
     qrBoxSize: CARD_QR_BOX,
     qrInnerX,
     qrInnerY,
-    qrInnerSize: CARD_QR_INNER,
+    qrInnerSize,
   };
 }
 
