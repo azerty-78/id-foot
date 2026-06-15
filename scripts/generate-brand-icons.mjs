@@ -10,45 +10,62 @@ import toIco from "to-ico";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(root, "public/brand/logo.png");
+const normalizedLogo = join(root, "public/brand/logo.png");
 
-/** Même fond noir que logo.png — pas de navy (évite un rendu différent en onglet). */
+/** Même fond noir que le logo officiel. */
 const BACKGROUND = { r: 0, g: 0, b: 0, alpha: 1 };
 
-function logoPipeline(size) {
+async function loadCanonicalLogoBuffer() {
   return sharp(source)
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+}
+
+async function normalizeLogoPng(canonicalBuffer) {
+  try {
+    writeFileSync(normalizedLogo, canonicalBuffer);
+    console.log("✓ public/brand/logo.png (PNG normalisé)");
+  } catch {
+    console.warn(
+      "⚠ public/brand/logo.png verrouillé — icônes générées depuis la source en mémoire",
+    );
+  }
+}
+
+function pipelineFromBuffer(canonicalBuffer, size) {
+  return sharp(canonicalBuffer)
     .resize(size, size, { fit: "fill", background: BACKGROUND })
     .png();
 }
 
-async function resizePng(size) {
-  return logoPipeline(size).toBuffer();
-}
-
-async function writePng(relativePath, size) {
-  const full = join(root, relativePath);
-  mkdirSync(dirname(full), { recursive: true });
-  await logoPipeline(size).toFile(full);
-}
-
 async function main() {
-  const pngTargets = [
-    // Next.js — haute résolution pour un rendu net dans l’onglet
-    ["src/app/icon.png", 512],
+  const canonicalBuffer = await loadCanonicalLogoBuffer();
+  await normalizeLogoPng(canonicalBuffer);
+
+  writeFileSync(join(root, "src/app/icon.png"), canonicalBuffer);
+  console.log("✓ src/app/icon.png (copie identique du logo officiel)");
+
+  const derivedTargets = [
     ["src/app/apple-icon.png", 180],
-    // Public — PWA + fallback metadata
     ["public/brand/icon.png", 32],
     ["public/brand/apple-touch-icon.png", 180],
     ["public/brand/icon-192.png", 192],
     ["public/brand/icon-512.png", 512],
   ];
 
-  for (const [relativePath, size] of pngTargets) {
-    await writePng(relativePath, size);
+  for (const [relativePath, size] of derivedTargets) {
+    const full = join(root, relativePath);
+    mkdirSync(dirname(full), { recursive: true });
+    await pipelineFromBuffer(canonicalBuffer, size).toFile(full);
     console.log(`✓ ${relativePath} (${size}×${size})`);
   }
 
   const icoSizes = [16, 32, 48];
-  const ico = await toIco(await Promise.all(icoSizes.map(resizePng)));
+  const ico = await toIco(
+    await Promise.all(
+      icoSizes.map((size) => pipelineFromBuffer(canonicalBuffer, size).toBuffer()),
+    ),
+  );
 
   for (const relativePath of ["src/app/favicon.ico", "public/favicon.ico"]) {
     writeFileSync(join(root, relativePath), ico);

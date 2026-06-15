@@ -24,6 +24,7 @@ ENV NEXTAUTH_URL=https://id-foot.kobecorporation.com
 
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
+RUN npm run icons:generate
 RUN npx prisma generate
 RUN npm run build
 
