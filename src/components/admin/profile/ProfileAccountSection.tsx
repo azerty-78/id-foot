@@ -11,6 +11,7 @@ import {
   FormSection,
   GhostLink,
   PrimaryButton,
+  StatusBadge,
 } from "@/components/admin/ui";
 import { useToast } from "@/components/providers/ToastProvider";
 import type { PublicUser } from "@/lib/auth/users";
@@ -97,7 +98,12 @@ export function ProfileAccountSection({
 
         <div>
           <FieldLabel>Rôle</FieldLabel>
-          <p className="mt-1.5 text-sm font-medium text-navy">{roleLabel(initialUser.role)}</p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <p className="text-sm font-medium text-navy">{roleLabel(initialUser.role)}</p>
+            <StatusBadge tone={initialUser.active ? "success" : "danger"}>
+              {initialUser.active ? "Compte actif" : "Compte inactif"}
+            </StatusBadge>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 pt-1">

@@ -40,3 +40,12 @@ export function roleLabel(role: PublicUser["role"]): string {
       return role;
   }
 }
+
+export function sortCompetitionUsers(users: PublicUser[]): PublicUser[] {
+  return [...users].sort((a, b) => {
+    const roleOrder = { ADMIN: 0, MANAGER: 1, SUPER_ADMIN: 2 };
+    const roleDiff = roleOrder[a.role] - roleOrder[b.role];
+    if (roleDiff !== 0) return roleDiff;
+    return a.nom.localeCompare(b.nom, "fr");
+  });
+}

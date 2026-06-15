@@ -3827,3 +3827,40 @@ body {
     background: white;
   }
 }
+
+/* ── God Mode (développeur) ─────────────────────────────────────────────── */
+.god-mode-root {
+  background: var(--gray-50);
+}
+
+.god-mode-shell {
+  min-height: 100vh;
+  padding: 24px 16px 40px;
+}
+
+.god-mode-login-wrap {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.god-mode-login-card {
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+}
+
+.god-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgba(57, 231, 95, 0.15);
+  color: var(--green);
+}
+
+.god-mode-panel {
+  padding-top: 8px;
+}

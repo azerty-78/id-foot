@@ -22,6 +22,8 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: UserRole;
     competitionId?: string | null;
+    active?: boolean;
+    userCheckedAt?: number;
   }
 }
 

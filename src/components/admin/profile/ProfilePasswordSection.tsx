@@ -25,6 +25,17 @@ export function ProfilePasswordSection() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (form.newPassword.length < 8) {
+      setError("Le nouveau mot de passe doit contenir au moins 8 caractères.");
+      return;
+    }
+
+    if (form.newPassword !== form.confirmPassword) {
+      setError("Les mots de passe ne correspondent pas.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {

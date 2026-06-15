@@ -30,7 +30,11 @@ export default withAuth(
           return true;
         }
 
-        return Boolean(token?.sub);
+        if (pathname.startsWith("/god-mode") || pathname.startsWith("/api/god-mode")) {
+          return true;
+        }
+
+        return Boolean(token?.sub && token.active !== false);
       },
     },
     pages: {
@@ -46,5 +50,6 @@ export const config = {
     "/api/teams/:path*",
     "/api/players/:path*",
     "/api/qr/:path*",
+    "/api/users/:path*",
   ],
 };

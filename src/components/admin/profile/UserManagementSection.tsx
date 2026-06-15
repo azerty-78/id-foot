@@ -4,11 +4,13 @@ import {
   KeyRound,
   Pencil,
   Plus,
+  RefreshCw,
   Save,
   Trash2,
   UserCheck,
   UserX,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminModal } from "@/components/admin/AdminModal";
 import {
@@ -26,7 +28,7 @@ import {
 } from "@/components/admin/ui";
 import { useToast } from "@/components/providers/ToastProvider";
 import type { PublicUser } from "@/lib/auth/users";
-import { isManageableManager, roleLabel } from "@/lib/auth/users";
+import { isManageableManager, roleLabel, sortCompetitionUsers } from "@/lib/auth/users";
 
 type ManagerForm = {
   nom: string;
@@ -42,7 +44,7 @@ const emptyCreateForm: ManagerForm = {
   confirmPassword: "",
 };
 
-type ModalMode = "create" | "edit" | "password" | null;
+type ModalMode = "create" | "edit" | "password" | "delete" | null;
 
 export function UserManagementSection({
   currentUserId,
@@ -53,8 +55,9 @@ export function UserManagementSection({
   competitionId: string;
   initialUsers: PublicUser[];
 }) {
+  const router = useRouter();
   const { showToast } = useToast();
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState(() => sortCompetitionUsers(initialUsers));
   const [search, setSearch] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [selectedUser, setSelectedUser] = useState<PublicUser | null>(null);
@@ -62,6 +65,7 @@ export function UserManagementSection({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -112,9 +116,45 @@ export function UserManagementSection({
     setFormError(null);
   }
 
+  async function refreshUsers() {
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/users");
+      const data = (await res.json()) as PublicUser[] & { error?: string };
+      if (!res.ok) {
+        showToast("error", data.error ?? "Impossible de recharger la liste.");
+        return;
+      }
+      setUsers(sortCompetitionUsers(data));
+      router.refresh();
+      showToast("success", "Liste actualisée.");
+    } catch {
+      showToast("error", "Erreur réseau lors du rechargement.");
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  function validatePasswordFields(password: string, confirmPassword: string): string | null {
+    if (password.length < 8) {
+      return "Le mot de passe doit contenir au moins 8 caractères.";
+    }
+    if (password !== confirmPassword) {
+      return "Les mots de passe ne correspondent pas.";
+    }
+    return null;
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
+
+    const passwordError = validatePasswordFields(form.password, form.confirmPassword);
+    if (passwordError) {
+      setFormError(passwordError);
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -130,7 +170,7 @@ export function UserManagementSection({
         return;
       }
 
-      setUsers((prev) => [...prev, data].sort((a, b) => a.nom.localeCompare(b.nom)));
+      setUsers((prev) => sortCompetitionUsers([...prev, data]));
       closeModal();
       showToast("success", "Gestionnaire créé.");
     } catch {
@@ -160,7 +200,9 @@ export function UserManagementSection({
         return;
       }
 
-      setUsers((prev) => prev.map((user) => (user.id === data.id ? data : user)));
+      setUsers((prev) =>
+        sortCompetitionUsers(prev.map((user) => (user.id === data.id ? data : user))),
+      );
       closeModal();
       showToast("success", "Gestionnaire mis à jour.");
     } catch {
@@ -175,6 +217,13 @@ export function UserManagementSection({
     if (!selectedUser) return;
 
     setFormError(null);
+
+    const passwordError = validatePasswordFields(form.password, form.confirmPassword);
+    if (passwordError) {
+      setFormError(passwordError);
+      return;
+    }
+
     setSubmitting(true);
 
     try {

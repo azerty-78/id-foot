@@ -227,9 +227,9 @@ export default function SignInForm({
               {submitting ? "Connexion…" : "Se connecter"}
             </PrimaryButton>
 
-            <Link href="#" className="login-forgot">
-              Mot de passe oublié ?
-            </Link>
+            <p className="login-forgot text-secondary text-center text-xs">
+              Mot de passe oublié ? Contactez l&apos;administrateur de votre compétition.
+            </p>
           </form>
         </div>
       </main>

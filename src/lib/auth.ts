@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (competitionSlug) {
+        if (competitionSlug && user.role !== "SUPER_ADMIN") {
           const competition = await prisma.competition.findUnique({
             where: { slug: competitionSlug },
             select: { id: true },
@@ -67,7 +67,7 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.sub = user.id;
         token.id = user.id;
@@ -75,7 +75,47 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = user.role;
         token.competitionId = user.competitionId;
+        token.active = true;
+        token.userCheckedAt = Date.now();
+        return token;
       }
+
+      if (!token.sub) {
+        return token;
+      }
+
+      const refreshIntervalMs = 60_000;
+      const lastCheck = token.userCheckedAt ?? 0;
+      const shouldRefresh =
+        trigger === "update" || Date.now() - lastCheck > refreshIntervalMs;
+
+      if (!shouldRefresh) {
+        return token;
+      }
+
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.sub },
+        select: {
+          nom: true,
+          email: true,
+          role: true,
+          competitionId: true,
+          active: true,
+        },
+      });
+
+      token.userCheckedAt = Date.now();
+
+      if (!dbUser?.active) {
+        token.active = false;
+        return token;
+      }
+
+      token.active = true;
+      token.name = dbUser.nom;
+      token.email = dbUser.email;
+      token.role = dbUser.role;
+      token.competitionId = dbUser.competitionId;
       return token;
     },
     async session({ session, token }) {
