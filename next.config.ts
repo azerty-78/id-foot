@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const productionContentSecurityPolicy = [
   "default-src https: data: 'unsafe-inline' 'unsafe-eval'",
@@ -10,6 +14,9 @@ const productionContentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  turbopack: {
+    root: projectRoot,
+  },
   serverExternalPackages: ["sharp"],
   images: {
     // Les assets /public servis tels quels — évite les échecs Sharp en Docker Alpine

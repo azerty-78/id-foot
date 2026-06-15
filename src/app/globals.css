@@ -660,6 +660,7 @@ body {
 
 .modal-footer {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 20px;
@@ -2616,17 +2617,14 @@ body {
 }
 
 .create-competition-page {
-  width: 100%;
-  max-width: min(40rem, calc(100vw - 24px));
+  width: min(40rem, calc(100vw - 24px));
   margin-inline: auto;
 }
 
 .create-competition-card {
   position: relative;
-  width: fit-content;
-  min-width: min(100%, 320px);
-  max-width: 100%;
-  height: fit-content;
+  width: 100%;
+  height: auto;
   margin-inline: auto;
   border-radius: var(--radius-xl);
   border: 0.5px solid var(--gray-200);
@@ -2639,6 +2637,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
   margin-top: 24px;
 }
 
