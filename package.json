@@ -18,8 +18,7 @@
     "docker:up:prod": "docker compose -f setup/compose.yaml --env-file setup/.env --profile production up --build -d",
     "docker:down": "docker compose -f setup/compose.yaml --env-file setup/.env --profile production down",
     "docker:logs": "docker compose -f setup/compose.yaml --env-file setup/.env logs -f",
-    "icons:generate": "node scripts/generate-brand-icons.mjs",
-    "fonts:setup": "node scripts/setup-card-fonts.mjs"
+    "icons:generate": "node scripts/generate-brand-icons.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

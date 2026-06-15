@@ -24,10 +24,6 @@ ENV NEXTAUTH_URL=https://id-foot.kobecorporation.com
 
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
-RUN mkdir -p assets/fonts \
-  && cp /usr/share/fonts/dejavu/DejaVuSans.ttf assets/fonts/ \
-  && cp /usr/share/fonts/dejavu/DejaVuSans-Bold.ttf assets/fonts/ \
-  && fc-cache -f
 RUN npm run icons:generate
 RUN npx prisma generate
 RUN npm run build
@@ -42,7 +38,6 @@ RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /usr/src/app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /usr/src/app/assets ./assets
 COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /usr/src/app/package.json ./package.json
@@ -53,10 +48,9 @@ COPY setup/entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x ./entrypoint.sh \
   && mkdir -p public/uploads/photos \
-  && chown -R nextjs:nodejs public .next/static assets \
+  && chown -R nextjs:nodejs public .next/static \
   && fc-cache -f \
-  && test -f assets/fonts/DejaVuSans.ttf \
-  && test -f assets/fonts/fonts.conf \
+  && fc-list | grep -qi "dejavu sans" \
   && test -f public/id-foot-nobg.png \
   && test -f public/brand/icon.png \
   && test -f public/favicon.ico
