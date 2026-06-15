@@ -1,10 +1,10 @@
 "use client";
 
-import { Eye, EyeOff, LogIn, Mail } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LogIn, Mail, MapPin, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   FieldLabel,
   InputWithIcon,
@@ -12,10 +12,14 @@ import {
 } from "@/components/admin/ui";
 import { AppLogo } from "@/components/brand/AppLogo";
 import { useToast } from "@/components/providers/ToastProvider";
-import {
-  ADMIN_COMPETITION_HOME,
-  buildCompetitionSignInHref,
-} from "@/lib/competitionSlug";
+import { ADMIN_COMPETITION_HOME } from "@/lib/competitionSlug";
+
+type CompetitionPreview = {
+  nom: string;
+  annee: number;
+  lieu: string | null;
+  image: string | null;
+};
 
 export default function SignInForm() {
   const router = useRouter();
@@ -31,6 +35,44 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [competition, setCompetition] = useState<CompetitionPreview | null>(
+    null,
+  );
+  const [competitionLoading, setCompetitionLoading] = useState(false);
+
+  const backHref = competitionSlug ? `/${competitionSlug}` : "/";
+  const backLabel = competitionSlug
+    ? "Retour à la compétition"
+    : "Retour à l'accueil";
+
+  useEffect(() => {
+    if (!competitionSlug) {
+      setCompetition(null);
+      return;
+    }
+
+    let cancelled = false;
+    setCompetitionLoading(true);
+
+    void fetch(
+      `/api/competitions/by-slug/${encodeURIComponent(competitionSlug)}`,
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: CompetitionPreview | null) => {
+        if (!cancelled) {
+          setCompetition(data);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setCompetitionLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [competitionSlug]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -67,40 +109,85 @@ export default function SignInForm() {
     }
   }
 
-  return (
-    <div className="login-layout">
-      <div className="login-panel-navy">
-        <AppLogo size="xl" />
-        <p className="login-tagline">
-          Système d&apos;identification et de gestion des licences joueurs ID FOOT.
-        </p>
-      </div>
+  function renderLeadText() {
+    if (!competitionSlug) {
+      return "Accédez à l'espace d'administration ID FOOT.";
+    }
 
-      <div className="login-panel-form">
-        <div className="login-form-inner">
-          <div className="mb-8 lg:hidden">
+    if (competitionLoading) {
+      return "Chargement de la compétition…";
+    }
+
+    if (competition) {
+      return (
+        <>
+          Connectez-vous pour administrer{" "}
+          <span className="login-competition-name">{competition.nom}</span>.
+        </>
+      );
+    }
+
+    return "Connectez-vous pour administrer cette compétition.";
+  }
+
+  return (
+    <div className="login-page">
+      <header className="login-page-header">
+        <div className="login-page-header-inner">
+          <Link href={backHref} className="login-page-back">
+            <ArrowLeft size={16} aria-hidden />
+            <span>{backLabel}</span>
+          </Link>
+          <AppLogo href="/" size="sm" />
+        </div>
+      </header>
+
+      <main className="login-page-main">
+        <div className="login-card">
+          <div className="login-card-brand">
             <AppLogo size="md" />
           </div>
 
-          <h1 className="text-h2">Connexion</h1>
-          <p className="text-body mt-2">
-            {competitionSlug
-              ? "Connectez-vous pour administrer cette compétition."
-              : "Accédez à l'espace d'administration ID FOOT."}
-          </p>
+          <p className="text-section-label">Administration</p>
+          <h1 className="text-h2 mt-2">Connexion</h1>
+          <p className="login-card-lead">{renderLeadText()}</p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            {competitionSlug ? (
-              <div className="rounded-[var(--radius-md)] border border-[rgba(57,231,95,0.35)] bg-[var(--green-bg)] px-4 py-3 text-[13px] leading-relaxed text-[var(--green-dim)]">
-                Connexion réservée aux comptes autorisés pour cette compétition.
+          {competitionSlug && competition ? (
+            <div className="login-competition-badge">
+              {competition.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={competition.image}
+                  alt=""
+                  className="login-competition-badge-image"
+                />
+              ) : (
+                <div className="login-competition-badge-icon" aria-hidden>
+                  <Trophy size={20} />
+                </div>
+              )}
+              <div className="login-competition-badge-body">
+                <p className="login-competition-badge-name">{competition.nom}</p>
+                <p className="login-competition-badge-meta">
+                  <span>{competition.annee}</span>
+                  {competition.lieu ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <MapPin size={12} aria-hidden />
+                      <span>{competition.lieu}</span>
+                    </>
+                  ) : null}
+                </p>
               </div>
-            ) : null}
+            </div>
+          ) : null}
 
-            {error && (
-              <div className="rounded-[var(--radius-md)] border border-danger/20 bg-[#fdeaea] px-4 py-3 text-[13px] text-danger">
+          <form onSubmit={handleSubmit} className="login-card-form">
+            {error ? (
+              <div className="login-form-error" role="alert">
                 {error}
               </div>
-            )}
+            ) : null}
 
             <div>
               <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -135,7 +222,11 @@ export default function SignInForm() {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
                 >
                   {showPassword ? (
                     <EyeOff size={18} strokeWidth={2} />
@@ -152,7 +243,7 @@ export default function SignInForm() {
               disabled={submitting}
               className="w-full"
             >
-              {submitting ? "Connexion..." : "Se connecter"}
+              {submitting ? "Connexion…" : "Se connecter"}
             </PrimaryButton>
 
             <Link href="#" className="login-forgot">
@@ -160,7 +251,7 @@ export default function SignInForm() {
             </Link>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
