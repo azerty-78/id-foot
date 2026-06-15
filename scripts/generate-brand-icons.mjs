@@ -1,5 +1,5 @@
 /**
- * Génère favicon + icônes PWA à partir de public/brand/logo.png.
+ * Génère favicon + icônes PWA à partir de public/brand/logo.png (source unique).
  * Usage : npm run icons:generate
  */
 import { mkdirSync, writeFileSync } from "fs";
@@ -11,29 +11,31 @@ import toIco from "to-ico";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(root, "public/brand/logo.png");
 
-/** Fond navy — lisible en onglet et cohérent avec la charte */
-const BACKGROUND = { r: 13, g: 27, b: 42, alpha: 1 };
+/** Même fond noir que logo.png — pas de navy (évite un rendu différent en onglet). */
+const BACKGROUND = { r: 0, g: 0, b: 0, alpha: 1 };
+
+function logoPipeline(size) {
+  return sharp(source)
+    .resize(size, size, { fit: "fill", background: BACKGROUND })
+    .png();
+}
 
 async function resizePng(size) {
-  return sharp(source)
-    .resize(size, size, { fit: "contain", background: BACKGROUND })
-    .png()
-    .toBuffer();
+  return logoPipeline(size).toBuffer();
 }
 
 async function writePng(relativePath, size) {
   const full = join(root, relativePath);
   mkdirSync(dirname(full), { recursive: true });
-  await sharp(source)
-    .resize(size, size, { fit: "contain", background: BACKGROUND })
-    .png()
-    .toFile(full);
+  await logoPipeline(size).toFile(full);
 }
 
 async function main() {
   const pngTargets = [
-    ["src/app/icon.png", 32],
+    // Next.js — haute résolution pour un rendu net dans l’onglet
+    ["src/app/icon.png", 512],
     ["src/app/apple-icon.png", 180],
+    // Public — PWA + fallback metadata
     ["public/brand/icon.png", 32],
     ["public/brand/apple-touch-icon.png", 180],
     ["public/brand/icon-192.png", 192],

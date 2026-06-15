@@ -70,6 +70,19 @@ function getMobileTopbarBrand(pathname: string): MobileTopbarBrand {
   return { href: "/admin/dashboard", icon: LayoutDashboard, primary: "Dashboard" };
 }
 
+function getAdminPageTitle(pathname: string): string {
+  if (pathname.startsWith("/admin/scanner")) return "Scanner QR";
+  if (pathname === "/admin/players/cards") return "Cartes licences";
+  if (pathname === "/admin/players/new") return "Ajouter un joueur";
+  if (/^\/admin\/players\/[^/]+\/edit\/?$/.test(pathname)) return "Modifier le joueur";
+  if (/^\/admin\/players\/[^/]+\/?$/.test(pathname)) return "Fiche joueur";
+  if (pathname.startsWith("/admin/players")) return "Joueurs";
+  if (pathname.startsWith("/admin/teams")) return "Équipes";
+  if (pathname.startsWith("/admin/competitions")) return "Compétitions";
+  if (pathname.startsWith("/admin/dashboard")) return "Dashboard";
+  return "Administration";
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed);
@@ -80,6 +93,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const initials = getInitials(session?.user?.name, session?.user?.email);
   const topbarBrand = getMobileTopbarBrand(pathname);
+  const pageTitle = getAdminPageTitle(pathname);
   const TopbarIcon = topbarBrand.icon;
 
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
@@ -209,18 +223,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <header className="admin-desktop-bar">
-          <button
-            type="button"
-            onClick={toggleSidebarCollapsed}
-            className="btn btn-ghost btn-icon admin-desktop-bar-toggle"
-            aria-label={sidebarCollapsed ? "Ouvrir la barre latérale" : "Réduire la barre latérale"}
-          >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen size={18} strokeWidth={2} />
-            ) : (
-              <PanelLeftClose size={18} strokeWidth={2} />
-            )}
-          </button>
+          <h1 className="admin-desktop-bar-title">{pageTitle}</h1>
         </header>
 
         <div className={`admin-content-area ${isScannerPage ? "admin-content-area--scanner" : ""}`}>

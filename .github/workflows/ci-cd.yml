@@ -52,8 +52,6 @@ jobs:
           VAR_PUBLIC_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
           SECRET_DEPLOY_DIR: ${{ secrets.VPS_DEPLOY_DIR }}
           SECRET_VPS_PORT: ${{ secrets.VPS_PORT }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DEFAULT_PUBLIC_URL: ${{ env.DEFAULT_PUBLIC_URL }}
           DEFAULT_DEPLOY_DIR: ${{ env.DEFAULT_DEPLOY_DIR }}
           DEFAULT_VPS_SSH_PORT: ${{ env.DEFAULT_VPS_SSH_PORT }}
@@ -71,7 +69,8 @@ jobs:
 
           echo "deploy_dir=${SECRET_DEPLOY_DIR:-${DEFAULT_DEPLOY_DIR}}" >> "$GITHUB_OUTPUT"
           echo "vps_port=${SECRET_VPS_PORT:-${DEFAULT_VPS_SSH_PORT}}" >> "$GITHUB_OUTPUT"
-          echo "docker_registry=${DOCKERHUB_USERNAME:-${DOCKER_USERNAME:-${DEFAULT_DOCKER_REGISTRY}}}" >> "$GITHUB_OUTPUT"
+          # Fallback public uniquement — ne jamais y mettre un secret (outputs inter-jobs vidés par GitHub).
+          echo "docker_registry=${DEFAULT_DOCKER_REGISTRY}" >> "$GITHUB_OUTPUT"
 
   tag:
     name: Compute version tag
@@ -317,6 +316,8 @@ jobs:
       contents: read
       packages: write
     env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     outputs:
@@ -331,16 +332,26 @@ jobs:
       - name: Prepare .dockerignore (source setup/)
         run: cp setup/.dockerignore .dockerignore
 
-      - name: Log in to Docker Hub
+      - name: Resolve Docker Hub namespace
+        id: docker_hub
         shell: bash
+        env:
+          DEFAULT_DOCKER_REGISTRY: ${{ env.DEFAULT_DOCKER_REGISTRY }}
         run: |
           set -euo pipefail
-          PASS="${DOCKERHUB_PASSWORD:-${DOCKER_PASSWORD:-}}"
-          if [ -z "${PASS}" ]; then
-            echo "::error::Secret DOCKERHUB_PASSWORD ou DOCKER_PASSWORD requis"
+          NS="${DOCKERHUB_USERNAME:-${DOCKER_USERNAME:-${DEFAULT_DOCKER_REGISTRY}}}"
+          if [ -z "${NS}" ]; then
+            echo "::error::Secret DOCKERHUB_USERNAME ou DOCKER_USERNAME requis"
             exit 1
           fi
-          echo "${PASS}" | docker login -u "${{ needs.config.outputs.docker_registry }}" --password-stdin
+          echo "namespace=${NS}" >> "$GITHUB_OUTPUT"
+          echo "Docker Hub namespace résolu (longueur: ${#NS})"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ steps.docker_hub.outputs.namespace }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD || secrets.DOCKER_PASSWORD }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -354,7 +365,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}
+            ${{ steps.docker_hub.outputs.namespace }}/${{ env.IMAGE_NAME }}
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ needs.tag.outputs.docker_tag }}
@@ -407,19 +418,31 @@ jobs:
       packages: write
       id-token: write
     env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-      - name: Log in to Docker Hub
+      - name: Resolve Docker Hub namespace
+        id: docker_hub
         shell: bash
+        env:
+          DEFAULT_DOCKER_REGISTRY: ${{ env.DEFAULT_DOCKER_REGISTRY }}
         run: |
           set -euo pipefail
-          PASS="${DOCKERHUB_PASSWORD:-${DOCKER_PASSWORD:-}}"
-          if [ -z "${PASS}" ]; then
-            echo "::error::Secret DOCKERHUB_PASSWORD ou DOCKER_PASSWORD requis"
+          NS="${DOCKERHUB_USERNAME:-${DOCKER_USERNAME:-${DEFAULT_DOCKER_REGISTRY}}}"
+          if [ -z "${NS}" ]; then
+            echo "::error::Secret DOCKERHUB_USERNAME ou DOCKER_USERNAME requis"
             exit 1
           fi
-          echo "${PASS}" | docker login -u "${{ needs.config.outputs.docker_registry }}" --password-stdin
+          echo "namespace=${NS}" >> "$GITHUB_OUTPUT"
+          echo "Docker Hub namespace résolu (longueur: ${#NS})"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ steps.docker_hub.outputs.namespace }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD || secrets.DOCKER_PASSWORD }}
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
@@ -427,7 +450,7 @@ jobs:
       - name: Sign Docker Hub image
         env:
           COSIGN_EXPERIMENTAL: "true"
-          IMAGE_REF: ${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}@${{ needs.docker-push.outputs.digest }}
+          IMAGE_REF: ${{ steps.docker_hub.outputs.namespace }}/${{ env.IMAGE_NAME }}@${{ needs.docker-push.outputs.digest }}
         run: cosign sign --yes "${IMAGE_REF}"
 
   deploy:
@@ -484,10 +507,25 @@ jobs:
             echo "username=${VPS_USER}" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Resolve Docker Hub namespace
+        id: docker_hub
+        shell: bash
+        env:
+          DEFAULT_DOCKER_REGISTRY: ${{ env.DEFAULT_DOCKER_REGISTRY }}
+        run: |
+          set -euo pipefail
+          NS="${DOCKERHUB_USERNAME:-${DOCKER_USERNAME:-${DEFAULT_DOCKER_REGISTRY}}}"
+          if [ -z "${NS}" ]; then
+            echo "::error::Secret DOCKERHUB_USERNAME ou DOCKER_USERNAME requis"
+            exit 1
+          fi
+          echo "namespace=${NS}" >> "$GITHUB_OUTPUT"
+          echo "Docker Hub namespace résolu (longueur: ${#NS})"
+
       - name: Deploy via SSH (docker run)
         uses: appleboy/ssh-action@v1.2.0
         env:
-          IMAGE: ${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}
+          IMAGE: ${{ steps.docker_hub.outputs.namespace }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -578,7 +616,7 @@ jobs:
         run: |
           {
             echo "### Déploiement ID FOOT"
-            echo "- Image : \`${{ needs.config.outputs.docker_registry }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}\`"
+            echo "- Image : \`${{ steps.docker_hub.outputs.namespace }}/${{ env.IMAGE_NAME }}:${{ needs.tag.outputs.docker_tag }}\`"
             echo "- Digest : \`${{ needs.docker-push.outputs.digest }}\`"
             echo "- Hôte : \`${{ secrets.VPS_HOST }}\`"
             echo "- Port local : \`${{ env.APP_HOST_PORT }}\`"

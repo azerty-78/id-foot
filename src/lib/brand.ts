@@ -3,8 +3,10 @@ export const brandAssets = {
   /** Logo transparent — affichage in-app uniquement (sidebar, topbar, QR…) */
   logo: "/id-foot-nobg.png",
   qrLogo: "/id-foot-nobg.png",
-  /** Favicon / PWA — assets dédiés dans /brand/ */
-  icon: "/brand/icon.png",
+  /** Logo officiel — favicon / onglet navigateur (= public/brand/logo.png) */
+  faviconLogo: "/brand/logo.png",
+  /** Favicon / PWA — dérivés de logo.png via npm run icons:generate */
+  icon: "/brand/logo.png",
   appleTouchIcon: "/brand/apple-touch-icon.png",
   icon192: "/brand/icon-192.png",
   icon512: "/brand/icon-512.png",
