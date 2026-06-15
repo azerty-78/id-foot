@@ -6,7 +6,7 @@ import {
   validateManagerUserUpdate,
   validatePasswordChange,
   validateUserNom,
-} from "../src/lib/validators.ts";
+} from "@/lib/validators";
 
 describe("validateUserNom", () => {
   it("accepte un nom valide", () => {
