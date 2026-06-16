@@ -15,7 +15,6 @@ import { usePlayer } from "@/hooks/useApi";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import {
   PlayerLicenseCard,
-  type PlayerLicenseCardPlayer,
 } from "@/components/admin/PlayerLicenseCard";
 import {
   AdminCard,
@@ -29,6 +28,7 @@ import {
 } from "@/components/admin/ui";
 import { downloadPdfFromApi } from "@/lib/downloadPdfClient";
 import { buildPlayerCardFilename } from "@/lib/playerCardFilename";
+import { toPlayerLicenseCardPlayer } from "@/lib/playerLicenseCardPlayer";
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -119,24 +119,7 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
 
   const qrValue = `${appUrl}/api/qr/${player.qrToken}`;
 
-  const licensePlayer: PlayerLicenseCardPlayer = {
-    id: player.id,
-    nom: player.nom,
-    prenom: player.prenom,
-    numero: player.numero,
-    poste: player.poste,
-    photo: player.photo,
-    qrToken: player.qrToken,
-    equipe: {
-      nom: player.equipe.nom,
-      competition: {
-        nom: player.equipe.competition.nom,
-        image: player.equipe.competition.image,
-        abbreviation: player.equipe.competition.abbreviation,
-        fullControl: player.equipe.competition.fullControl,
-      },
-    },
-  };
+  const licensePlayer = toPlayerLicenseCardPlayer(player);
 
   const details = [
     { label: "ID", value: player.id },

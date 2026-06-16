@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, OutlineLink, PrimaryButton } from "@/components/admin/ui";
+import { toPlayerLicenseCardPlayer } from "@/lib/playerLicenseCardPlayer";
 import type { ValidatedPlayer } from "./types";
 
 type ScanSuccessOverlayProps = {
@@ -76,7 +77,11 @@ export function ScanSuccessOverlay({
             className="scan-success-identity"
           />
         ) : (
-          <PlayerLicenseCard player={player} compact className="scan-success-card" />
+          <PlayerLicenseCard
+            player={toPlayerLicenseCardPlayer(player)}
+            compact
+            className="scan-success-card"
+          />
         )}
 
         <div className="scan-success-actions">
