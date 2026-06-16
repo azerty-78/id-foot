@@ -32,6 +32,7 @@ model Competition {
   annee        Int
   lieu         String?
   image        String?
+  fullControl  Boolean  @default(false)
   createdAt    DateTime @default(now())
   equipes      Equipe[]
   users        User[]

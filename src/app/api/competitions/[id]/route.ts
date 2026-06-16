@@ -25,6 +25,7 @@ type UpdateCompetitionBody = {
   annee: number | string;
   lieu?: string | null;
   image?: string | null;
+  fullControl?: boolean;
 };
 
 function parseCompetitionPayload(body: UpdateCompetitionBody) {
@@ -32,12 +33,13 @@ function parseCompetitionPayload(body: UpdateCompetitionBody) {
   const annee = Number.parseInt(String(body.annee), 10);
   const lieu = body.lieu?.trim() || null;
   const image = body.image?.trim() || null;
+  const fullControl = body.fullControl === true;
   const abbreviation = resolveCompetitionAbbreviation({
     nom,
     abbreviation: body.abbreviation,
   });
 
-  return { nom, annee, lieu, image, abbreviation };
+  return { nom, annee, lieu, image, abbreviation, fullControl };
 }
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
@@ -80,9 +82,16 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = (await req.json()) as UpdateCompetitionBody;
-    const { nom, annee, lieu, image, abbreviation } = parseCompetitionPayload(body);
+    const { nom, annee, lieu, image, abbreviation, fullControl } =
+      parseCompetitionPayload(body);
 
-    const validation = validateCompetition({ nom, abbreviation, annee, lieu });
+    const validation = validateCompetition({
+      nom,
+      abbreviation,
+      annee,
+      lieu,
+      fullControl,
+    });
     if (!validation.valid) {
       return NextResponse.json(
         { error: validation.errors[0] },
@@ -116,6 +125,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         annee,
         lieu,
         image,
+        fullControl,
       },
       include: {
         _count: { select: { equipes: true } },

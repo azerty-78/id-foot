@@ -172,6 +172,12 @@ export function validateCompetition(data: unknown): ValidationResult {
     }
   }
 
+  if (data.fullControl !== undefined && data.fullControl !== null) {
+    if (typeof data.fullControl !== "boolean") {
+      errors.push("Le paramètre fullControl doit être un booléen.");
+    }
+  }
+
   const abbreviation = resolveCompetitionAbbreviation({
     nom: nom ?? "",
     abbreviation:

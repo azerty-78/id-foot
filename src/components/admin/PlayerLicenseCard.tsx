@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Download, Eye } from "lucide-react";
 import { PlayerCardQr } from "@/app/player-card/[id]/PlayerCardQr";
 import { GhostLink, OutlineButton } from "@/components/admin/ui";
+import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
 
 export type PlayerLicenseCardPlayer = {
   id: string;
@@ -15,7 +16,12 @@ export type PlayerLicenseCardPlayer = {
   qrToken: string;
   equipe: {
     nom: string;
-    competition: { nom: string; image?: string | null };
+    competition: {
+      nom: string;
+      image?: string | null;
+      abbreviation: string;
+      fullControl: boolean;
+    };
   };
 };
 
@@ -86,7 +92,9 @@ export function PlayerLicenseCard({
       )}
 
       <header className="player-license-card-header">
-        <span className="player-license-card-brand">ID FOOT</span>
+        <span className="player-license-card-brand">
+          {getPlayerCardBrandLabel(player.equipe.competition)}
+        </span>
         <p className="player-license-card-competition">
           {player.equipe.competition.nom}
         </p>

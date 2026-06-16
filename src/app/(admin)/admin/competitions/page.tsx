@@ -9,6 +9,7 @@ import {
   DangerButton,
   EmptyState,
   FieldError,
+  FieldHint,
   FieldLabel,
   FormSubmitOverlay,
   GhostButton,
@@ -32,9 +33,17 @@ type FormState = {
   annee: string;
   lieu: string;
   image: string;
+  fullControl: boolean;
 };
 
-const emptyForm: FormState = { nom: "", abbreviation: "", annee: "", lieu: "", image: "" };
+const emptyForm: FormState = {
+  nom: "",
+  abbreviation: "",
+  annee: "",
+  lieu: "",
+  image: "",
+  fullControl: false,
+};
 
 export default function CompetitionsPage() {
   const { data: session } = useSession();
@@ -70,6 +79,7 @@ export default function CompetitionsPage() {
       annee: String(competition.annee),
       lieu: competition.lieu ?? "",
       image: competition.image ?? "",
+      fullControl: competition.fullControl,
     });
     setImageFile(null);
     setImagePreview(competition.image);
@@ -154,6 +164,7 @@ export default function CompetitionsPage() {
       abbreviation: form.abbreviation.trim(),
       annee: Number.parseInt(form.annee, 10),
       lieu: form.lieu.trim() || null,
+      fullControl: form.fullControl,
     };
 
     const validation = validateCompetition(payload);
@@ -420,6 +431,27 @@ export default function CompetitionsPage() {
               onChange={(e) => setForm({ ...form, lieu: e.target.value })}
               className="admin-input"
             />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                id="comp-full-control"
+                type="checkbox"
+                checked={form.fullControl}
+                onChange={(e) =>
+                  setForm({ ...form, fullControl: e.target.checked })
+                }
+                className="mt-1 h-4 w-4 accent-[var(--green)]"
+              />
+              <span>
+                <span className="text-sm font-medium text-navy">Full control</span>
+                <FieldHint>
+                  Si activé, le badge des cartes licence affiche l&apos;abréviation
+                  de la compétition ({form.abbreviation || "—"}) à la place de
+                  &quot;ID FOOT&quot;.
+                </FieldHint>
+              </span>
+            </label>
           </div>
           <div>
             <FieldLabel htmlFor="comp-image">Image de couverture</FieldLabel>

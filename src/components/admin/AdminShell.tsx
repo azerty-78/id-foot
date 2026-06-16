@@ -229,7 +229,12 @@ export function AdminShell({
             className="admin-topbar-logo touch-target"
             aria-label="Mon profil"
           >
-            <span className="user-avatar user-avatar--topbar">{initials}</span>
+            <AppLogo
+              size="sm"
+              src={brandLogoSrc}
+              alt={brandLogoAlt}
+              className="admin-topbar-logo-image"
+            />
           </Link>
         </header>
 

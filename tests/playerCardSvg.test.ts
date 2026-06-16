@@ -10,7 +10,7 @@ const basePlayer = {
   poste: "Arrière gauche",
   equipe: {
     nom: "FC Real Madrid",
-    competition: { nom: "Championnat inter village" },
+    competition: { nom: "Championnat inter village", abbreviation: "CIV", fullControl: false },
   },
 };
 

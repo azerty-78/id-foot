@@ -10,6 +10,7 @@ export type Competition = {
   annee: number;
   lieu: string | null;
   image: string | null;
+  fullControl: boolean;
   createdAt: string;
   _count?: { equipes: number; users?: number };
 };

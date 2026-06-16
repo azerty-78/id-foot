@@ -10,6 +10,7 @@ import {
   CARD_RENDER_WIDTH,
 } from "@/lib/playerCardColors";
 import { getInterFontFaceDefs } from "@/lib/playerCardFont";
+import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
 
 export type CardRenderPlayer = {
   id: string;
@@ -19,7 +20,11 @@ export type CardRenderPlayer = {
   poste: string | null;
   equipe: {
     nom: string;
-    competition: { nom: string };
+    competition: {
+      nom: string;
+      abbreviation: string;
+      fullControl: boolean;
+    };
   };
 };
 
@@ -194,6 +199,7 @@ export function buildPlayerCardSvg(
   const fullName = `${joueur.prenom} ${joueur.nom}`;
   const dorsal = joueur.numero != null ? `#${joueur.numero}` : "—";
   const poste = joueur.poste?.trim() || "—";
+  const brandLabel = getPlayerCardBrandLabel(joueur.equipe.competition);
 
   const { qrBoxX, qrBoxY, qrBoxSize } = layout;
   const { svg: nameTextSvg, statsRowY: rowY } = buildNameTextSvg(
@@ -239,7 +245,7 @@ export function buildPlayerCardSvg(
   <rect x="0" y="0" width="${W}" height="${headerH}" fill="${CARD_COLORS.headerOverlay}"/>
   <line x1="0" y1="${headerH}" x2="${W}" y2="${headerH}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
   <rect x="${pad}" y="13" width="72" height="18" rx="9" fill="${CARD_COLORS.green}"/>
-  <text x="${pad + 36}" y="25.5" text-anchor="middle" fill="${CARD_COLORS.navy}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.2">ID FOOT</text>
+  <text x="${pad + 36}" y="25.5" text-anchor="middle" fill="${CARD_COLORS.navy}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.2">${escapeXml(brandLabel)}</text>
   <text x="${W - pad}" y="25" text-anchor="end" fill="${CARD_COLORS.labelBright}" font-family="${CARD_FONT}" font-size="10" font-weight="700" letter-spacing="0.8">${escapeXml(joueur.equipe.competition.nom.toUpperCase())}</text>
 
   <!-- Séparateur colonnes -->

@@ -44,7 +44,7 @@ type JoueurForCard = CardRenderPlayer & {
   photo: string | null;
   qrToken: string;
   equipe: CardRenderPlayer["equipe"] & {
-    competition: { nom: string; image?: string | null };
+    competition: { nom: string; image?: string | null; abbreviation: string; fullControl: boolean };
   };
 };
 

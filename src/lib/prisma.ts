@@ -9,7 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Incrémenter quand le schéma Prisma change pour invalider le singleton en dev. */
-const PRISMA_CLIENT_VERSION = 2;
+const PRISMA_CLIENT_VERSION = 3;
 
 function createPrismaClient() {
   const pool =
