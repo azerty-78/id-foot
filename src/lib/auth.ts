@@ -112,11 +112,11 @@ export const authOptions: NextAuthOptions = {
         select: userSessionSelect,
       });
 
-      const sessionValid =
-        Boolean(dbUser?.active) &&
-        dbUser?.sessionVersion === token.sessionVersion;
-
-      if (!sessionValid) {
+      if (
+        !dbUser ||
+        !dbUser.active ||
+        dbUser.sessionVersion !== token.sessionVersion
+      ) {
         token.active = false;
         delete token.sub;
         delete token.id;
