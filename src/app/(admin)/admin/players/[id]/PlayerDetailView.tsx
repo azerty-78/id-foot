@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   Download,
   Eye,
   Pencil,
@@ -23,7 +22,6 @@ import {
   AdminTable,
   DangerButton,
   GhostButton,
-  GhostLink,
   LoadingState,
   OutlineButton,
   OutlineLink,
@@ -115,9 +113,6 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
     return (
       <AdminCard className="px-6 py-10 text-center">
         <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
-        <GhostLink href="/admin/players" icon={ArrowLeft} className="mt-4 inline-flex">
-          Retour à la liste
-        </GhostLink>
       </AdminCard>
     );
   }
@@ -165,12 +160,6 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
 
   return (
     <div className="print:block">
-      <div className="mb-6 print:hidden">
-        <GhostLink href="/admin/players" icon={ArrowLeft} className="px-0">
-          Retour à la liste
-        </GhostLink>
-      </div>
-
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
         <div className="space-y-4 print:hidden">
           <PlayerIdentityCard

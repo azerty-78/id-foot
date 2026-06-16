@@ -585,7 +585,7 @@ export function PlayerForm({
               <p className="mb-2 text-sm font-medium text-slate-700">
                 Poste <span className="font-normal text-slate-400">(facultatif)</span>
               </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {POSTES.map((item) => {
                   const active = values.poste === item;
                   return (
