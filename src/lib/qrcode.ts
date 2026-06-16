@@ -1,7 +1,7 @@
 import type sharp from "sharp";
 import QRCode from "qrcode";
 import { getQrLogoSize } from "@/lib/qrBrand";
-import { loadQrLogoBuffer } from "@/lib/qrLogo";
+import { loadQrLogoBuffer } from "@/lib/qrLogo.server";
 import { CARD_QR_INNER } from "@/lib/playerCardColors";
 
 /** Taille QR = zone intérieure du cadre carte (218px @ 500px) */

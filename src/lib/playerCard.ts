@@ -43,6 +43,9 @@ async function mapWithConcurrency<T, R>(
 type JoueurForCard = CardRenderPlayer & {
   photo: string | null;
   qrToken: string;
+  equipe: CardRenderPlayer["equipe"] & {
+    competition: { nom: string; image?: string | null };
+  };
 };
 
 async function prepareCardAssets(
