@@ -11,6 +11,7 @@ export function AdminModal({
   footer,
   historyKey = "admin-modal",
   busy = false,
+  panelClassName = "",
 }: {
   open: boolean;
   title: string;
@@ -19,6 +20,7 @@ export function AdminModal({
   footer: ReactNode;
   historyKey?: string;
   busy?: boolean;
+  panelClassName?: string;
 }) {
   useHistoryOverlay(open && !busy, onClose, historyKey);
 
@@ -32,7 +34,7 @@ export function AdminModal({
   return (
     <div className="modal-overlay" onClick={handleClose} role="presentation">
       <div
-        className={`modal-panel ${busy ? "modal-panel--busy" : ""}`}
+        className={`modal-panel ${panelClassName} ${busy ? "modal-panel--busy" : ""}`.trim()}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

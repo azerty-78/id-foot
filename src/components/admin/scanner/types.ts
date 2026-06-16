@@ -14,6 +14,8 @@ export type ValidatedPlayer = {
       annee: number;
       lieu?: string | null;
       image?: string | null;
+      abbreviation: string;
+      fullControl: boolean;
     };
   };
 };

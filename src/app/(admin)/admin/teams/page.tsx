@@ -93,11 +93,14 @@ export default function TeamsPage() {
     return data.url;
   }
 
+  const activeCompetition =
+    competitions.find((c) => c.id === form.competitionId) ?? competitions[0];
+
   function openCreateModal() {
     setEditingId(null);
     setForm({
       ...emptyForm,
-      competitionId: competitions.length === 1 ? competitions[0].id : "",
+      competitionId: competitions[0]?.id ?? "",
     });
     setLogoFile(null);
     setFormError(null);
@@ -414,25 +417,18 @@ export default function TeamsPage() {
             />
           </div>
 
-          <div>
-            <FieldLabel htmlFor="team-competition">Compétition *</FieldLabel>
-            <select
-              id="team-competition"
-              value={form.competitionId}
-              onChange={(e) =>
-                setForm({ ...form, competitionId: e.target.value })
-              }
-              disabled={competitionsLoading}
-              className="admin-input"
-            >
-              <option value="">Sélectionner une compétition</option>
-              {competitions.map((competition) => (
-                <option key={competition.id} value={competition.id}>
-                  {competition.nom} ({competition.annee})
-                </option>
-              ))}
-            </select>
-          </div>
+          {activeCompetition ? (
+            <p className="text-sm text-secondary">
+              <span className="font-medium text-navy">Compétition :</span>{" "}
+              {activeCompetition.nom} ({activeCompetition.annee})
+            </p>
+          ) : competitionsLoading ? (
+            <p className="text-sm text-secondary">Chargement de la compétition…</p>
+          ) : (
+            <p className="text-sm text-danger">
+              Aucune compétition associée à votre compte.
+            </p>
+          )}
 
           <div>
             <FieldLabel htmlFor="team-logo">Logo</FieldLabel>

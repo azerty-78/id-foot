@@ -30,6 +30,7 @@ type PlayerLicenseCardProps = {
   onDownload?: (id: string) => void;
   downloading?: boolean;
   compact?: boolean;
+  hideActions?: boolean;
   className?: string;
 };
 
@@ -76,6 +77,7 @@ export function PlayerLicenseCard({
   onDownload,
   downloading = false,
   compact = false,
+  hideActions = false,
   className = "",
 }: PlayerLicenseCardProps) {
   const qrInnerPx = QR_INNER_PX[compact ? "compact" : "default"];
@@ -152,7 +154,7 @@ export function PlayerLicenseCard({
         <span className="player-license-card-club">{player.equipe.nom}</span>
       </footer>
 
-      {!compact && (
+      {!compact && !hideActions && (
         <div className="player-license-card-actions">
           <GhostLink
             href={`/admin/players/${player.id}`}

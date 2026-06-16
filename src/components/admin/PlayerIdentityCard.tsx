@@ -121,10 +121,10 @@ export function PlayerIdentityCard({
 
       {qrValue && (
         <div className="relative mt-4 flex justify-end">
-          <div className="rounded-[var(--radius-sm)] bg-white p-1">
+          <div className="player-identity-card-qr rounded-[var(--radius-sm)] bg-white">
             <BrandedQrCode
               value={qrValue}
-              size={44}
+              size={isColumn ? 88 : 72}
               competitionLogo={competitionLogo}
             />
           </div>

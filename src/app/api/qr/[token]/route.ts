@@ -44,6 +44,8 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
                 annee: true,
                 lieu: true,
                 image: true,
+                abbreviation: true,
+                fullControl: true,
               },
             },
           },

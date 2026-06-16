@@ -3,17 +3,26 @@
 import {
   ArrowLeft,
   Download,
+  Eye,
   Pencil,
   Printer,
   Trash2,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+import { AdminModal } from "@/components/admin/AdminModal";
 import { usePlayer } from "@/hooks/useApi";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
+import {
+  PlayerLicenseCard,
+  type PlayerLicenseCardPlayer,
+} from "@/components/admin/PlayerLicenseCard";
 import {
   AdminCard,
   AdminTable,
   DangerButton,
+  GhostButton,
   GhostLink,
   LoadingState,
   OutlineButton,
@@ -43,12 +52,19 @@ type PlayerDetailViewProps = {
 export function PlayerDetailView({ id }: PlayerDetailViewProps) {
   const router = useRouter();
   const { player, loading, error } = usePlayer(id);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [downloadingCard, setDownloadingCard] = useState(false);
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+  const closePreview = useCallback(() => {
+    setIsPreviewOpen(false);
+  }, []);
 
   async function handleDownloadCard() {
     if (!player) return;
 
+    setDownloadingCard(true);
     try {
       await downloadPdfFromApi(
         `/api/players/${player.id}/card`,
@@ -56,7 +72,14 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
       );
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setDownloadingCard(false);
     }
+  }
+
+  function handlePrintPreview() {
+    closePreview();
+    window.setTimeout(() => window.print(), 150);
   }
 
   async function handleDelete() {
@@ -101,6 +124,25 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
 
   const qrValue = `${appUrl}/api/qr/${player.qrToken}`;
 
+  const licensePlayer: PlayerLicenseCardPlayer = {
+    id: player.id,
+    nom: player.nom,
+    prenom: player.prenom,
+    numero: player.numero,
+    poste: player.poste,
+    photo: player.photo,
+    qrToken: player.qrToken,
+    equipe: {
+      nom: player.equipe.nom,
+      competition: {
+        nom: player.equipe.competition.nom,
+        image: player.equipe.competition.image,
+        abbreviation: player.equipe.competition.abbreviation,
+        fullControl: player.equipe.competition.fullControl,
+      },
+    },
+  };
+
   const details = [
     { label: "ID", value: player.id },
     { label: "Prénom", value: player.prenom },
@@ -144,10 +186,19 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
           />
 
           <div className="flex flex-wrap gap-2">
+            <OutlineButton
+              type="button"
+              icon={Eye}
+              onClick={() => setIsPreviewOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              Aperçu carte
+            </OutlineButton>
             <PrimaryButton
               type="button"
               icon={Download}
-              onClick={handleDownloadCard}
+              loading={downloadingCard}
+              onClick={() => void handleDownloadCard()}
               className="w-full sm:w-auto"
             >
               Télécharger la carte PDF
@@ -198,6 +249,54 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
           </div>
         </AdminCard>
       </div>
+
+      <AdminModal
+        open={isPreviewOpen}
+        title={`Carte licence — ${player.prenom} ${player.nom}`}
+        onClose={closePreview}
+        historyKey={`player-card-preview-${player.id}`}
+        panelClassName="modal-panel--card-preview"
+        busy={downloadingCard}
+        footer={
+          <>
+            <GhostButton
+              type="button"
+              icon={X}
+              size="sm"
+              onClick={closePreview}
+              disabled={downloadingCard}
+            >
+              Fermer
+            </GhostButton>
+            <OutlineButton
+              type="button"
+              icon={Printer}
+              size="sm"
+              onClick={handlePrintPreview}
+              disabled={downloadingCard}
+            >
+              Imprimer
+            </OutlineButton>
+            <PrimaryButton
+              type="button"
+              icon={Download}
+              size="sm"
+              loading={downloadingCard}
+              onClick={() => void handleDownloadCard()}
+            >
+              Télécharger PDF
+            </PrimaryButton>
+          </>
+        }
+      >
+        <div className="player-card-preview-wrap">
+          <PlayerLicenseCard
+            player={licensePlayer}
+            hideActions
+            className="player-license-card--preview"
+          />
+        </div>
+      </AdminModal>
     </div>
   );
 }
