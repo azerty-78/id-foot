@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Download, Eye } from "lucide-react";
 import { PlayerCardQr } from "@/app/player-card/[id]/PlayerCardQr";
 import { GhostLink, OutlineButton } from "@/components/admin/ui";
+import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
 
 export type PlayerLicenseCardPlayer = {
   id: string;
@@ -15,7 +16,12 @@ export type PlayerLicenseCardPlayer = {
   qrToken: string;
   equipe: {
     nom: string;
-    competition: { nom: string };
+    competition: {
+      nom: string;
+      image?: string | null;
+      abbreviation: string;
+      fullControl: boolean;
+    };
   };
 };
 
@@ -24,6 +30,7 @@ type PlayerLicenseCardProps = {
   onDownload?: (id: string) => void;
   downloading?: boolean;
   compact?: boolean;
+  hideActions?: boolean;
   className?: string;
 };
 
@@ -70,6 +77,7 @@ export function PlayerLicenseCard({
   onDownload,
   downloading = false,
   compact = false,
+  hideActions = false,
   className = "",
 }: PlayerLicenseCardProps) {
   const qrInnerPx = QR_INNER_PX[compact ? "compact" : "default"];
@@ -86,7 +94,9 @@ export function PlayerLicenseCard({
       )}
 
       <header className="player-license-card-header">
-        <span className="player-license-card-brand">ID FOOT</span>
+        <span className="player-license-card-brand">
+          {getPlayerCardBrandLabel(player.equipe.competition)}
+        </span>
         <p className="player-license-card-competition">
           {player.equipe.competition.nom}
         </p>
@@ -129,7 +139,11 @@ export function PlayerLicenseCard({
 
         <div className="player-license-card-qr-zone">
           <div className="player-license-card-qr">
-            <PlayerCardQr token={player.qrToken} size={qrInnerPx} />
+            <PlayerCardQr
+              token={player.qrToken}
+              size={qrInnerPx}
+              competitionLogo={player.equipe.competition.image}
+            />
           </div>
           <span className="player-license-card-scan-hint">Scanner ici</span>
         </div>
@@ -140,7 +154,7 @@ export function PlayerLicenseCard({
         <span className="player-license-card-club">{player.equipe.nom}</span>
       </footer>
 
-      {!compact && (
+      {!compact && !hideActions && (
         <div className="player-license-card-actions">
           <GhostLink
             href={`/admin/players/${player.id}`}

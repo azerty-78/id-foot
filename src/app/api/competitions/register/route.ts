@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handlePrismaError, jsonError } from "@/lib/api/http";
 import {
   ensureUniqueCompetitionSlug,
+  resolveCompetitionAbbreviation,
   slugifyCompetitionName,
 } from "@/lib/competitionSlug";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +13,7 @@ export const runtime = "nodejs";
 
 type RegisterCompetitionBody = {
   nom: string;
+  abbreviation?: string;
   annee: number | string;
   lieu?: string | null;
   image?: string | null;
@@ -40,8 +42,17 @@ export async function POST(req: NextRequest) {
     const annee = Number.parseInt(String(body.annee), 10);
     const lieu = body.lieu?.trim() || null;
     const image = body.image?.trim() || null;
+    const abbreviation = resolveCompetitionAbbreviation({
+      nom,
+      abbreviation: body.abbreviation,
+    });
 
-    const competitionValidation = validateCompetition({ nom, annee, lieu });
+    const competitionValidation = validateCompetition({
+      nom,
+      abbreviation,
+      annee,
+      lieu,
+    });
     if (!competitionValidation.valid) {
       return NextResponse.json(
         { error: competitionValidation.errors[0] },
@@ -77,6 +88,7 @@ export async function POST(req: NextRequest) {
       const created = await tx.competition.create({
         data: {
           nom,
+          abbreviation,
           slug,
           annee,
           lieu,

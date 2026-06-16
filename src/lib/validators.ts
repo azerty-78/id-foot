@@ -1,3 +1,4 @@
+import { resolveCompetitionAbbreviation } from "@/lib/competitionSlug";
 import { POSTES } from "@/types/player";
 
 type ValidationResult = {
@@ -169,6 +170,26 @@ export function validateCompetition(data: unknown): ValidationResult {
     if (typeof data.lieu !== "string") {
       errors.push("Le lieu doit être une chaîne de caractères.");
     }
+  }
+
+  if (data.fullControl !== undefined && data.fullControl !== null) {
+    if (typeof data.fullControl !== "boolean") {
+      errors.push("Le paramètre fullControl doit être un booléen.");
+    }
+  }
+
+  const abbreviation = resolveCompetitionAbbreviation({
+    nom: nom ?? "",
+    abbreviation:
+      data.abbreviation === undefined || data.abbreviation === null
+        ? undefined
+        : getString(data.abbreviation),
+  });
+
+  if (!nom || abbreviation.length < 2) {
+    errors.push("L'abréviation est requise (2 à 12 caractères alphanumériques).");
+  } else if (abbreviation.length > 12) {
+    errors.push("L'abréviation ne peut pas dépasser 12 caractères.");
   }
 
   return { valid: errors.length === 0, errors };

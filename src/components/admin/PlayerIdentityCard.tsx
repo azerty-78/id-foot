@@ -10,6 +10,7 @@ type PlayerIdentityCardProps = {
   photo?: string | null;
   qrValue?: string;
   competition?: string;
+  competitionLogo?: string | null;
   layout?: "row" | "column";
   className?: string;
 };
@@ -27,6 +28,7 @@ export function PlayerIdentityCard({
   photo,
   qrValue,
   competition,
+  competitionLogo,
   layout = "row",
   className = "",
 }: PlayerIdentityCardProps) {
@@ -119,8 +121,12 @@ export function PlayerIdentityCard({
 
       {qrValue && (
         <div className="relative mt-4 flex justify-end">
-          <div className="rounded-[var(--radius-sm)] bg-white p-1">
-            <BrandedQrCode value={qrValue} size={44} />
+          <div className="player-identity-card-qr rounded-[var(--radius-sm)] bg-white">
+            <BrandedQrCode
+              value={qrValue}
+              size={isColumn ? 88 : 72}
+              competitionLogo={competitionLogo}
+            />
           </div>
         </div>
       )}

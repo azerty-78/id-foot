@@ -10,6 +10,7 @@ import {
   UserCheck,
   UserX,
   Users,
+  AlertTriangle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -30,6 +31,7 @@ import {
 } from "@/components/admin/ui";
 import { useToast } from "@/components/providers/ToastProvider";
 import type { GodModeAdminUser } from "@/lib/god-mode/auth";
+import type { CompetitionDeleteCounts } from "@/lib/competitionDelete";
 
 type AdminStats = {
   total: number;
@@ -44,7 +46,15 @@ type EditForm = {
   confirmPassword: string;
 };
 
-type ModalMode = "edit" | "password" | null;
+type ModalMode = "edit" | "password" | "delete-competition" | null;
+
+type CompetitionDeletePreview = {
+  id: string;
+  nom: string;
+  slug: string;
+  abbreviation: string;
+  adminNom: string;
+};
 
 type GodModePanelProps = {
   sessionUser: {
@@ -78,6 +88,12 @@ export function GodModePanel({
   const [submitting, setSubmitting] = useState(false);
   const [busyAdminId, setBusyAdminId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingCompetition, setDeletingCompetition] =
+    useState<CompetitionDeletePreview | null>(null);
+  const [deleteImpact, setDeleteImpact] = useState<CompetitionDeleteCounts | null>(
+    null,
+  );
+  const [deleteImpactLoading, setDeleteImpactLoading] = useState(false);
 
   const filteredAdmins = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -161,6 +177,72 @@ export function GodModePanel({
     setModalMode(null);
     setSelectedAdmin(null);
     setFormError(null);
+    setDeletingCompetition(null);
+    setDeleteImpact(null);
+    setDeleteImpactLoading(false);
+  }
+
+  async function openDeleteCompetitionModal(admin: GodModeAdminUser) {
+    if (!admin.competition) return;
+
+    setSelectedAdmin(admin);
+    setDeletingCompetition({
+      id: admin.competition.id,
+      nom: admin.competition.nom,
+      slug: admin.competition.slug,
+      abbreviation: admin.competition.abbreviation,
+      adminNom: admin.nom,
+    });
+    setDeleteImpact(null);
+    setDeleteImpactLoading(true);
+    setModalMode("delete-competition");
+
+    try {
+      const res = await fetch(`/api/god-mode/competitions/${admin.competition.id}`);
+      const data = (await res.json()) as {
+        impact?: CompetitionDeleteCounts;
+        error?: string;
+      };
+
+      if (res.ok && data.impact) {
+        setDeleteImpact(data.impact);
+      }
+    } catch {
+      setDeleteImpact(null);
+    } finally {
+      setDeleteImpactLoading(false);
+    }
+  }
+
+  async function confirmDeleteCompetition() {
+    if (!deletingCompetition) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(
+        `/api/god-mode/competitions/${deletingCompetition.id}`,
+        { method: "DELETE" },
+      );
+      const data = (await res.json()) as { error?: string };
+
+      if (!res.ok) {
+        showToast("error", data.error ?? "Impossible de supprimer la compétition.");
+        return;
+      }
+
+      const nextAdmins = admins.filter(
+        (item) => item.competition?.id !== deletingCompetition.id,
+      );
+      setAdmins(nextAdmins);
+      setStats(recomputeStats(nextAdmins));
+      showToast("success", "Compétition et toutes les données associées supprimées.");
+      closeModal();
+      router.refresh();
+    } catch {
+      showToast("error", "Erreur réseau. Réessayez.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleEdit(e: React.FormEvent) {
@@ -261,7 +343,7 @@ export function GodModePanel({
   async function deleteAdmin(admin: GodModeAdminUser) {
     const competitionLabel = admin.competition?.nom ?? "sans compétition";
     const confirmed = window.confirm(
-      `Supprimer l'administrateur ${admin.nom} (${competitionLabel}) ? Cette action est irréversible.`,
+      `Supprimer uniquement le compte administrateur ${admin.nom} (${competitionLabel}) ?\n\nLa compétition et ses données (clubs, joueurs, gestionnaires) seront conservées. Pour tout effacer, utilisez « Supprimer la compétition ».`,
     );
     if (!confirmed) return;
 
@@ -410,8 +492,19 @@ export function GodModePanel({
                           onClick={() => void deleteAdmin(admin)}
                           disabled={busy}
                         >
-                          Supprimer
+                          Supprimer admin
                         </DangerButton>
+                        {admin.competition ? (
+                          <DangerButton
+                            type="button"
+                            size="sm"
+                            icon={Trash2}
+                            onClick={() => void openDeleteCompetitionModal(admin)}
+                            disabled={busy || submitting}
+                          >
+                            Supprimer compétition
+                          </DangerButton>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -438,25 +531,82 @@ export function GodModePanel({
         title={
           modalMode === "edit"
             ? "Modifier l'administrateur"
-            : "Réinitialiser le mot de passe"
+            : modalMode === "password"
+              ? "Réinitialiser le mot de passe"
+              : "Supprimer la compétition"
         }
         onClose={closeModal}
         busy={submitting}
         footer={
-          <>
-            <GhostButton type="button" onClick={closeModal} disabled={submitting}>
-              Annuler
-            </GhostButton>
-            <PrimaryButton
-              type="submit"
-              form="god-mode-admin-form"
-              loading={submitting}
-            >
-              Enregistrer
-            </PrimaryButton>
-          </>
+          modalMode === "delete-competition" ? (
+            <>
+              <GhostButton type="button" onClick={closeModal} disabled={submitting}>
+                Annuler
+              </GhostButton>
+              <DangerButton
+                type="button"
+                icon={Trash2}
+                disabled={submitting}
+                onClick={() => void confirmDeleteCompetition()}
+              >
+                {submitting ? "Suppression…" : "Supprimer définitivement"}
+              </DangerButton>
+            </>
+          ) : (
+            <>
+              <GhostButton type="button" onClick={closeModal} disabled={submitting}>
+                Annuler
+              </GhostButton>
+              <PrimaryButton
+                type="submit"
+                form="god-mode-admin-form"
+                loading={submitting}
+              >
+                Enregistrer
+              </PrimaryButton>
+            </>
+          )
         }
       >
+        {modalMode === "delete-competition" && deletingCompetition ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-[var(--radius-md)] border border-danger/25 bg-[#fdeaea] px-4 py-3">
+              <AlertTriangle
+                size={20}
+                className="mt-0.5 shrink-0 text-danger"
+                aria-hidden
+              />
+              <p className="text-[13px] leading-relaxed text-danger">
+                Action irréversible. La compétition{" "}
+                <strong>{deletingCompetition.nom}</strong> et toutes les données
+                associées seront définitivement supprimées, y compris le compte
+                administrateur <strong>{deletingCompetition.adminNom}</strong> et
+                les gestionnaires liés.
+              </p>
+            </div>
+
+            {deleteImpactLoading ? (
+              <p className="text-body text-sm">Calcul des éléments concernés…</p>
+            ) : (
+              <ul className="delete-impact-list text-body text-sm">
+                <li>
+                  {deleteImpact?.equipes ?? "—"} club
+                  {(deleteImpact?.equipes ?? 0) > 1 ? "s" : ""} (équipes)
+                </li>
+                <li>
+                  {deleteImpact?.joueurs ?? "—"} joueur
+                  {(deleteImpact?.joueurs ?? 0) === 1 ? "" : "s"} (fiches, QR,
+                  cartes licence)
+                </li>
+                <li>
+                  {deleteImpact?.users ?? "—"} compte
+                  {(deleteImpact?.users ?? 0) > 1 ? "s" : ""} utilisateur
+                </li>
+                <li>La compétition, son image et la page publique /{deletingCompetition.slug}</li>
+              </ul>
+            )}
+          </div>
+        ) : (
         <form
           id="god-mode-admin-form"
           onSubmit={(e) => {
@@ -539,6 +689,7 @@ export function GodModePanel({
 
           <FieldError message={formError ?? undefined} />
         </form>
+        )}
       </AdminModal>
     </div>
   );

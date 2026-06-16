@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Shield, Trophy, X } from "lucide-react";
+import { Save, Shield, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type FormEvent } from "react";
@@ -156,20 +156,10 @@ export function PlayerForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
 
-  const teamsByCompetition = useMemo(() => {
-    const groups = new Map<string, typeof teams>();
-
-    for (const team of teams) {
-      const label = team.competition
-        ? `${team.competition.nom} (${team.competition.annee})`
-        : "Autres clubs";
-      const list = groups.get(label) ?? [];
-      list.push(team);
-      groups.set(label, list);
-    }
-
-    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b, "fr"));
-  }, [teams]);
+  const sortedTeams = useMemo(
+    () => [...teams].sort((a, b) => a.nom.localeCompare(b.nom, "fr")),
+    [teams],
+  );
 
   const nationalityOptions = useMemo(() => {
     const options = [...NATIONALITIES];
@@ -449,12 +439,9 @@ export function PlayerForm({
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
                 <p className="font-medium">Aucun club disponible.</p>
                 <p className="mt-1 text-amber-800/90">
-                  Créez d&apos;abord une compétition puis une équipe.
+                  Créez d&apos;abord une équipe dans votre compétition.
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <GhostLink href="/admin/competitions" icon={Trophy} size="sm">
-                    Créer une compétition
-                  </GhostLink>
+                <div className="mt-3">
                   <GhostLink href="/admin/teams" icon={Shield} size="sm">
                     Créer un club
                   </GhostLink>
@@ -466,7 +453,6 @@ export function PlayerForm({
                 label="Club / Équipe"
                 required
                 error={errors.equipeId}
-                hint="Les clubs sont regroupés par compétition."
               >
                 <select
                   id="equipeId"
@@ -475,17 +461,13 @@ export function PlayerForm({
                   className={inputClass("equipeId")}
                 >
                   <option value="">Choisir un club...</option>
-                  {teamsByCompetition.map(([competition, competitionTeams]) => (
-                    <optgroup key={competition} label={competition}>
-                      {competitionTeams.map((team) => (
-                        <option key={team.id} value={team.id}>
-                          {team.nom}
-                          {team._count?.joueurs != null
-                            ? ` (${team._count.joueurs} joueur${team._count.joueurs > 1 ? "s" : ""})`
-                            : ""}
-                        </option>
-                      ))}
-                    </optgroup>
+                  {sortedTeams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.nom}
+                      {team._count?.joueurs != null
+                        ? ` (${team._count.joueurs} joueur${team._count.joueurs > 1 ? "s" : ""})`
+                        : ""}
+                    </option>
                   ))}
                 </select>
               </FormInput>
@@ -603,7 +585,7 @@ export function PlayerForm({
               <p className="mb-2 text-sm font-medium text-slate-700">
                 Poste <span className="font-normal text-slate-400">(facultatif)</span>
               </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {POSTES.map((item) => {
                   const active = values.poste === item;
                   return (
@@ -669,6 +651,7 @@ export function PlayerForm({
             poste={values.poste}
             equipe={selectedTeam?.nom ?? "—"}
             photo={displayPhoto}
+            competitionLogo={selectedTeam?.competition?.image}
           />
 
           <AdminCard>

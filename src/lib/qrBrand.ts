@@ -1,4 +1,4 @@
-/** Taille du logo au centre du QR (max 18 % du côté, correction H). */
+/** Correction H : tolère un logo au centre (~18 % du QR) sans casser le scan. */
 export function getQrLogoSize(qrSize: number): number {
   return Math.max(8, Math.round(qrSize * 0.18));
 }

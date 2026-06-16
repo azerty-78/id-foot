@@ -21,6 +21,7 @@ const PAGE_SIZE = 12;
 export type HomeCompetitionItem = {
   id: string;
   nom: string;
+  abbreviation: string;
   slug: string;
   annee: number;
   lieu: string | null;
@@ -158,6 +159,7 @@ export function HomeCompetitionsSection({
                     <ShareCompetitionSignInButton
                       nom={competition.nom}
                       slug={competition.slug}
+                      abbreviation={competition.abbreviation}
                       className="home-competition-card-share"
                     />
                     <SecondaryLink

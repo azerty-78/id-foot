@@ -5,10 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 export type Competition = {
   id: string;
   nom: string;
+  abbreviation: string;
   slug: string;
   annee: number;
   lieu: string | null;
   image: string | null;
+  fullControl: boolean;
   createdAt: string;
   _count?: { equipes: number; users?: number };
 };

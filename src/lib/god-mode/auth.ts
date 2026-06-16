@@ -174,6 +174,7 @@ export const adminUserSelect = {
       id: true,
       nom: true,
       slug: true,
+      abbreviation: true,
       annee: true,
     },
   },
@@ -184,6 +185,7 @@ export type GodModeAdminUser = PublicUser & {
     id: string;
     nom: string;
     slug: string;
+    abbreviation: string;
     annee: number;
   } | null;
 };

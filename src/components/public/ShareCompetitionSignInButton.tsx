@@ -8,12 +8,14 @@ import { shareCompetitionSignInLink } from "@/lib/competitionSignInShare";
 type ShareCompetitionSignInButtonProps = {
   nom: string;
   slug: string;
+  abbreviation: string;
   className?: string;
 };
 
 export function ShareCompetitionSignInButton({
   nom,
   slug,
+  abbreviation,
   className = "",
 }: ShareCompetitionSignInButtonProps) {
   const { showToast } = useToast();
@@ -28,7 +30,7 @@ export function ShareCompetitionSignInButton({
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
-        void shareCompetitionSignInLink({ nom, slug }, showToast);
+        void shareCompetitionSignInLink({ nom, slug, abbreviation }, showToast);
       }}
     >
       Partager

@@ -25,7 +25,8 @@ import {
 } from "./scannerSession";
 import { RecentScansStrip } from "./RecentScansStrip";
 import { ScanSuccessOverlay } from "./ScanSuccessOverlay";
-import type { ScanPhase, ValidatedPlayer } from "./types";
+import type { ScanPhase, ValidatedPlayer, QrPlayerResponse } from "./types";
+import { mapQrResponseToValidatedPlayer } from "./types";
 import { useScannerSession } from "./useScannerSession";
 
 const DUPLICATE_MS = 2500;
@@ -117,19 +118,8 @@ function applyScanBoxSize(
   return boxSize;
 }
 
-function mapApiPlayer(
-  data: ValidatedPlayer & { valid?: boolean; error?: string },
-): ValidatedPlayer {
-  return {
-    id: data.id,
-    nom: data.nom,
-    prenom: data.prenom,
-    numero: data.numero,
-    poste: data.poste,
-    photo: data.photo,
-    qrToken: data.qrToken,
-    equipe: data.equipe,
-  };
+function mapApiPlayer(data: QrPlayerResponse): ValidatedPlayer {
+  return mapQrResponseToValidatedPlayer(data);
 }
 
 export function ScannerWorkspace() {
@@ -237,10 +227,7 @@ export function ScannerWorkspace() {
 
       try {
         const res = await fetch(`/api/qr/${token}`);
-        const data = (await res.json()) as ValidatedPlayer & {
-          error?: string;
-          valid?: boolean;
-        };
+        const data = (await res.json()) as QrPlayerResponse;
 
         if (!res.ok || !data.valid) {
           throw new Error(data.error ?? "Joueur introuvable.");

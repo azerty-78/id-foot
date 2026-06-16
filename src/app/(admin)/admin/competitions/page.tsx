@@ -9,6 +9,7 @@ import {
   DangerButton,
   EmptyState,
   FieldError,
+  FieldHint,
   FieldLabel,
   FormSubmitOverlay,
   GhostButton,
@@ -23,17 +24,26 @@ import { AdminModal } from "@/components/admin/AdminModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useCompetitions, type Competition } from "@/hooks/useApi";
 import { canManageCompetition } from "@/lib/adminNav";
-import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
+import { buildCompetitionSignInHref, deriveCompetitionAbbreviation } from "@/lib/competitionSlug";
 import { validateCompetition } from "@/lib/validators";
 
 type FormState = {
   nom: string;
+  abbreviation: string;
   annee: string;
   lieu: string;
   image: string;
+  fullControl: boolean;
 };
 
-const emptyForm: FormState = { nom: "", annee: "", lieu: "", image: "" };
+const emptyForm: FormState = {
+  nom: "",
+  abbreviation: "",
+  annee: "",
+  lieu: "",
+  image: "",
+  fullControl: false,
+};
 
 export default function CompetitionsPage() {
   const { data: session } = useSession();
@@ -44,6 +54,7 @@ export default function CompetitionsPage() {
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const abbreviationTouchedRef = useRef(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -60,12 +71,15 @@ export default function CompetitionsPage() {
   const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
 
   function openEditModal(competition: Competition) {
+    abbreviationTouchedRef.current = false;
     setEditingId(competition.id);
     setForm({
       nom: competition.nom,
+      abbreviation: competition.abbreviation,
       annee: String(competition.annee),
       lieu: competition.lieu ?? "",
       image: competition.image ?? "",
+      fullControl: competition.fullControl,
     });
     setImageFile(null);
     setImagePreview(competition.image);
@@ -147,8 +161,10 @@ export default function CompetitionsPage() {
 
     const payload = {
       nom: form.nom.trim(),
+      abbreviation: form.abbreviation.trim(),
       annee: Number.parseInt(form.annee, 10),
       lieu: form.lieu.trim() || null,
+      fullControl: form.fullControl,
     };
 
     const validation = validateCompetition(payload);
@@ -212,6 +228,10 @@ export default function CompetitionsPage() {
       closeDeleteModal();
 
       if (role === "ADMIN") {
+        showToast(
+          "success",
+          "Votre compte a été supprimé. Redirection vers l'accueil…",
+        );
         await signOut({ callbackUrl: "/" });
         return;
       }
@@ -281,7 +301,7 @@ export default function CompetitionsPage() {
                       </p>
                     ) : null}
                     <p className="mt-2 text-xs text-slate-400">
-                      /{competition.slug}
+                      /{competition.slug} · {competition.abbreviation}
                     </p>
                   </div>
                   <StatusBadge tone="navy">
@@ -362,9 +382,32 @@ export default function CompetitionsPage() {
               id="comp-nom"
               type="text"
               value={form.nom}
-              onChange={(e) => setForm({ ...form, nom: e.target.value })}
+              onChange={(e) => {
+                const nom = e.target.value;
+                setForm((prev) => ({
+                  ...prev,
+                  nom,
+                  abbreviation: abbreviationTouchedRef.current
+                    ? prev.abbreviation
+                    : deriveCompetitionAbbreviation(nom),
+                }));
+              }}
               className="admin-input"
               autoFocus
+            />
+          </div>
+          <div>
+            <FieldLabel htmlFor="comp-abbr">Abréviation *</FieldLabel>
+            <input
+              id="comp-abbr"
+              type="text"
+              value={form.abbreviation}
+              onChange={(e) => {
+                abbreviationTouchedRef.current = true;
+                setForm({ ...form, abbreviation: e.target.value.toUpperCase() });
+              }}
+              className="admin-input"
+              maxLength={12}
             />
           </div>
           <div>
@@ -388,6 +431,27 @@ export default function CompetitionsPage() {
               onChange={(e) => setForm({ ...form, lieu: e.target.value })}
               className="admin-input"
             />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                id="comp-full-control"
+                type="checkbox"
+                checked={form.fullControl}
+                onChange={(e) =>
+                  setForm({ ...form, fullControl: e.target.checked })
+                }
+                className="mt-1 h-4 w-4 accent-[var(--green)]"
+              />
+              <span>
+                <span className="text-sm font-medium text-navy">Full control</span>
+                <FieldHint>
+                  Si activé, le badge des cartes licence affiche l&apos;abréviation
+                  de la compétition ({form.abbreviation || "—"}) à la place de
+                  &quot;ID FOOT&quot;.
+                </FieldHint>
+              </span>
+            </label>
           </div>
           <div>
             <FieldLabel htmlFor="comp-image">Image de couverture</FieldLabel>
@@ -462,11 +526,24 @@ export default function CompetitionsPage() {
               className="mt-0.5 shrink-0 text-danger"
               aria-hidden
             />
-            <p className="text-[13px] leading-relaxed text-danger">
-              Cette action est irréversible. Toutes les données liées à{" "}
-              <strong>{deletingCompetition?.nom}</strong> seront supprimées.
-            </p>
+            <div className="space-y-2 text-[13px] leading-relaxed text-danger">
+              <p>
+                <strong>Action irréversible.</strong> En supprimant la compétition{" "}
+                <strong>{deletingCompetition?.nom}</strong>, vous effacez
+                définitivement l&apos;ensemble des données liées.
+              </p>
+              {role === "ADMIN" ? (
+                <p>
+                  Votre compte administrateur sera supprimé avec la compétition.
+                  Vous serez déconnecté et redirigé vers l&apos;accueil principal.
+                </p>
+              ) : null}
+            </div>
           </div>
+
+          <p className="text-body text-sm font-medium text-navy">
+            Éléments qui seront supprimés :
+          </p>
 
           {deleteStatsLoading ? (
             <p className="text-body text-sm">Calcul des éléments concernés…</p>
@@ -475,18 +552,21 @@ export default function CompetitionsPage() {
               <li>
                 {deletingCompetition?._count?.equipes ?? 0} club
                 {(deletingCompetition?._count?.equipes ?? 0) > 1 ? "s" : ""}{" "}
-                (équipes)
+                (équipes) et leurs effectifs
               </li>
               <li>
                 {deleteJoueurCount ?? "—"} joueur
-                {deleteJoueurCount === 1 ? "" : "s"} et leurs données
+                {deleteJoueurCount === 1 ? "" : "s"} (fiches, photos, QR codes et
+                cartes licence)
               </li>
               <li>
                 {deletingCompetition?._count?.users ?? 0} compte
                 {(deletingCompetition?._count?.users ?? 0) > 1 ? "s" : ""}{" "}
-                utilisateur
+                utilisateur (administrateur et gestionnaires)
               </li>
-              <li>La compétition et son image de couverture</li>
+              <li>
+                La compétition, son image de couverture et la page publique /{deletingCompetition?.slug}
+              </li>
             </ul>
           )}
         </div>

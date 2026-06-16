@@ -1,20 +1,26 @@
 "use client";
 
 import {
-  ArrowLeft,
   Download,
+  Eye,
   Pencil,
   Printer,
   Trash2,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+import { AdminModal } from "@/components/admin/AdminModal";
 import { usePlayer } from "@/hooks/useApi";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
+import {
+  PlayerLicenseCard,
+} from "@/components/admin/PlayerLicenseCard";
 import {
   AdminCard,
   AdminTable,
   DangerButton,
-  GhostLink,
+  GhostButton,
   LoadingState,
   OutlineButton,
   OutlineLink,
@@ -22,6 +28,7 @@ import {
 } from "@/components/admin/ui";
 import { downloadPdfFromApi } from "@/lib/downloadPdfClient";
 import { buildPlayerCardFilename } from "@/lib/playerCardFilename";
+import { toPlayerLicenseCardPlayer } from "@/lib/playerLicenseCardPlayer";
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -43,12 +50,19 @@ type PlayerDetailViewProps = {
 export function PlayerDetailView({ id }: PlayerDetailViewProps) {
   const router = useRouter();
   const { player, loading, error } = usePlayer(id);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [downloadingCard, setDownloadingCard] = useState(false);
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+  const closePreview = useCallback(() => {
+    setIsPreviewOpen(false);
+  }, []);
 
   async function handleDownloadCard() {
     if (!player) return;
 
+    setDownloadingCard(true);
     try {
       await downloadPdfFromApi(
         `/api/players/${player.id}/card`,
@@ -56,7 +70,14 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
       );
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setDownloadingCard(false);
     }
+  }
+
+  function handlePrintPreview() {
+    closePreview();
+    window.setTimeout(() => window.print(), 150);
   }
 
   async function handleDelete() {
@@ -92,14 +113,13 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
     return (
       <AdminCard className="px-6 py-10 text-center">
         <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
-        <GhostLink href="/admin/players" icon={ArrowLeft} className="mt-4 inline-flex">
-          Retour à la liste
-        </GhostLink>
       </AdminCard>
     );
   }
 
   const qrValue = `${appUrl}/api/qr/${player.qrToken}`;
+
+  const licensePlayer = toPlayerLicenseCardPlayer(player);
 
   const details = [
     { label: "ID", value: player.id },
@@ -123,12 +143,6 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
 
   return (
     <div className="print:block">
-      <div className="mb-6 print:hidden">
-        <GhostLink href="/admin/players" icon={ArrowLeft} className="px-0">
-          Retour à la liste
-        </GhostLink>
-      </div>
-
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
         <div className="space-y-4 print:hidden">
           <PlayerIdentityCard
@@ -139,13 +153,24 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
             equipe={player.equipe.nom}
             photo={player.photo}
             qrValue={qrValue}
+            competition={player.equipe.competition.nom}
+            competitionLogo={player.equipe.competition.image}
           />
 
           <div className="flex flex-wrap gap-2">
+            <OutlineButton
+              type="button"
+              icon={Eye}
+              onClick={() => setIsPreviewOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              Aperçu carte
+            </OutlineButton>
             <PrimaryButton
               type="button"
               icon={Download}
-              onClick={handleDownloadCard}
+              loading={downloadingCard}
+              onClick={() => void handleDownloadCard()}
               className="w-full sm:w-auto"
             >
               Télécharger la carte PDF
@@ -196,6 +221,54 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
           </div>
         </AdminCard>
       </div>
+
+      <AdminModal
+        open={isPreviewOpen}
+        title={`Carte licence — ${player.prenom} ${player.nom}`}
+        onClose={closePreview}
+        historyKey={`player-card-preview-${player.id}`}
+        panelClassName="modal-panel--card-preview"
+        busy={downloadingCard}
+        footer={
+          <>
+            <GhostButton
+              type="button"
+              icon={X}
+              size="sm"
+              onClick={closePreview}
+              disabled={downloadingCard}
+            >
+              Fermer
+            </GhostButton>
+            <OutlineButton
+              type="button"
+              icon={Printer}
+              size="sm"
+              onClick={handlePrintPreview}
+              disabled={downloadingCard}
+            >
+              Imprimer
+            </OutlineButton>
+            <PrimaryButton
+              type="button"
+              icon={Download}
+              size="sm"
+              loading={downloadingCard}
+              onClick={() => void handleDownloadCard()}
+            >
+              Télécharger PDF
+            </PrimaryButton>
+          </>
+        }
+      >
+        <div className="player-card-preview-wrap">
+          <PlayerLicenseCard
+            player={licensePlayer}
+            hideActions
+            className="player-license-card--preview"
+          />
+        </div>
+      </AdminModal>
     </div>
   );
 }

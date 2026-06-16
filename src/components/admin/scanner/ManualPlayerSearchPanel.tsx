@@ -3,14 +3,13 @@
 import { Search, UserRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GhostButton } from "@/components/admin/ui";
-import type { ValidatedPlayer } from "./types";
-
-type SearchPlayer = ValidatedPlayer;
+import type { Player } from "@/hooks/useApi";
+import { mapPlayerToValidatedPlayer, type ValidatedPlayer } from "./types";
 
 type ManualPlayerSearchPanelProps = {
   open: boolean;
   onClose: () => void;
-  onSelectPlayer: (player: SearchPlayer) => void;
+  onSelectPlayer: (player: ValidatedPlayer) => void;
 };
 
 export function ManualPlayerSearchPanel({
@@ -19,7 +18,7 @@ export function ManualPlayerSearchPanel({
   onSelectPlayer,
 }: ManualPlayerSearchPanelProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchPlayer[]>([]);
+  const [results, setResults] = useState<Player[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,11 +34,11 @@ export function ManualPlayerSearchPanel({
     onClose();
   }
 
-  function handleSelectPlayer(player: SearchPlayer) {
+  function handleSelectPlayer(player: Player) {
     setQuery("");
     setResults([]);
     setError(null);
-    onSelectPlayer(player);
+    onSelectPlayer(mapPlayerToValidatedPlayer(player));
   }
 
   useEffect(() => {
@@ -55,7 +54,7 @@ export function ManualPlayerSearchPanel({
         );
         if (!res.ok) throw new Error("Recherche impossible.");
 
-        const data = (await res.json()) as SearchPlayer[];
+        const data = (await res.json()) as Player[];
         setResults(data.slice(0, 8));
       } catch (err) {
         setResults([]);

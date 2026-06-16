@@ -25,15 +25,17 @@ model User {
 }
 
 model Competition {
-  id        String   @id @default(uuid())
-  nom       String
-  slug      String   @unique
-  annee     Int
-  lieu      String?
-  image     String?
-  createdAt DateTime @default(now())
-  equipes   Equipe[]
-  users     User[]
+  id           String   @id @default(uuid())
+  nom          String
+  abbreviation String
+  slug         String   @unique
+  annee        Int
+  lieu         String?
+  image        String?
+  fullControl  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  equipes      Equipe[]
+  users        User[]
 }
 
 model Equipe {

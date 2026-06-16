@@ -24,7 +24,7 @@ async function fetchPlayer(id: string) {
       equipe: {
         select: {
           nom: true,
-          competition: { select: { nom: true } },
+          competition: { select: { nom: true, image: true } },
         },
       },
     },
@@ -135,7 +135,11 @@ export default async function PlayerCardPage({ params }: PlayerCardPageProps) {
           <footer className="flex items-end justify-between border-t border-white/10 bg-black/10 px-3 py-2">
             <p className="text-[9px] font-medium text-white/50">ID: {shortId}</p>
             <div className="rounded-lg bg-white p-1 shadow-sm">
-              <PlayerCardQr token={player.qrToken} size={70} />
+              <PlayerCardQr
+                token={player.qrToken}
+                size={70}
+                competitionLogo={player.equipe.competition.image}
+              />
             </div>
           </footer>
         </article>

@@ -17,6 +17,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import {
   ADMIN_COMPETITION_HOME,
   buildCompetitionSignInHref,
+  deriveCompetitionAbbreviation,
 } from "@/lib/competitionSlug";
 import {
   validateCompetition,
@@ -25,6 +26,7 @@ import {
 
 type CompetitionFormState = {
   nom: string;
+  abbreviation: string;
   annee: string;
   lieu: string;
 };
@@ -38,6 +40,7 @@ type OwnerFormState = {
 
 const emptyCompetitionForm: CompetitionFormState = {
   nom: "",
+  abbreviation: "",
   annee: String(new Date().getFullYear()),
   lieu: "",
 };
@@ -54,6 +57,7 @@ export default function CreateCompetitionPage() {
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abbreviationTouchedRef = useRef(false);
   const [competitionForm, setCompetitionForm] =
     useState<CompetitionFormState>(emptyCompetitionForm);
   const [ownerForm, setOwnerForm] = useState<OwnerFormState>(emptyOwnerForm);
@@ -94,6 +98,7 @@ export default function CreateCompetitionPage() {
 
     const competitionPayload = {
       nom: competitionForm.nom.trim(),
+      abbreviation: competitionForm.abbreviation.trim(),
       annee: Number.parseInt(competitionForm.annee, 10),
       lieu: competitionForm.lieu.trim() || null,
     };
@@ -201,14 +206,40 @@ export default function CreateCompetitionPage() {
                     id="create-comp-nom"
                     type="text"
                     value={competitionForm.nom}
-                    onChange={(e) =>
-                      setCompetitionForm({
-                        ...competitionForm,
-                        nom: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const nom = e.target.value;
+                      setCompetitionForm((prev) => ({
+                        ...prev,
+                        nom,
+                        abbreviation: abbreviationTouchedRef.current
+                          ? prev.abbreviation
+                          : deriveCompetitionAbbreviation(nom),
+                      }));
+                    }}
                     className="admin-input"
                     autoFocus
+                  />
+                </div>
+
+                <div>
+                  <FieldLabel htmlFor="create-comp-abbr">Abréviation *</FieldLabel>
+                  <FieldHint>
+                    Générée automatiquement à partir du nom. Vous pouvez la
+                    personnaliser (2 à 12 caractères).
+                  </FieldHint>
+                  <input
+                    id="create-comp-abbr"
+                    type="text"
+                    value={competitionForm.abbreviation}
+                    onChange={(e) => {
+                      abbreviationTouchedRef.current = true;
+                      setCompetitionForm({
+                        ...competitionForm,
+                        abbreviation: e.target.value.toUpperCase(),
+                      });
+                    }}
+                    className="admin-input"
+                    maxLength={12}
                   />
                 </div>
 

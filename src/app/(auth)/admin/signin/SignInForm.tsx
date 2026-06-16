@@ -16,6 +16,7 @@ import { ADMIN_COMPETITION_HOME } from "@/lib/competitionSlug";
 
 export type SignInCompetitionPreview = {
   nom: string;
+  abbreviation: string;
   annee: number;
   lieu: string | null;
   image: string | null;
@@ -124,7 +125,12 @@ export default function SignInForm({
             <ArrowLeft size={16} aria-hidden />
             <span>{backLabel}</span>
           </Link>
-          <AppLogo href="/" size="sm" />
+          <AppLogo
+            href={backHref}
+            size="sm"
+            src={competition?.image ?? undefined}
+            alt={competition?.abbreviation ?? "ID FOOT"}
+          />
         </div>
       </header>
 
@@ -134,7 +140,9 @@ export default function SignInForm({
             {renderCardLogo()}
           </header>
 
-          <p className="text-section-label">Administration</p>
+          <p className="text-section-label">
+            {competition ? competition.abbreviation : "Administration"}
+          </p>
           <h1 className="text-h2 mt-2">
             {competition
               ? `Se connecter pour gérer ${competition.nom}`

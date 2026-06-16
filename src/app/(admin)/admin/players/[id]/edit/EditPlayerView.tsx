@@ -1,10 +1,8 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   AdminCard,
-  GhostLink,
   LoadingState,
   PageHeader,
 } from "@/components/admin/ui";
@@ -27,9 +25,6 @@ export function EditPlayerView({ id }: EditPlayerViewProps) {
     return (
       <AdminCard className="px-6 py-10 text-center">
         <p className="text-sm text-rose-700">{error ?? "Joueur introuvable."}</p>
-        <GhostLink href="/admin/players" icon={ArrowLeft} className="mt-4 inline-flex">
-          Retour à la liste
-        </GhostLink>
       </AdminCard>
     );
   }

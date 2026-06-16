@@ -18,6 +18,7 @@ import { useAdminBackPath } from "@/hooks/useAdminBackPath";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 import { getAdminPageTitle, getMobileTopbarBrand } from "@/lib/adminNav";
+import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
 import type { AuthUser } from "@/lib/auth/scope";
 
 type AdminShellCompetition = {
@@ -25,6 +26,8 @@ type AdminShellCompetition = {
   nom: string;
   slug: string;
   image: string | null;
+  abbreviation: string;
+  fullControl: boolean;
 };
 
 const SIDEBAR_COLLAPSED_KEY = "id-foot-sidebar-collapsed";
@@ -85,8 +88,10 @@ export function AdminShell({
   const pageTitle = getAdminPageTitle(pathname);
   const TopbarIcon = topbarBrand.icon;
   const brandLogoSrc = competition?.image ?? null;
-  const brandLogoAlt = competition?.nom ?? "ID FOOT";
-  const brandLogoLabel = competition?.nom ?? "ID FOOT";
+  const brandLabel = getPlayerCardBrandLabel(competition);
+  const brandLogoAlt = competition?.nom ?? brandLabel;
+  const brandLogoLabel = competition?.nom ?? brandLabel;
+  const showIdFootBrand = brandLabel === "ID FOOT";
 
   const openMenu = useCallback(() => setMenuOpenPath(pathname), [pathname]);
   const closeMenu = useCallback(() => setMenuOpenPath(null), []);
@@ -137,8 +142,14 @@ export function AdminShell({
               className="sidebar-brand-logo rounded-md"
             />
             <span className="sidebar-brand-text hidden min-[380px]:inline">
-              <span className="sidebar-brand-id">ID </span>
-              <span className="sidebar-brand-foot">FOOT</span>
+              {showIdFootBrand ? (
+                <>
+                  <span className="sidebar-brand-id">ID </span>
+                  <span className="sidebar-brand-foot">FOOT</span>
+                </>
+              ) : (
+                <span className="sidebar-brand-foot">{brandLabel}</span>
+              )}
             </span>
           </Link>
 
@@ -229,7 +240,12 @@ export function AdminShell({
             className="admin-topbar-logo touch-target"
             aria-label="Mon profil"
           >
-            <span className="user-avatar user-avatar--topbar">{initials}</span>
+            <AppLogo
+              size="sm"
+              src={brandLogoSrc}
+              alt={brandLogoAlt}
+              className="admin-topbar-logo-image"
+            />
           </Link>
         </header>
 

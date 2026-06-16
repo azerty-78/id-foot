@@ -8,9 +8,12 @@ import {
 } from "@/lib/auth/api";
 import {
   ensureUniqueCompetitionSlug,
+  resolveCompetitionAbbreviation,
   slugifyCompetitionName,
 } from "@/lib/competitionSlug";
 import { prisma } from "@/lib/prisma";
+import { deleteCompetitionCascade } from "@/lib/competitionDelete";
+import { validateCompetition } from "@/lib/validators";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
@@ -18,9 +21,11 @@ type RouteParams = {
 
 type UpdateCompetitionBody = {
   nom: string;
+  abbreviation?: string;
   annee: number | string;
   lieu?: string | null;
   image?: string | null;
+  fullControl?: boolean;
 };
 
 function parseCompetitionPayload(body: UpdateCompetitionBody) {
@@ -28,8 +33,13 @@ function parseCompetitionPayload(body: UpdateCompetitionBody) {
   const annee = Number.parseInt(String(body.annee), 10);
   const lieu = body.lieu?.trim() || null;
   const image = body.image?.trim() || null;
+  const fullControl = body.fullControl === true;
+  const abbreviation = resolveCompetitionAbbreviation({
+    nom,
+    abbreviation: body.abbreviation,
+  });
 
-  return { nom, annee, lieu, image };
+  return { nom, annee, lieu, image, abbreviation, fullControl };
 }
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
@@ -72,11 +82,19 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = (await req.json()) as UpdateCompetitionBody;
-    const { nom, annee, lieu, image } = parseCompetitionPayload(body);
+    const { nom, annee, lieu, image, abbreviation, fullControl } =
+      parseCompetitionPayload(body);
 
-    if (!nom || Number.isNaN(annee)) {
+    const validation = validateCompetition({
+      nom,
+      abbreviation,
+      annee,
+      lieu,
+      fullControl,
+    });
+    if (!validation.valid) {
       return NextResponse.json(
-        { error: "Nom et année requis." },
+        { error: validation.errors[0] },
         { status: 400 },
       );
     }
@@ -102,10 +120,12 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       where: { id },
       data: {
         nom,
+        abbreviation,
         slug,
         annee,
         lieu,
         image,
+        fullControl,
       },
       include: {
         _count: { select: { equipes: true } },
@@ -140,36 +160,9 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
     const denied = denyUnlessCompetitionAccess(user, id);
     if (denied) return denied;
 
-    const equipes = await prisma.equipe.findMany({
-      where: { competitionId: id },
-      select: { id: true },
-    });
-    const equipeIds = equipes.map((equipe) => equipe.id);
-
-    const deleted = await prisma.$transaction(async (tx) => {
-      const joueurs =
-        equipeIds.length > 0
-          ? await tx.joueur.deleteMany({
-              where: { equipeId: { in: equipeIds } },
-            })
-          : { count: 0 };
-
-      const equipesDeleted = await tx.equipe.deleteMany({
-        where: { competitionId: id },
-      });
-
-      const users = await tx.user.deleteMany({
-        where: { competitionId: id },
-      });
-
-      await tx.competition.delete({ where: { id } });
-
-      return {
-        joueurs: joueurs.count,
-        equipes: equipesDeleted.count,
-        users: users.count,
-      };
-    });
+    const deleted = await prisma.$transaction(async (tx) =>
+      deleteCompetitionCascade(tx, id),
+    );
 
     return NextResponse.json({ success: true, deleted });
   } catch (error) {
