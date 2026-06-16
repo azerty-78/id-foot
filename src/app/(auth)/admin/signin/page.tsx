@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
 import { Suspense } from "react";
 import { LoadingState } from "@/components/admin/ui";
+import { authOptions } from "@/lib/auth";
+import { resolveSafeCallbackUrl } from "@/lib/auth/callbackUrl";
+import { ADMIN_COMPETITION_HOME } from "@/lib/competitionSlug";
 import { buildCompetitionSignInMetadata } from "@/lib/competitionSignInShare";
 import { getAppBaseUrl } from "@/lib/competitionSlug";
 import { prisma } from "@/lib/prisma";
@@ -50,6 +55,16 @@ export async function generateMetadata({
 async function SignInPageContent({ searchParams }: SignInPageProps) {
   const params = await searchParams;
   const competitionSlug = params.competition ?? "";
+  const callbackUrl = resolveSafeCallbackUrl(
+    params.callbackUrl,
+    ADMIN_COMPETITION_HOME,
+  );
+  const session = await getServerSession(authOptions);
+
+  if (session?.user?.active !== false && session?.user?.id) {
+    redirect(callbackUrl);
+  }
+
   const competition = await loadCompetitionPreview(competitionSlug || undefined);
 
   return (

@@ -16,7 +16,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   const session = await getServerSession(authOptions);
   const sessionUser = session?.user;
 
-  if (!sessionUser?.id || !sessionUser.email) {
+  if (!sessionUser?.id || !sessionUser.email || sessionUser.active === false) {
     return null;
   }
 

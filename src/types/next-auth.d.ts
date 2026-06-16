@@ -15,6 +15,7 @@ declare module "next-auth" {
     id: string;
     role: UserRole;
     competitionId: string | null;
+    sessionVersion: number;
   }
 }
 
@@ -25,6 +26,7 @@ declare module "next-auth/jwt" {
     competitionId?: string | null;
     active?: boolean;
     userCheckedAt?: number;
+    sessionVersion?: number;
   }
 }
 

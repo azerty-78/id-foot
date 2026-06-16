@@ -1,15 +1,16 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
+import { AUTH_SESSION_MAX_AGE_SECONDS } from "@/lib/auth/sessionPolicy";
 import { getGodModeConfig } from "@/lib/god-mode/config";
 
 export const GOD_MODE_COOKIE = "id-foot-god-mode";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 export type GodModeSession = {
   sub: string;
   email: string;
   name: string;
+  sessionVersion: number;
   exp: number;
 };
 
@@ -25,7 +26,7 @@ export function createGodModeToken(session: Omit<GodModeSession, "exp">): string
 
   const payload: GodModeSession = {
     ...session,
-    exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS,
+    exp: Math.floor(Date.now() / 1000) + AUTH_SESSION_MAX_AGE_SECONDS,
   };
 
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -61,6 +62,7 @@ export function verifyGodModeToken(token: string | undefined): GodModeSession | 
       !payload.email ||
       payload.email !== config.email ||
       typeof payload.exp !== "number" ||
+      typeof payload.sessionVersion !== "number" ||
       payload.exp < Math.floor(Date.now() / 1000)
     ) {
       return null;
@@ -89,7 +91,7 @@ export function attachGodModeCookie(
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
   });
   return response;
 }

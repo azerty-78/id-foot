@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     sub: session.sub,
     email: session.email,
     name: session.name,
+    sessionVersion: session.sessionVersion,
   });
 
   const response = NextResponse.json({

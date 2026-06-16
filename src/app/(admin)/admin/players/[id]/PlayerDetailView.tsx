@@ -29,6 +29,7 @@ import {
 import { downloadPdfFromApi } from "@/lib/downloadPdfClient";
 import { buildPlayerCardFilename } from "@/lib/playerCardFilename";
 import { toPlayerLicenseCardPlayer } from "@/lib/playerLicenseCardPlayer";
+import { buildQrScanUrl } from "@/lib/qrScanUrl";
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -52,8 +53,6 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
   const { player, loading, error } = usePlayer(id);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [downloadingCard, setDownloadingCard] = useState(false);
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   const closePreview = useCallback(() => {
     setIsPreviewOpen(false);
@@ -117,7 +116,7 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
     );
   }
 
-  const qrValue = `${appUrl}/api/qr/${player.qrToken}`;
+  const qrValue = buildQrScanUrl(player.qrToken);
 
   const licensePlayer = toPlayerLicenseCardPlayer(player);
 

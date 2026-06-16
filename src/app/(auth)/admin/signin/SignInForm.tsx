@@ -13,6 +13,10 @@ import {
 import { AppLogo } from "@/components/brand/AppLogo";
 import { useToast } from "@/components/providers/ToastProvider";
 import { ADMIN_COMPETITION_HOME } from "@/lib/competitionSlug";
+import {
+  isQrScanCallbackUrl,
+  resolveSafeCallbackUrl,
+} from "@/lib/auth/callbackUrl";
 
 export type SignInCompetitionPreview = {
   nom: string;
@@ -35,9 +39,8 @@ export default function SignInForm({
 }: SignInFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
-  const callbackUrl = competitionSlug
-    ? ADMIN_COMPETITION_HOME
-    : (callbackUrlProp ?? ADMIN_COMPETITION_HOME);
+  const callbackUrl = resolveSafeCallbackUrl(callbackUrlProp, ADMIN_COMPETITION_HOME);
+  const isQrScanLogin = isQrScanCallbackUrl(callbackUrlProp);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,6 +89,10 @@ export default function SignInForm({
   }
 
   function renderLeadText() {
+    if (isQrScanLogin) {
+      return "Connectez-vous pour consulter les informations du joueur associé à ce QR code.";
+    }
+
     if (!competitionSlug) {
       return "Accédez à l'espace d'administration ID FOOT.";
     }
@@ -144,9 +151,11 @@ export default function SignInForm({
             {competition ? competition.abbreviation : "Administration"}
           </p>
           <h1 className="text-h2 mt-2">
-            {competition
-              ? `Se connecter pour gérer ${competition.nom}`
-              : "Connexion"}
+            {isQrScanLogin
+              ? "Connexion pour vérifier une licence"
+              : competition
+                ? `Se connecter pour gérer ${competition.nom}`
+                : "Connexion"}
           </h1>
           <p className="login-card-lead">{renderLeadText()}</p>
 

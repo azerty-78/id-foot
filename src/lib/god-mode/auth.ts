@@ -96,10 +96,22 @@ export async function authenticateGodMode(
     return null;
   }
 
+  const sessionUser = await prisma.user.update({
+    where: { id: user.id },
+    data: { sessionVersion: { increment: 1 } },
+    select: {
+      id: true,
+      email: true,
+      nom: true,
+      sessionVersion: true,
+    },
+  });
+
   return {
-    sub: user.id,
-    email: user.email,
-    name: user.nom,
+    sub: sessionUser.id,
+    email: sessionUser.email,
+    name: sessionUser.nom,
+    sessionVersion: sessionUser.sessionVersion,
     exp: 0,
   };
 }
@@ -113,14 +125,22 @@ export async function getValidatedGodModeSession(): Promise<GodModeSession | nul
 
   const user = await prisma.user.findUnique({
     where: { id: session.sub },
-    select: { id: true, nom: true, email: true, role: true, active: true },
+    select: {
+      id: true,
+      nom: true,
+      email: true,
+      role: true,
+      active: true,
+      sessionVersion: true,
+    },
   });
 
   if (
     !user ||
     user.role !== "SUPER_ADMIN" ||
     !user.active ||
-    user.email !== config.email
+    user.email !== config.email ||
+    user.sessionVersion !== session.sessionVersion
   ) {
     return null;
   }
@@ -129,6 +149,7 @@ export async function getValidatedGodModeSession(): Promise<GodModeSession | nul
     sub: user.id,
     email: user.email,
     name: user.nom,
+    sessionVersion: user.sessionVersion,
     exp: session.exp,
   };
 }
@@ -152,14 +173,21 @@ export async function requireGodModeSession(): Promise<GodModeResult> {
 
   const user = await prisma.user.findUnique({
     where: { id: session.sub },
-    select: { id: true, role: true, active: true, email: true },
+    select: {
+      id: true,
+      role: true,
+      active: true,
+      email: true,
+      sessionVersion: true,
+    },
   });
 
   if (
     !user ||
     user.role !== "SUPER_ADMIN" ||
     !user.active ||
-    user.email !== config.email
+    user.email !== config.email ||
+    user.sessionVersion !== session.sessionVersion
   ) {
     return jsonError("Accès god-mode refusé.", 403);
   }
