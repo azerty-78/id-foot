@@ -5,7 +5,11 @@ import pg from "pg";
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
   pgPool: pg.Pool | undefined;
+  prismaClientVersion?: number;
 };
+
+/** Incrémenter quand le schéma Prisma change pour invalider le singleton en dev. */
+const PRISMA_CLIENT_VERSION = 2;
 
 function createPrismaClient() {
   const pool =
@@ -27,7 +31,10 @@ function createPrismaClient() {
 }
 
 function isPrismaClientCurrent(client: PrismaClient): boolean {
-  return typeof client.user?.findUnique === "function";
+  return (
+    typeof client.user?.findUnique === "function" &&
+    globalForPrisma.prismaClientVersion === PRISMA_CLIENT_VERSION
+  );
 }
 
 function getPrismaClient(): PrismaClient {
@@ -38,6 +45,7 @@ function getPrismaClient(): PrismaClient {
 
   const client = createPrismaClient();
   globalForPrisma.prisma = client;
+  globalForPrisma.prismaClientVersion = PRISMA_CLIENT_VERSION;
   return client;
 }
 
