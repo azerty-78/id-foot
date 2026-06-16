@@ -12,6 +12,7 @@ import {
   slugifyCompetitionName,
 } from "@/lib/competitionSlug";
 import { prisma } from "@/lib/prisma";
+import { deleteCompetitionCascade } from "@/lib/competitionDelete";
 import { validateCompetition } from "@/lib/validators";
 
 type RouteParams = {
@@ -149,36 +150,9 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
     const denied = denyUnlessCompetitionAccess(user, id);
     if (denied) return denied;
 
-    const equipes = await prisma.equipe.findMany({
-      where: { competitionId: id },
-      select: { id: true },
-    });
-    const equipeIds = equipes.map((equipe) => equipe.id);
-
-    const deleted = await prisma.$transaction(async (tx) => {
-      const joueurs =
-        equipeIds.length > 0
-          ? await tx.joueur.deleteMany({
-              where: { equipeId: { in: equipeIds } },
-            })
-          : { count: 0 };
-
-      const equipesDeleted = await tx.equipe.deleteMany({
-        where: { competitionId: id },
-      });
-
-      const users = await tx.user.deleteMany({
-        where: { competitionId: id },
-      });
-
-      await tx.competition.delete({ where: { id } });
-
-      return {
-        joueurs: joueurs.count,
-        equipes: equipesDeleted.count,
-        users: users.count,
-      };
-    });
+    const deleted = await prisma.$transaction(async (tx) =>
+      deleteCompetitionCascade(tx, id),
+    );
 
     return NextResponse.json({ success: true, deleted });
   } catch (error) {

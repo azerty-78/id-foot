@@ -72,6 +72,7 @@ export function ScanSuccessOverlay({
             ]
               .filter(Boolean)
               .join(" · ")}
+            competitionLogo={player.equipe.competition.image}
             className="scan-success-identity"
           />
         ) : (

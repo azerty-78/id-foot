@@ -43,6 +43,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
                 nom: true,
                 annee: true,
                 lieu: true,
+                image: true,
               },
             },
           },

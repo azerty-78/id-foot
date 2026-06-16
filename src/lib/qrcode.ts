@@ -1,14 +1,19 @@
-import path from "path";
 import type sharp from "sharp";
 import QRCode from "qrcode";
-import { QR_LOGO_PUBLIC_PATH, getQrLogoSize } from "@/lib/qrBrand";
+import { getQrLogoSize } from "@/lib/qrBrand";
+import { loadQrLogoBuffer } from "@/lib/qrLogo";
 import { CARD_QR_INNER } from "@/lib/playerCardColors";
 
 /** Taille QR = zone intérieure du cadre carte (218px @ 500px) */
 export const CARD_QR_PIXEL_SIZE = CARD_QR_INNER;
 
-let cachedLogoPng: Buffer | null = null;
 let sharpModule: typeof sharp | null = null;
+
+export type QrCodeGenerateOptions = {
+  pixelSize?: number;
+  /** Image de la compétition ; repli ID FOOT si absente. */
+  competitionLogo?: string | null;
+};
 
 function getQrBaseUrl(): string {
   const baseUrl =
@@ -26,23 +31,6 @@ async function getSharp() {
   return sharpModule;
 }
 
-async function getLogoPng(logoSize: number): Promise<Buffer> {
-  const renderer = await getSharp();
-
-  if (!cachedLogoPng) {
-    const logoPath = path.join(process.cwd(), "public", QR_LOGO_PUBLIC_PATH);
-    cachedLogoPng = await renderer(logoPath).png().toBuffer();
-  }
-
-  return renderer(cachedLogoPng)
-    .resize(logoSize, logoSize, {
-      fit: "contain",
-      background: { r: 255, g: 255, b: 255, alpha: 0 },
-    })
-    .png()
-    .toBuffer();
-}
-
 function whiteCircleSvg(size: number): Buffer {
   const radius = size / 2;
   return Buffer.from(
@@ -50,14 +38,28 @@ function whiteCircleSvg(size: number): Buffer {
   );
 }
 
+function resolveGenerateOptions(
+  options?: number | QrCodeGenerateOptions,
+): Required<QrCodeGenerateOptions> {
+  if (typeof options === "number") {
+    return { pixelSize: options, competitionLogo: null };
+  }
+
+  return {
+    pixelSize: options?.pixelSize ?? CARD_QR_PIXEL_SIZE,
+    competitionLogo: options?.competitionLogo ?? null,
+  };
+}
+
 async function composeBrandedQr(
   qrBuffer: Buffer,
   pixelSize: number,
+  competitionLogo: string | null,
 ): Promise<Buffer> {
   const renderer = await getSharp();
   const logoSize = getQrLogoSize(pixelSize);
   const padSize = Math.round(logoSize * 1.14);
-  const logoBuffer = await getLogoPng(logoSize);
+  const logoBuffer = await loadQrLogoBuffer(competitionLogo, logoSize);
 
   const padLeft = Math.round((pixelSize - padSize) / 2);
   const padTop = Math.round((pixelSize - padSize) / 2);
@@ -75,8 +77,9 @@ async function composeBrandedQr(
 
 export async function generateQRCodeBuffer(
   token: string,
-  pixelSize = CARD_QR_PIXEL_SIZE,
+  options?: number | QrCodeGenerateOptions,
 ): Promise<Buffer> {
+  const { pixelSize, competitionLogo } = resolveGenerateOptions(options);
   const url = `${getQrBaseUrl()}/api/qr/${token}`;
 
   const qrBuffer = await QRCode.toBuffer(url, {
@@ -91,7 +94,7 @@ export async function generateQRCodeBuffer(
   });
 
   try {
-    return await composeBrandedQr(qrBuffer, pixelSize);
+    return await composeBrandedQr(qrBuffer, pixelSize, competitionLogo);
   } catch {
     return qrBuffer;
   }
@@ -99,8 +102,8 @@ export async function generateQRCodeBuffer(
 
 export async function generateQRCode(
   token: string,
-  pixelSize = CARD_QR_PIXEL_SIZE,
+  options?: number | QrCodeGenerateOptions,
 ): Promise<string> {
-  const buffer = await generateQRCodeBuffer(token, pixelSize);
+  const buffer = await generateQRCodeBuffer(token, options);
   return `data:image/png;base64,${buffer.toString("base64")}`;
 }

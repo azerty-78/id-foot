@@ -48,7 +48,11 @@ export function PlayerCardPreview({ player }: { player: ValidatedPlayer }) {
       <footer className="scan-player-card-footer">
         <p>ID: {shortId}</p>
         <div className="scan-player-card-qr">
-          <PlayerCardQr token={player.qrToken} size={64} />
+          <PlayerCardQr
+            token={player.qrToken}
+            size={64}
+            competitionLogo={player.equipe.competition.image}
+          />
         </div>
       </footer>
     </article>

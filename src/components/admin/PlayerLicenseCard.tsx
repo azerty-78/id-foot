@@ -15,7 +15,7 @@ export type PlayerLicenseCardPlayer = {
   qrToken: string;
   equipe: {
     nom: string;
-    competition: { nom: string };
+    competition: { nom: string; image?: string | null };
   };
 };
 
@@ -129,7 +129,11 @@ export function PlayerLicenseCard({
 
         <div className="player-license-card-qr-zone">
           <div className="player-license-card-qr">
-            <PlayerCardQr token={player.qrToken} size={qrInnerPx} />
+            <PlayerCardQr
+              token={player.qrToken}
+              size={qrInnerPx}
+              competitionLogo={player.equipe.competition.image}
+            />
           </div>
           <span className="player-license-card-scan-hint">Scanner ici</span>
         </div>

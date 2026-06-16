@@ -669,6 +669,7 @@ export function PlayerForm({
             poste={values.poste}
             equipe={selectedTeam?.nom ?? "—"}
             photo={displayPhoto}
+            competitionLogo={selectedTeam?.competition?.image}
           />
 
           <AdminCard>

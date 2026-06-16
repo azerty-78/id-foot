@@ -139,6 +139,8 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
             equipe={player.equipe.nom}
             photo={player.photo}
             qrValue={qrValue}
+            competition={player.equipe.competition.nom}
+            competitionLogo={player.equipe.competition.image}
           />
 
           <div className="flex flex-wrap gap-2">

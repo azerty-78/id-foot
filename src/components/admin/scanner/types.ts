@@ -13,6 +13,7 @@ export type ValidatedPlayer = {
       nom: string;
       annee: number;
       lieu?: string | null;
+      image?: string | null;
     };
   };
 };

@@ -45,9 +45,12 @@ type JoueurForCard = CardRenderPlayer & {
   qrToken: string;
 };
 
-async function prepareCardAssets(joueur: JoueurForCard) {
+async function prepareCardAssets(
+  joueur: JoueurForCard,
+  competitionLogo: string | null,
+) {
   const [qrPng, photoPng] = await Promise.all([
-    generateQRCodeBuffer(joueur.qrToken),
+    generateQRCodeBuffer(joueur.qrToken, { competitionLogo }),
     joueur.photo ? loadPlayerPhotoBuffer(joueur.photo) : Promise.resolve(null),
   ]);
 
@@ -61,7 +64,8 @@ function pngToPdfDataUri(png: Buffer): string {
 async function renderCardPdfPage(joueur: JoueurForCard): Promise<{
   dataUri: string;
 }> {
-  const { qrPng, photoPng } = await prepareCardAssets(joueur);
+  const competitionLogo = joueur.equipe.competition?.image ?? null;
+  const { qrPng, photoPng } = await prepareCardAssets(joueur, competitionLogo);
   const png = await renderPlayerCardPng(joueur, qrPng, photoPng);
   return { dataUri: pngToPdfDataUri(png) };
 }

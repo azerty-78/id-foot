@@ -217,6 +217,10 @@ export default function CompetitionsPage() {
       closeDeleteModal();
 
       if (role === "ADMIN") {
+        showToast(
+          "success",
+          "Votre compte a été supprimé. Redirection vers l'accueil…",
+        );
         await signOut({ callbackUrl: "/" });
         return;
       }
@@ -490,11 +494,24 @@ export default function CompetitionsPage() {
               className="mt-0.5 shrink-0 text-danger"
               aria-hidden
             />
-            <p className="text-[13px] leading-relaxed text-danger">
-              Cette action est irréversible. Toutes les données liées à{" "}
-              <strong>{deletingCompetition?.nom}</strong> seront supprimées.
-            </p>
+            <div className="space-y-2 text-[13px] leading-relaxed text-danger">
+              <p>
+                <strong>Action irréversible.</strong> En supprimant la compétition{" "}
+                <strong>{deletingCompetition?.nom}</strong>, vous effacez
+                définitivement l&apos;ensemble des données liées.
+              </p>
+              {role === "ADMIN" ? (
+                <p>
+                  Votre compte administrateur sera supprimé avec la compétition.
+                  Vous serez déconnecté et redirigé vers l&apos;accueil principal.
+                </p>
+              ) : null}
+            </div>
           </div>
+
+          <p className="text-body text-sm font-medium text-navy">
+            Éléments qui seront supprimés :
+          </p>
 
           {deleteStatsLoading ? (
             <p className="text-body text-sm">Calcul des éléments concernés…</p>
@@ -503,18 +520,21 @@ export default function CompetitionsPage() {
               <li>
                 {deletingCompetition?._count?.equipes ?? 0} club
                 {(deletingCompetition?._count?.equipes ?? 0) > 1 ? "s" : ""}{" "}
-                (équipes)
+                (équipes) et leurs effectifs
               </li>
               <li>
                 {deleteJoueurCount ?? "—"} joueur
-                {deleteJoueurCount === 1 ? "" : "s"} et leurs données
+                {deleteJoueurCount === 1 ? "" : "s"} (fiches, photos, QR codes et
+                cartes licence)
               </li>
               <li>
                 {deletingCompetition?._count?.users ?? 0} compte
                 {(deletingCompetition?._count?.users ?? 0) > 1 ? "s" : ""}{" "}
-                utilisateur
+                utilisateur (administrateur et gestionnaires)
               </li>
-              <li>La compétition et son image de couverture</li>
+              <li>
+                La compétition, son image de couverture et la page publique /{deletingCompetition?.slug}
+              </li>
             </ul>
           )}
         </div>
