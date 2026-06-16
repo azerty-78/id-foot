@@ -7,8 +7,10 @@ export function extractToken(value: string): string | null {
 
   try {
     const url = new URL(trimmed);
-    const qrMatch = url.pathname.match(/\/api\/qr\/([^/]+)/i);
-    if (qrMatch?.[1]) return qrMatch[1];
+    const qrMatch =
+      url.pathname.match(/\/api\/qr\/([^/]+)/i) ??
+      url.pathname.match(/\/scan\/([^/]+)/i);
+    if (qrMatch?.[1]) return decodeURIComponent(qrMatch[1]);
   } catch {
     if (UUID_REGEX.test(trimmed)) return trimmed;
   }
