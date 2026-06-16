@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import { getQrLogoSize } from "@/lib/qrBrand";
 import { loadQrLogoBuffer } from "@/lib/qrLogo.server";
 import { CARD_QR_INNER } from "@/lib/playerCardColors";
+import { buildQrScanUrl } from "@/lib/qrScanUrl";
 
 /** Taille QR = zone intérieure du cadre carte (218px @ 500px) */
 export const CARD_QR_PIXEL_SIZE = CARD_QR_INNER;
@@ -80,7 +81,7 @@ export async function generateQRCodeBuffer(
   options?: number | QrCodeGenerateOptions,
 ): Promise<Buffer> {
   const { pixelSize, competitionLogo } = resolveGenerateOptions(options);
-  const url = `${getQrBaseUrl()}/api/qr/${token}`;
+  const url = buildQrScanUrl(token, getQrBaseUrl());
 
   const qrBuffer = await QRCode.toBuffer(url, {
     errorCorrectionLevel: "H",

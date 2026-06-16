@@ -1,7 +1,26 @@
 import bcrypt from "bcryptjs";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { AUTH_SESSION_MAX_AGE_SECONDS } from "@/lib/auth/sessionPolicy";
 import { prisma } from "@/lib/prisma";
+
+const userSessionSelect = {
+  id: true,
+  nom: true,
+  email: true,
+  role: true,
+  competitionId: true,
+  active: true,
+  sessionVersion: true,
+} as const;
+
+async function bumpUserSessionVersion(userId: string) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { sessionVersion: { increment: 1 } },
+    select: userSessionSelect,
+  });
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -25,11 +44,7 @@ export const authOptions: NextAuthOptions = {
           where: { email },
         });
 
-        if (!user) {
-          return null;
-        }
-
-        if (!user.active) {
+        if (!user || !user.active) {
           return null;
         }
 
@@ -49,12 +64,15 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
+        const sessionUser = await bumpUserSessionVersion(user.id);
+
         return {
-          id: user.id,
-          name: user.nom,
-          email: user.email,
-          role: user.role,
-          competitionId: user.competitionId,
+          id: sessionUser.id,
+          name: sessionUser.nom,
+          email: sessionUser.email,
+          role: sessionUser.role,
+          competitionId: sessionUser.competitionId,
+          sessionVersion: sessionUser.sessionVersion,
         };
       },
     }),
@@ -64,6 +82,10 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
+  },
+  jwt: {
+    maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
@@ -75,6 +97,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = user.role;
         token.competitionId = user.competitionId;
+        token.sessionVersion = user.sessionVersion;
         token.active = true;
         token.userCheckedAt = Date.now();
         return token;
@@ -84,47 +107,38 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.sub },
+        select: userSessionSelect,
+      });
+
+      if (
+        !dbUser ||
+        !dbUser.active ||
+        dbUser.sessionVersion !== token.sessionVersion
+      ) {
+        token.active = false;
+        delete token.sub;
+        delete token.id;
+        token.userCheckedAt = Date.now();
+        return token;
+      }
+
       const refreshIntervalMs = 60_000;
       const lastCheck = token.userCheckedAt ?? 0;
       const shouldRefresh =
         trigger === "update" || Date.now() - lastCheck > refreshIntervalMs;
 
-      if (!shouldRefresh) {
-        return token;
+      if (shouldRefresh) {
+        token.active = true;
+        token.name = dbUser.nom;
+        token.email = dbUser.email;
+        token.role = dbUser.role;
+        token.competitionId = dbUser.competitionId;
+        token.sessionVersion = dbUser.sessionVersion;
+        token.userCheckedAt = Date.now();
       }
 
-      const dbUser = await prisma.user.findUnique({
-        where: { id: token.sub },
-        select: {
-          nom: true,
-          email: true,
-          role: true,
-          competitionId: true,
-          active: true,
-        },
-      });
-
-      token.userCheckedAt = Date.now();
-
-      if (!dbUser) {
-        token.active = false;
-        delete token.sub;
-        delete token.id;
-        return token;
-      }
-
-      if (!dbUser.active) {
-        token.active = false;
-        delete token.sub;
-        delete token.id;
-        return token;
-      }
-
-      token.active = true;
-      token.name = dbUser.nom;
-      token.email = dbUser.email;
-      token.role = dbUser.role;
-      token.competitionId = dbUser.competitionId;
       return token;
     },
     async session({ session, token }) {

@@ -1,57 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { handlePrismaError } from "@/lib/api/http";
+import { handlePrismaError, jsonError } from "@/lib/api/http";
 import {
   denyUnlessCompetitionAccess,
   isAuthResponse,
   requireApiUser,
 } from "@/lib/auth/api";
+import { buildQrScanPath } from "@/lib/qrScanUrl";
+import { getPlayerByQrToken } from "@/lib/qrPlayer";
 
 type RouteParams = {
   params: Promise<{ token: string }>;
 };
 
-export async function GET(_req: NextRequest, { params }: RouteParams) {
+function wantsHtmlRedirect(req: NextRequest): boolean {
+  const accept = req.headers.get("accept") ?? "";
+  return accept.includes("text/html") && !accept.includes("application/json");
+}
+
+export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
+    const { token } = await params;
+
+    if (wantsHtmlRedirect(req)) {
+      return NextResponse.redirect(new URL(buildQrScanPath(token), req.url));
+    }
+
     const user = await requireApiUser();
     if (isAuthResponse(user)) return user;
 
-    const { token } = await params;
-
-    const joueur = await prisma.joueur.findUnique({
-      where: { qrToken: token },
-      select: {
-        id: true,
-        nom: true,
-        prenom: true,
-        dateNaissance: true,
-        nationalite: true,
-        numero: true,
-        poste: true,
-        photo: true,
-        qrToken: true,
-        createdAt: true,
-        equipe: {
-          select: {
-            id: true,
-            nom: true,
-            logo: true,
-            competitionId: true,
-            competition: {
-              select: {
-                id: true,
-                nom: true,
-                annee: true,
-                lieu: true,
-                image: true,
-                abbreviation: true,
-                fullControl: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const joueur = await getPlayerByQrToken(token);
 
     if (!joueur) {
       return NextResponse.json(

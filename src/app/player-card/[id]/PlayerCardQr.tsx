@@ -1,6 +1,7 @@
 "use client";
 
 import { BrandedQrCode } from "@/components/qr/BrandedQrCode";
+import { buildQrScanUrl } from "@/lib/qrScanUrl";
 
 type PlayerCardQrProps = {
   token: string;
@@ -13,8 +14,7 @@ export function PlayerCardQr({
   size = 70,
   competitionLogo,
 }: PlayerCardQrProps) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const value = `${appUrl}/api/qr/${token}`;
+  const value = buildQrScanUrl(token);
 
   return (
     <BrandedQrCode

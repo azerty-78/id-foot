@@ -17,7 +17,7 @@ export function InactiveSessionGuard() {
 
     if (inactive) {
       signingOutRef.current = true;
-      void signOut({ callbackUrl: "/admin/signin" });
+      void signOut({ callbackUrl: "/admin/signin?reason=session-expired" });
     }
   }, [session?.user?.active, session?.user?.id, status]);
 
