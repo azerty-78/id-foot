@@ -7,6 +7,7 @@ import {
 
 export type CompetitionSignInPreview = {
   nom: string;
+  abbreviation: string;
   slug: string;
   annee: number;
   lieu: string | null;
@@ -39,7 +40,7 @@ export function buildCompetitionSignInDescription(
       ? `${competition.lieu}, ${competition.annee}`
       : String(competition.annee);
 
-  return `Connectez-vous pour administrer la compétition ${competition.nom} (${place}) sur ID FOOT.`;
+  return `Connectez-vous pour administrer la compétition ${competition.nom} (${place}) via ${competition.abbreviation}.`;
 }
 
 export function buildCompetitionSignInMetadata(
@@ -81,13 +82,13 @@ export function buildCompetitionSignInMetadata(
   const imageUrl = resolveShareImageUrl(competition.image, baseUrl);
 
   return {
-    title: `${title} | ID FOOT`,
+    title: `${title} | ${competition.abbreviation}`,
     description,
     openGraph: {
       title,
       description,
       url,
-      siteName: "ID FOOT",
+      siteName: competition.abbreviation,
       type: "website",
       images: [
         {
@@ -109,17 +110,19 @@ export function buildCompetitionSignInMetadata(
 
 type ShareToast = (tone: "success" | "error", message: string) => void;
 
-export function buildCompetitionSignInShareText(nom: string): string {
-  return `Connectez-vous pour administrer la compétition ${nom} sur ID FOOT.`;
+export function buildCompetitionSignInShareText(
+  competition: Pick<CompetitionSignInPreview, "nom" | "abbreviation">,
+): string {
+  return `Connectez-vous pour administrer la compétition ${competition.nom} via ${competition.abbreviation}.`;
 }
 
 export async function shareCompetitionSignInLink(
-  competition: Pick<CompetitionSignInPreview, "nom" | "slug">,
+  competition: Pick<CompetitionSignInPreview, "nom" | "slug" | "abbreviation">,
   showToast: ShareToast,
 ): Promise<void> {
   const url = buildCompetitionSignInAbsoluteUrl(competition.slug);
   const title = buildCompetitionSignInTitle(competition.nom);
-  const text = buildCompetitionSignInShareText(competition.nom);
+  const text = buildCompetitionSignInShareText(competition);
 
   try {
     if (typeof navigator !== "undefined" && navigator.share) {

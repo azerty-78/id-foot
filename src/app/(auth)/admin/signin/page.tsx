@@ -14,6 +14,7 @@ type SignInPageProps = {
 
 const competitionSelect = {
   nom: true,
+  abbreviation: true,
   annee: true,
   lieu: true,
   image: true,

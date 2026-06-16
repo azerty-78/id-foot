@@ -8,9 +8,11 @@ import {
 } from "@/lib/auth/api";
 import {
   ensureUniqueCompetitionSlug,
+  resolveCompetitionAbbreviation,
   slugifyCompetitionName,
 } from "@/lib/competitionSlug";
 import { prisma } from "@/lib/prisma";
+import { validateCompetition } from "@/lib/validators";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
@@ -18,6 +20,7 @@ type RouteParams = {
 
 type UpdateCompetitionBody = {
   nom: string;
+  abbreviation?: string;
   annee: number | string;
   lieu?: string | null;
   image?: string | null;
@@ -28,8 +31,12 @@ function parseCompetitionPayload(body: UpdateCompetitionBody) {
   const annee = Number.parseInt(String(body.annee), 10);
   const lieu = body.lieu?.trim() || null;
   const image = body.image?.trim() || null;
+  const abbreviation = resolveCompetitionAbbreviation({
+    nom,
+    abbreviation: body.abbreviation,
+  });
 
-  return { nom, annee, lieu, image };
+  return { nom, annee, lieu, image, abbreviation };
 }
 
 export async function GET(_req: NextRequest, { params }: RouteParams) {
@@ -72,11 +79,12 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = (await req.json()) as UpdateCompetitionBody;
-    const { nom, annee, lieu, image } = parseCompetitionPayload(body);
+    const { nom, annee, lieu, image, abbreviation } = parseCompetitionPayload(body);
 
-    if (!nom || Number.isNaN(annee)) {
+    const validation = validateCompetition({ nom, abbreviation, annee, lieu });
+    if (!validation.valid) {
       return NextResponse.json(
-        { error: "Nom et année requis." },
+        { error: validation.errors[0] },
         { status: 400 },
       );
     }
@@ -102,6 +110,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       where: { id },
       data: {
         nom,
+        abbreviation,
         slug,
         annee,
         lieu,

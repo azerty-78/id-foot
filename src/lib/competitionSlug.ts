@@ -35,6 +35,61 @@ export function buildCompetitionSignInAbsoluteUrl(
   return `${baseUrl.replace(/\/$/, "")}${buildCompetitionSignInHref(slug)}`;
 }
 
+/** Première lettre de chaque mot du nom (ex. « Championnat Inter Village » → « CIV »). */
+export function deriveCompetitionAbbreviation(nom: string): string {
+  const words = nom.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "COMP";
+
+  let abbr = words
+    .map((word) => {
+      const normalized = word
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const match = normalized.match(/[a-zA-Z0-9]/);
+      return match ? match[0].toUpperCase() : "";
+    })
+    .join("");
+
+  if (abbr.length < 2 && words[0]) {
+    const word = words[0]
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toUpperCase();
+    abbr = word.slice(0, 2);
+  }
+
+  return abbr.slice(0, 12) || "COMP";
+}
+
+export function normalizeCompetitionAbbreviation(
+  input: string,
+  nomFallback?: string,
+): string {
+  const cleaned = input
+    .trim()
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 12);
+
+  if (cleaned.length >= 2) return cleaned;
+  if (nomFallback?.trim()) return deriveCompetitionAbbreviation(nomFallback);
+  return cleaned.length === 1 ? `${cleaned}X` : "COMP";
+}
+
+export function resolveCompetitionAbbreviation(data: {
+  nom: string;
+  abbreviation?: string | null;
+}): string {
+  const custom = data.abbreviation?.trim();
+  if (custom) {
+    return normalizeCompetitionAbbreviation(custom, data.nom);
+  }
+  return deriveCompetitionAbbreviation(data.nom);
+}
+
 export function slugifyCompetitionName(nom: string): string {
   const slug = nom
     .normalize("NFD")

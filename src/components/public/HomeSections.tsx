@@ -1,5 +1,4 @@
 import {
-  LayoutDashboard,
   MapPin,
   QrCode,
   Shield,
@@ -7,7 +6,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { OutlineLink, PrimaryLink } from "@/components/admin/ui";
+import { PrimaryLink } from "@/components/admin/ui";
 import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
 
 export const competitionFeatureCards = [
@@ -64,18 +63,51 @@ export const howItWorksSteps = [
 
 type CompetitionWorkspaceProps = {
   competitionName: string;
+  competitionAbbreviation: string;
   competitionYear: number;
   competitionPlace?: string | null;
   competitionImage?: string | null;
   teamCount?: number;
+  signInHref: string;
 };
+
+const competitionPublicFeatures: Array<{
+  icon: typeof QrCode;
+  title: string;
+  text: string;
+  featured?: boolean;
+}> = [
+  {
+    icon: QrCode,
+    title: "Contrôle à l'entrée",
+    text: "Validez chaque joueur licencié en un scan QR sur le terrain.",
+    featured: true,
+  },
+  {
+    icon: UserRound,
+    title: "Fiches joueurs",
+    text: "Photo, téléphone, poste et numéro de maillot centralisés.",
+  },
+  {
+    icon: Users,
+    title: "Clubs & effectifs",
+    text: "Équipes inscrites et effectifs rattachés à la compétition.",
+  },
+  {
+    icon: Shield,
+    title: "Cartes licence",
+    text: "PDF imprimable avec QR code unique par licencié.",
+  },
+];
 
 export function CompetitionWorkspace({
   competitionName,
+  competitionAbbreviation,
   competitionYear,
   competitionPlace,
   competitionImage,
   teamCount = 0,
+  signInHref,
 }: CompetitionWorkspaceProps) {
   return (
     <div className="competition-workspace">
@@ -99,7 +131,7 @@ export function CompetitionWorkspace({
 
         <div className="competition-hero-content">
           <p className="competition-hero-label">
-            Compétition · {competitionYear}
+            {competitionAbbreviation} · {competitionYear}
           </p>
           <h1 className="competition-hero-title">{competitionName}</h1>
           {competitionPlace ? (
@@ -118,46 +150,57 @@ export function CompetitionWorkspace({
         </div>
       </section>
 
-      <div className="home-hero">
-        <div className="home-hero-content">
-          <p className="text-body home-hero-text">
-            Gérez les licences, les clubs et le contrôle QR depuis cet espace
-            d&apos;administration.
+      <section className="competition-intro" aria-labelledby="competition-intro-title">
+        <div className="competition-intro-badge" aria-hidden>
+          {competitionAbbreviation}
+        </div>
+        <div className="competition-intro-body">
+          <p className="text-section-label">Espace compétition</p>
+          <h2 id="competition-intro-title" className="text-h2 competition-intro-title">
+            Pour la compétition {competitionName}
+          </h2>
+          <p className="text-body competition-intro-lead">
+            {competitionAbbreviation} centralise l&apos;identification des joueurs,
+            la génération des cartes licence et le contrôle d&apos;accès par QR
+            code — le tout dédié à votre tournoi.
           </p>
-
-          <div className="home-hero-actions">
-            <PrimaryLink href="/admin/scanner" icon={QrCode} className="w-full sm:w-auto">
-              Lancer le scanner QR
+          <div className="competition-intro-actions">
+            <PrimaryLink href={signInHref} icon={Shield} className="w-full sm:w-auto">
+              Connexion administrateur
             </PrimaryLink>
-            <OutlineLink
-              href="/admin/dashboard"
-              icon={LayoutDashboard}
-              className="w-full sm:w-auto"
-            >
-              Administration
-            </OutlineLink>
           </div>
         </div>
+      </section>
 
-        <div className="home-feature-grid">
-        {competitionFeatureCards.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className={`home-feature-card ${item.featured ? "home-feature-card--scan" : ""}`}
-          >
-            {item.featured ? (
-              <span className="home-feature-badge">
-                <QrCode size={12} aria-hidden />
-                Priorité terrain
-              </span>
-            ) : null}
-            <h2 className="text-h3">{item.title}</h2>
-            <p className="text-body mt-2">{item.text}</p>
-          </a>
-        ))}
-      </div>
-      </div>
+      <section className="competition-features" aria-labelledby="competition-features-title">
+        <div className="competition-features-header">
+          <p className="text-section-label">Fonctionnalités</p>
+          <h2 id="competition-features-title" className="text-h3">
+            Ce que propose {competitionAbbreviation}
+          </h2>
+        </div>
+
+        <div className="competition-feature-grid">
+          {competitionPublicFeatures.map((item) => (
+            <article
+              key={item.title}
+              className={`competition-feature-card${item.featured ? " competition-feature-card--featured" : ""}`}
+            >
+              {item.featured ? (
+                <span className="competition-feature-badge">
+                  <QrCode size={12} aria-hidden />
+                  Priorité terrain
+                </span>
+              ) : null}
+              <div className="competition-feature-icon" aria-hidden>
+                <item.icon size={20} strokeWidth={2} />
+              </div>
+              <h3 className="text-h3">{item.title}</h3>
+              <p className="text-body mt-2">{item.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

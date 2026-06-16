@@ -23,17 +23,18 @@ import { AdminModal } from "@/components/admin/AdminModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useCompetitions, type Competition } from "@/hooks/useApi";
 import { canManageCompetition } from "@/lib/adminNav";
-import { buildCompetitionSignInHref } from "@/lib/competitionSlug";
+import { buildCompetitionSignInHref, deriveCompetitionAbbreviation } from "@/lib/competitionSlug";
 import { validateCompetition } from "@/lib/validators";
 
 type FormState = {
   nom: string;
+  abbreviation: string;
   annee: string;
   lieu: string;
   image: string;
 };
 
-const emptyForm: FormState = { nom: "", annee: "", lieu: "", image: "" };
+const emptyForm: FormState = { nom: "", abbreviation: "", annee: "", lieu: "", image: "" };
 
 export default function CompetitionsPage() {
   const { data: session } = useSession();
@@ -44,6 +45,7 @@ export default function CompetitionsPage() {
   const { showToast } = useToast();
   const submitLockRef = useRef(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const abbreviationTouchedRef = useRef(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -60,9 +62,11 @@ export default function CompetitionsPage() {
   const [submitMessage, setSubmitMessage] = useState("Enregistrement en cours…");
 
   function openEditModal(competition: Competition) {
+    abbreviationTouchedRef.current = false;
     setEditingId(competition.id);
     setForm({
       nom: competition.nom,
+      abbreviation: competition.abbreviation,
       annee: String(competition.annee),
       lieu: competition.lieu ?? "",
       image: competition.image ?? "",
@@ -147,6 +151,7 @@ export default function CompetitionsPage() {
 
     const payload = {
       nom: form.nom.trim(),
+      abbreviation: form.abbreviation.trim(),
       annee: Number.parseInt(form.annee, 10),
       lieu: form.lieu.trim() || null,
     };
@@ -281,7 +286,7 @@ export default function CompetitionsPage() {
                       </p>
                     ) : null}
                     <p className="mt-2 text-xs text-slate-400">
-                      /{competition.slug}
+                      /{competition.slug} · {competition.abbreviation}
                     </p>
                   </div>
                   <StatusBadge tone="navy">
@@ -362,9 +367,32 @@ export default function CompetitionsPage() {
               id="comp-nom"
               type="text"
               value={form.nom}
-              onChange={(e) => setForm({ ...form, nom: e.target.value })}
+              onChange={(e) => {
+                const nom = e.target.value;
+                setForm((prev) => ({
+                  ...prev,
+                  nom,
+                  abbreviation: abbreviationTouchedRef.current
+                    ? prev.abbreviation
+                    : deriveCompetitionAbbreviation(nom),
+                }));
+              }}
               className="admin-input"
               autoFocus
+            />
+          </div>
+          <div>
+            <FieldLabel htmlFor="comp-abbr">Abréviation *</FieldLabel>
+            <input
+              id="comp-abbr"
+              type="text"
+              value={form.abbreviation}
+              onChange={(e) => {
+                abbreviationTouchedRef.current = true;
+                setForm({ ...form, abbreviation: e.target.value.toUpperCase() });
+              }}
+              className="admin-input"
+              maxLength={12}
             />
           </div>
           <div>

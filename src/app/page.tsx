@@ -25,6 +25,7 @@ export default async function HomePage() {
     (competition) => ({
       id: competition.id,
       nom: competition.nom,
+      abbreviation: competition.abbreviation,
       slug: competition.slug,
       annee: competition.annee,
       lieu: competition.lieu,
