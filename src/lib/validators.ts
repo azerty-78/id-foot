@@ -258,6 +258,11 @@ export function validateAdminPasswordReset(data: unknown): ValidationResult {
   return { valid: errors.length === 0, errors };
 }
 
+function parseOptionalBoolean(value: unknown): boolean | undefined {
+  if (typeof value === "boolean") return value;
+  return undefined;
+}
+
 export function validateManagerUser(data: unknown): ValidationResult {
   const errors: string[] = [];
 
@@ -286,6 +291,17 @@ export function validateManagerUser(data: unknown): ValidationResult {
     errors.push("Les mots de passe ne correspondent pas.");
   }
 
+  const scanOnly = parseOptionalBoolean(
+    isRecord(data) ? data.scanOnly : undefined,
+  );
+  if (
+    isRecord(data) &&
+    data.scanOnly !== undefined &&
+    scanOnly === undefined
+  ) {
+    errors.push("Le paramètre scanOnly doit être un booléen.");
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -304,6 +320,11 @@ export function validateManagerUserUpdate(data: unknown): ValidationResult {
   const email = getString(data.email)?.toLowerCase();
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     errors.push("Un email valide est requis.");
+  }
+
+  const scanOnly = parseOptionalBoolean(data.scanOnly);
+  if (data.scanOnly !== undefined && scanOnly === undefined) {
+    errors.push("Le paramètre scanOnly doit être un booléen.");
   }
 
   return { valid: errors.length === 0, errors };

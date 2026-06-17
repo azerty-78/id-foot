@@ -28,13 +28,14 @@ import {
 } from "@/components/admin/ui";
 import { useToast } from "@/components/providers/ToastProvider";
 import type { PublicUser } from "@/lib/auth/users";
-import { isManageableManager, roleLabel, sortCompetitionUsers } from "@/lib/auth/users";
+import { isManageableManager, roleLabel, scanOnlyLabel, sortCompetitionUsers } from "@/lib/auth/users";
 
 type ManagerForm = {
   nom: string;
   email: string;
   password: string;
   confirmPassword: string;
+  scanOnly: boolean;
 };
 
 const emptyCreateForm: ManagerForm = {
@@ -42,6 +43,7 @@ const emptyCreateForm: ManagerForm = {
   email: "",
   password: "",
   confirmPassword: "",
+  scanOnly: false,
 };
 
 type ModalMode = "create" | "edit" | "password" | "delete" | null;
@@ -92,6 +94,7 @@ export function UserManagementSection({
       email: user.email,
       password: "",
       confirmPassword: "",
+      scanOnly: user.scanOnly,
     });
     setFormError(null);
     setModalMode("edit");
@@ -104,6 +107,7 @@ export function UserManagementSection({
       email: user.email,
       password: "",
       confirmPassword: "",
+      scanOnly: user.scanOnly,
     });
     setFormError(null);
     setModalMode("password");
@@ -161,7 +165,13 @@ export function UserManagementSection({
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          nom: form.nom,
+          email: form.email,
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+          scanOnly: form.scanOnly,
+        }),
       });
       const data = (await res.json()) as PublicUser & { error?: string };
 
@@ -191,7 +201,11 @@ export function UserManagementSection({
       const res = await fetch(`/api/users/${selectedUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom: form.nom, email: form.email }),
+        body: JSON.stringify({
+          nom: form.nom,
+          email: form.email,
+          scanOnly: form.scanOnly,
+        }),
       });
       const data = (await res.json()) as PublicUser & { error?: string };
 
@@ -375,6 +389,7 @@ export function UserManagementSection({
                 email: "",
                 role: "ADMIN",
                 competitionId,
+                scanOnly: false,
               });
               const isSelf = user.id === currentUserId;
               const busy = busyUserId === user.id;
@@ -388,7 +403,14 @@ export function UserManagementSection({
                     ) : null}
                   </td>
                   <td>{user.email}</td>
-                  <td>{roleLabel(user.role)}</td>
+                  <td>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>{roleLabel(user.role)}</span>
+                      {user.scanOnly ? (
+                        <StatusBadge tone="navy">{scanOnlyLabel(true)}</StatusBadge>
+                      ) : null}
+                    </div>
+                  </td>
                   <td>
                     <StatusBadge tone={user.active ? "success" : "danger"}>
                       {user.active ? "Actif" : "Inactif"}
@@ -526,6 +548,28 @@ export function UserManagementSection({
                 />
               </div>
             </>
+          )}
+
+          {(modalMode === "create" || modalMode === "edit") && (
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={form.scanOnly}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, scanOnly: e.target.checked }))
+                }
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+              />
+              <span className="text-left">
+                <span className="block text-sm font-medium text-navy">
+                  Accès scan uniquement
+                </span>
+                <span className="mt-0.5 block text-xs text-secondary">
+                  Le gestionnaire ne verra que le scanner QR et pourra changer son
+                  mot de passe. Aucun accès aux joueurs, équipes ou fiches détaillées.
+                </span>
+              </span>
+            </label>
           )}
 
           {(modalMode === "create" || modalMode === "password") && (

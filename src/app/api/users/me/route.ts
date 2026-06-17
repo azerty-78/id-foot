@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePrismaError, jsonError } from "@/lib/api/http";
 import { isAuthResponse, requireApiUser } from "@/lib/auth/api";
+import { isScanOnlyUser } from "@/lib/auth/scanOnlyAccess";
 import { userPublicSelect } from "@/lib/auth/users";
 import { prisma } from "@/lib/prisma";
 import { validateUserNom } from "@/lib/validators";
@@ -29,6 +30,13 @@ export async function PATCH(req: NextRequest) {
   try {
     const user = await requireApiUser();
     if (isAuthResponse(user)) return user;
+
+    if (isScanOnlyUser(user)) {
+      return jsonError(
+        "Les comptes scan uniquement ne peuvent modifier que leur mot de passe.",
+        403,
+      );
+    }
 
     let body: { nom?: string };
     try {

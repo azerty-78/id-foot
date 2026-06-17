@@ -3,6 +3,7 @@
 import { AlertCircle, Camera, Search, ShieldCheck } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import { GhostButton, PrimaryButton } from "@/components/admin/ui";
 import { useHistoryOverlay } from "@/hooks/useHistoryOverlay";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
@@ -123,6 +124,8 @@ function mapApiPlayer(data: QrPlayerResponse): ValidatedPlayer {
 }
 
 export function ScannerWorkspace() {
+  const { data: session } = useSession();
+  const scanOnly = session?.user?.scanOnly === true;
   const {
     ready: sessionReady,
     validatedCount,
@@ -638,6 +641,7 @@ export function ScannerWorkspace() {
           player={player}
           validatedCount={validatedCount}
           onNextScan={handleNextScan}
+          scanOnly={scanOnly}
         />
       )}
 

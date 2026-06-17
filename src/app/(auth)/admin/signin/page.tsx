@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { LoadingState } from "@/components/admin/ui";
 import { authOptions } from "@/lib/auth";
 import { resolveSafeCallbackUrl } from "@/lib/auth/callbackUrl";
+import { SCAN_ONLY_HOME } from "@/lib/auth/scanOnlyAccess";
 import { ADMIN_COMPETITION_HOME } from "@/lib/competitionSlug";
 import { buildCompetitionSignInMetadata } from "@/lib/competitionSignInShare";
 import { getAppBaseUrl } from "@/lib/competitionSlug";
@@ -62,7 +63,10 @@ async function SignInPageContent({ searchParams }: SignInPageProps) {
   const session = await getServerSession(authOptions);
 
   if (session?.user?.active !== false && session?.user?.id) {
-    redirect(callbackUrl);
+    const destination = session.user.scanOnly
+      ? SCAN_ONLY_HOME
+      : callbackUrl;
+    redirect(destination);
   }
 
   const competition = await loadCompetitionPreview(competitionSlug || undefined);

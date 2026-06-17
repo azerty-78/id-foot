@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { normalizeScanOnlyForRole } from "@/lib/auth/scanOnlyAccess";
 import { AUTH_SESSION_MAX_AGE_SECONDS } from "@/lib/auth/sessionPolicy";
 import { prisma } from "@/lib/prisma";
 
@@ -11,6 +12,7 @@ const userSessionSelect = {
   role: true,
   competitionId: true,
   active: true,
+  scanOnly: true,
   sessionVersion: true,
 } as const;
 
@@ -73,6 +75,10 @@ export const authOptions: NextAuthOptions = {
           role: sessionUser.role,
           competitionId: sessionUser.competitionId,
           sessionVersion: sessionUser.sessionVersion,
+          scanOnly: normalizeScanOnlyForRole(
+            sessionUser.role,
+            sessionUser.scanOnly,
+          ),
         };
       },
     }),
@@ -98,6 +104,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.competitionId = user.competitionId;
         token.sessionVersion = user.sessionVersion;
+        token.scanOnly = user.scanOnly ?? false;
         token.active = true;
         token.userCheckedAt = Date.now();
         return token;
@@ -136,6 +143,7 @@ export const authOptions: NextAuthOptions = {
         token.role = dbUser.role;
         token.competitionId = dbUser.competitionId;
         token.sessionVersion = dbUser.sessionVersion;
+        token.scanOnly = normalizeScanOnlyForRole(dbUser.role, dbUser.scanOnly);
         token.userCheckedAt = Date.now();
       }
 
@@ -156,6 +164,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as typeof session.user.role;
         session.user.competitionId =
           (token.competitionId as string | null | undefined) ?? null;
+        session.user.scanOnly = token.scanOnly === true;
         session.user.active = true;
       }
       return session;

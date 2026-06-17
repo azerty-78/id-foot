@@ -17,6 +17,7 @@ import {
   isQrScanCallbackUrl,
   resolveSafeCallbackUrl,
 } from "@/lib/auth/callbackUrl";
+import { SCAN_ONLY_HOME } from "@/lib/auth/scanOnlyAccess";
 
 export type SignInCompetitionPreview = {
   nom: string;
@@ -77,7 +78,16 @@ export default function SignInForm({
       }
 
       showToast("success", "Connexion réussie.");
-      router.push(result?.url ?? callbackUrl);
+
+      const sessionRes = await fetch("/api/auth/session");
+      const sessionData = (await sessionRes.json()) as {
+        user?: { scanOnly?: boolean };
+      };
+      const destination = sessionData.user?.scanOnly
+        ? SCAN_ONLY_HOME
+        : (result?.url ?? callbackUrl);
+
+      router.push(destination);
       router.refresh();
     } catch {
       const message = "Une erreur est survenue lors de la connexion.";

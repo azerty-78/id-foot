@@ -8,6 +8,7 @@ declare module "next-auth" {
       role: UserRole;
       competitionId: string | null;
       active: boolean;
+      scanOnly: boolean;
     };
   }
 
@@ -16,6 +17,7 @@ declare module "next-auth" {
     role: UserRole;
     competitionId: string | null;
     sessionVersion: number;
+    scanOnly?: boolean;
   }
 }
 
@@ -27,6 +29,7 @@ declare module "next-auth/jwt" {
     active?: boolean;
     userCheckedAt?: number;
     sessionVersion?: number;
+    scanOnly?: boolean;
   }
 }
 
