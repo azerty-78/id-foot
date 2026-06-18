@@ -50,6 +50,41 @@ describe("validateManagerUser", () => {
     });
     assert.equal(result.valid, true);
   });
+
+  it("accepte scanOnly optionnel", () => {
+    assert.equal(
+      validateManagerUser({
+        nom: "Contrôleur",
+        email: "scan@test.com",
+        password: "password1",
+        confirmPassword: "password1",
+        scanOnly: true,
+      }).valid,
+      true,
+    );
+    assert.equal(
+      validateManagerUser({
+        nom: "Contrôleur",
+        email: "scan@test.com",
+        password: "password1",
+        confirmPassword: "password1",
+        scanOnly: false,
+      }).valid,
+      true,
+    );
+  });
+
+  it("refuse scanOnly non booléen", () => {
+    const result = validateManagerUser({
+      nom: "Contrôleur",
+      email: "scan@test.com",
+      password: "password1",
+      confirmPassword: "password1",
+      scanOnly: "oui",
+    });
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.some((e) => e.includes("scanOnly")));
+  });
 });
 
 describe("validateManagerUserUpdate", () => {
@@ -59,6 +94,24 @@ describe("validateManagerUserUpdate", () => {
       email: "manager@test.com",
     });
     assert.equal(result.valid, true);
+  });
+
+  it("accepte la mise à jour de scanOnly", () => {
+    const result = validateManagerUserUpdate({
+      nom: "Manager Test",
+      email: "manager@test.com",
+      scanOnly: true,
+    });
+    assert.equal(result.valid, true);
+  });
+
+  it("refuse scanOnly non booléen", () => {
+    const result = validateManagerUserUpdate({
+      nom: "Manager Test",
+      email: "manager@test.com",
+      scanOnly: 1,
+    });
+    assert.equal(result.valid, false);
   });
 });
 

@@ -1,5 +1,10 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import {
+  isScanOnlyAdminPath,
+  isScanOnlyApiPath,
+  SCAN_ONLY_HOME,
+} from "@/lib/auth/scanOnlyAccess";
 
 const PUBLIC_ADMIN_PATHS = ["/admin/signin", "/admin/signout"];
 
@@ -14,7 +19,27 @@ function isPublicApiPath(pathname: string): boolean {
 }
 
 export default withAuth(
-  function middleware() {
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const { pathname } = req.nextUrl;
+
+    if (token?.scanOnly && token.active !== false) {
+      if (pathname.startsWith("/admin") && !isScanOnlyAdminPath(pathname)) {
+        return NextResponse.redirect(new URL(SCAN_ONLY_HOME, req.url));
+      }
+
+      if (
+        pathname.startsWith("/api/") &&
+        !isPublicApiPath(pathname) &&
+        !isScanOnlyApiPath(pathname)
+      ) {
+        return NextResponse.json(
+          { error: "Accès réservé au scanner QR." },
+          { status: 403 },
+        );
+      }
+    }
+
     return NextResponse.next();
   },
   {

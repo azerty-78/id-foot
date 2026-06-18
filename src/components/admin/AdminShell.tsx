@@ -167,7 +167,7 @@ export function AdminShell({
           </button>
         </div>
 
-        <AdminNav onNavigate={closeMenu} collapsed={sidebarCollapsed} />
+        <AdminNav onNavigate={closeMenu} collapsed={sidebarCollapsed} role={user.role} scanOnly={user.scanOnly} />
 
         <div className="sidebar-footer mt-auto border-t border-white/[0.08] px-4 py-4">
           {user.email && (
@@ -198,7 +198,7 @@ export function AdminShell({
           <Link
             href="/"
             onClick={closeMenu}
-            className="sidebar-nav-item mt-1"
+            className={`sidebar-nav-item mt-1 ${user.scanOnly ? "hidden" : ""}`}
             title={sidebarCollapsed ? "Retour à l'accueil" : undefined}
           >
             <Home strokeWidth={2} size={16} />
@@ -269,7 +269,9 @@ export function AdminShell({
           </div>
         </div>
 
-        {!isScannerPage ? <MobileBottomNav role={user.role} /> : null}
+        {!isScannerPage || user.scanOnly ? (
+          <MobileBottomNav role={user.role} scanOnly={user.scanOnly} />
+        ) : null}
       </div>
     </div>
   );

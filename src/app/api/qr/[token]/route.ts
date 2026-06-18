@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handlePrismaError, jsonError } from "@/lib/api/http";
+import { handlePrismaError } from "@/lib/api/http";
 import {
   denyUnlessCompetitionAccess,
   isAuthResponse,

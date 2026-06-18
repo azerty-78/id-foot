@@ -44,6 +44,16 @@ export const ADMIN_TOOLS_NAV: AdminNavItem[] = [
   { href: "/admin/scanner", label: "Scanner QR", icon: QrCode, variant: "scanner" },
 ];
 
+export const SCAN_ONLY_NAV: AdminNavItem[] = [
+  { href: "/admin/scanner", label: "Scanner QR", icon: QrCode, variant: "scanner" },
+  { href: "/admin/profil", label: "Profil", icon: User, variant: "default" },
+];
+
+export const SCAN_ONLY_MOBILE_NAV: MobileNavItem[] = [
+  { href: "/admin/scanner", label: "Scanner", icon: QrCode, highlight: true },
+  { href: "/admin/profil", label: "Profil", icon: User },
+];
+
 export const ADMIN_MOBILE_NAV: MobileNavItem[] = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   {
@@ -58,7 +68,11 @@ export const ADMIN_MOBILE_NAV: MobileNavItem[] = [
   { href: "/admin/profil", label: "Profil", icon: User },
 ];
 
-export function getMobileNavItems(role: UserRole): MobileNavItem[] {
+export function getMobileNavItems(role: UserRole, scanOnly = false): MobileNavItem[] {
+  if (scanOnly) {
+    return SCAN_ONLY_MOBILE_NAV;
+  }
+
   const items = ADMIN_MOBILE_NAV.filter(
     (item) => !item.roles || item.roles.includes(role),
   );
@@ -129,4 +143,19 @@ export function getMobileTopbarBrand(pathname: string): {
 
 export function canManageCompetition(role: UserRole): boolean {
   return role === "ADMIN" || role === "SUPER_ADMIN";
+}
+
+export function getSidebarNavForUser(
+  role: UserRole,
+  scanOnly: boolean,
+): { main: AdminNavItem[]; tools: AdminNavItem[]; scanOnlyMode: boolean } {
+  if (scanOnly) {
+    return { main: [], tools: SCAN_ONLY_NAV, scanOnlyMode: true };
+  }
+
+  const main = ADMIN_MAIN_NAV.filter(
+    (item) => item.href !== "/admin/competitions" || canManageCompetition(role),
+  );
+
+  return { main, tools: ADMIN_TOOLS_NAV, scanOnlyMode: false };
 }

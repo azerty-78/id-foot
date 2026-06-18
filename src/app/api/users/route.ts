@@ -10,6 +10,7 @@ import {
   canManageCompetitionUsers,
   userPublicSelect,
 } from "@/lib/auth/users";
+import { normalizeScanOnlyForRole } from "@/lib/auth/scanOnlyAccess";
 import { prisma } from "@/lib/prisma";
 import { validateManagerUser } from "@/lib/validators";
 
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
       email?: string;
       password?: string;
       confirmPassword?: string;
+      scanOnly?: boolean;
     };
     try {
       body = (await req.json()) as typeof body;
@@ -73,6 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(body.password!, 12);
+    const scanOnly = normalizeScanOnlyForRole("MANAGER", body.scanOnly);
     const created = await prisma.user.create({
       data: {
         nom: body.nom!.trim(),
@@ -80,6 +83,7 @@ export async function POST(req: NextRequest) {
         passwordHash,
         role: "MANAGER",
         active: true,
+        scanOnly,
         competitionId: user.competitionId!,
       },
       select: userPublicSelect,

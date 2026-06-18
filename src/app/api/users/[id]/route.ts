@@ -10,6 +10,7 @@ import {
   isManageableManager,
   userPublicSelect,
 } from "@/lib/auth/users";
+import { normalizeScanOnlyForRole } from "@/lib/auth/scanOnlyAccess";
 import { prisma } from "@/lib/prisma";
 import { validateManagerUserUpdate } from "@/lib/validators";
 
@@ -29,7 +30,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
     const { id } = await context.params;
 
-    let body: { nom?: string; email?: string };
+    let body: { nom?: string; email?: string; scanOnly?: boolean };
     try {
       body = (await req.json()) as typeof body;
     } catch {
@@ -58,11 +59,20 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       }
     }
 
+    const nextScanOnly =
+      body.scanOnly !== undefined
+        ? normalizeScanOnlyForRole(target.role, body.scanOnly)
+        : target.scanOnly;
+    const scanOnlyChanged =
+      body.scanOnly !== undefined && nextScanOnly !== target.scanOnly;
+
     const updated = await prisma.user.update({
       where: { id },
       data: {
         nom: body.nom!.trim(),
         email,
+        scanOnly: nextScanOnly,
+        ...(scanOnlyChanged ? { sessionVersion: { increment: 1 } } : {}),
       },
       select: userPublicSelect,
     });

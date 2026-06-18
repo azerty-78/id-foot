@@ -5,9 +5,15 @@ import { usePathname } from "next/navigation";
 import type { UserRole } from "@prisma/client";
 import { getMobileNavItems, isNavItemActive } from "@/lib/adminNav";
 
-export function MobileBottomNav({ role }: { role: UserRole }) {
+export function MobileBottomNav({
+  role,
+  scanOnly = false,
+}: {
+  role: UserRole;
+  scanOnly?: boolean;
+}) {
   const pathname = usePathname();
-  const navItems = getMobileNavItems(role);
+  const navItems = getMobileNavItems(role, scanOnly);
 
   return (
     <nav

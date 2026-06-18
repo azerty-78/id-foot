@@ -5,11 +5,11 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  ADMIN_MAIN_NAV,
-  ADMIN_TOOLS_NAV,
+  getSidebarNavForUser,
   isNavItemActive,
   type AdminNavVariant,
 } from "@/lib/adminNav";
+import type { UserRole } from "@prisma/client";
 
 function NavLink({
   href,
@@ -53,29 +53,40 @@ function NavLink({
 export function AdminNav({
   onNavigate,
   collapsed = false,
+  role,
+  scanOnly = false,
 }: {
   onNavigate?: () => void;
   collapsed?: boolean;
+  role: UserRole;
+  scanOnly?: boolean;
 }) {
   const pathname = usePathname();
+  const { main, tools, scanOnlyMode } = getSidebarNavForUser(role, scanOnly);
 
   return (
     <nav className="flex flex-1 flex-col overflow-y-auto py-2">
-      <p className="sidebar-nav-label">Navigation</p>
-      {ADMIN_MAIN_NAV.map((item) => (
-        <NavLink
-          key={item.href}
-          href={item.href}
-          label={item.label}
-          icon={item.icon}
-          isActive={isNavItemActive(pathname, item.href)}
-          onNavigate={onNavigate}
-          collapsed={collapsed}
-        />
-      ))}
+      {!scanOnlyMode ? (
+        <>
+          <p className="sidebar-nav-label">Navigation</p>
+          {main.map((item) => (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              isActive={isNavItemActive(pathname, item.href)}
+              onNavigate={onNavigate}
+              collapsed={collapsed}
+            />
+          ))}
+          <p className="sidebar-nav-label mt-2">Outils</p>
+        </>
+      ) : (
+        <p className="sidebar-nav-label">Accès contrôle</p>
+      )}
 
-      <p className="sidebar-nav-label mt-2">Outils</p>
-      {ADMIN_TOOLS_NAV.map((item) => (
+      {tools.map((item) => (
         <NavLink
           key={item.href}
           href={item.href}

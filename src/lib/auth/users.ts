@@ -7,6 +7,7 @@ export const userPublicSelect = {
   email: true,
   role: true,
   active: true,
+  scanOnly: true,
   competitionId: true,
   createdAt: true,
 } satisfies Prisma.UserSelect;
@@ -39,6 +40,10 @@ export function roleLabel(role: PublicUser["role"]): string {
     default:
       return role;
   }
+}
+
+export function scanOnlyLabel(scanOnly: boolean): string | null {
+  return scanOnly ? "Scan uniquement" : null;
 }
 
 export function sortCompetitionUsers(users: PublicUser[]): PublicUser[] {

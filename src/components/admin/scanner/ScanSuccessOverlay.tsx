@@ -12,23 +12,28 @@ import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, OutlineLink, PrimaryButton } from "@/components/admin/ui";
 import { toPlayerLicenseCardPlayer } from "@/lib/playerLicenseCardPlayer";
+import { ScanSuccessMinimalOverlay } from "./ScanSuccessMinimalOverlay";
 import type { ValidatedPlayer } from "./types";
 
 type ScanSuccessOverlayProps = {
   player: ValidatedPlayer;
   validatedCount: number;
   onNextScan: () => void;
+  scanOnly?: boolean;
 };
 
 export function ScanSuccessOverlay({
   player,
   validatedCount,
   onNextScan,
+  scanOnly = false,
 }: ScanSuccessOverlayProps) {
   const [cardViewPlayerId, setCardViewPlayerId] = useState<string | null>(null);
   const showCard = cardViewPlayerId === player.id;
 
   useEffect(() => {
+    if (scanOnly) return;
+
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -38,7 +43,16 @@ export function ScanSuccessOverlay({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onNextScan]);
+  }, [onNextScan, scanOnly]);
+
+  if (scanOnly) {
+    return (
+      <ScanSuccessMinimalOverlay
+        validatedCount={validatedCount}
+        onNextScan={onNextScan}
+      />
+    );
+  }
 
   return (
     <div className="scan-success-overlay" role="dialog" aria-modal="true" aria-labelledby="scan-success-title">

@@ -7,6 +7,7 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   competitionId: string | null;
+  scanOnly: boolean;
 };
 
 export type CompetitionScope =

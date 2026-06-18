@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth";
 import type { AuthUser } from "@/lib/auth/scope";
 import { prisma } from "@/lib/prisma";
 
+import { normalizeScanOnlyForRole } from "@/lib/auth/scanOnlyAccess";
+
 const authUserSelect = {
   id: true,
   nom: true,
@@ -10,6 +12,7 @@ const authUserSelect = {
   role: true,
   competitionId: true,
   active: true,
+  scanOnly: true,
 } as const;
 
 export async function getAuthUser(): Promise<AuthUser | null> {
@@ -35,6 +38,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
     email: dbUser.email,
     role: dbUser.role,
     competitionId: dbUser.competitionId,
+    scanOnly: normalizeScanOnlyForRole(dbUser.role, dbUser.scanOnly),
   };
 }
 
