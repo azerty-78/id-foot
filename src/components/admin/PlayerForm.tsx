@@ -1,10 +1,11 @@
 "use client";
 
-import { Save, Shield, X } from "lucide-react";
+import { Briefcase, Save, Shield, UserRound, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
+import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import {
   AdminCard,
   CollapsibleFormSection,
@@ -30,9 +31,17 @@ import {
   parsePhoneNumber,
   PHONE_COUNTRIES,
 } from "@/lib/phoneCountries";
-import { DEFAULT_SEXE, POSTES, SEXES } from "@/types/player";
+import {
+  DEFAULT_SEXE,
+  FONCTIONS_PERSONNEL,
+  isPersonnelLicense,
+  POSTES,
+  SEXES,
+  type LicenseType,
+} from "@/types/player";
 
 export type PlayerFormValues = {
+  licenseType: LicenseType;
   prenom: string;
   nom: string;
   dateNaissance: string;
@@ -42,14 +51,19 @@ export type PlayerFormValues = {
   phoneLocal: string;
   numeroMaillot: string;
   poste: string;
+  fonctionPersonnel: string;
   equipeId: string;
 };
 
 type FormErrors = Partial<
-  Record<keyof PlayerFormValues | "photo" | "submit" | "telephone", string>
+  Record<
+    keyof PlayerFormValues | "photo" | "submit" | "telephone",
+    string
+  >
 >;
 
 const emptyValues: PlayerFormValues = {
+  licenseType: "JOUEUR",
   prenom: "",
   nom: "",
   dateNaissance: "",
@@ -59,6 +73,7 @@ const emptyValues: PlayerFormValues = {
   phoneLocal: "",
   numeroMaillot: "",
   poste: "",
+  fonctionPersonnel: "",
   equipeId: "",
 };
 
@@ -74,6 +89,7 @@ function mapValidationErrors(errors: string[]): FormErrors {
     else if (error.includes("téléphone")) fieldErrors.telephone = error;
     else if (error.includes("maillot")) fieldErrors.numeroMaillot = error;
     else if (error.includes("poste")) fieldErrors.poste = error;
+    else if (error.includes("fonction")) fieldErrors.fonctionPersonnel = error;
     else if (error.includes("photo")) fieldErrors.photo = error;
     else if (error.includes("club") || error.includes("équipe"))
       fieldErrors.equipeId = error;
@@ -101,6 +117,9 @@ function createFormState(initialPlayer?: Player) {
 
   return {
     values: {
+      licenseType: (initialPlayer.licenseType === "PERSONNEL"
+        ? "PERSONNEL"
+        : "JOUEUR") as LicenseType,
       prenom: initialPlayer.prenom,
       nom: initialPlayer.nom,
       dateNaissance: initialPlayer.dateNaissance
@@ -113,13 +132,15 @@ function createFormState(initialPlayer?: Player) {
       numeroMaillot:
         initialPlayer.numero != null ? String(initialPlayer.numero) : "",
       poste: initialPlayer.poste ?? "",
+      fonctionPersonnel: initialPlayer.fonctionPersonnel ?? "",
       equipeId: initialPlayer.equipeId,
     },
     currentPhotoUrl: initialPlayer.photo,
     contactOpen: Boolean(initialPlayer.telephone?.trim()),
     sportOpen: Boolean(
-      initialPlayer.numero != null ||
-        (initialPlayer.poste && initialPlayer.poste.trim()),
+      initialPlayer.licenseType !== "PERSONNEL" &&
+        (initialPlayer.numero != null ||
+          (initialPlayer.poste && initialPlayer.poste.trim())),
     ),
   };
 }
@@ -176,6 +197,25 @@ export function PlayerForm({
   const displayPhoto = photoBlobUrl ?? currentPhotoUrl;
   const phonePreview = composePhoneNumber(values.phoneDial, values.phoneLocal);
   const phoneCountry = getPhoneCountry(values.phoneDial);
+  const isPersonnel = isPersonnelLicense(values.licenseType);
+
+  function setLicenseType(next: LicenseType) {
+    if (mode === "edit") return;
+    setValues((current) => ({
+      ...current,
+      licenseType: next,
+      numeroMaillot: next === "PERSONNEL" ? "" : current.numeroMaillot,
+      poste: next === "PERSONNEL" ? "" : current.poste,
+      fonctionPersonnel: next === "JOUEUR" ? "" : current.fonctionPersonnel,
+    }));
+    setErrors((current) => ({
+      ...current,
+      numeroMaillot: undefined,
+      poste: undefined,
+      fonctionPersonnel: undefined,
+      submit: undefined,
+    }));
+  }
 
   function updateField<K extends keyof PlayerFormValues>(key: K, value: PlayerFormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -219,21 +259,31 @@ export function PlayerForm({
     setErrors({});
 
     if (!photoFile && !currentPhotoUrl) {
-      setErrors({ photo: "La photo du joueur est requise." });
+      setErrors({
+        photo: isPersonnel
+          ? "La photo du personnel est requise."
+          : "La photo du joueur est requise.",
+      });
       return;
     }
 
     const payload = {
+      licenseType: values.licenseType,
       prenom: values.prenom.trim(),
       nom: values.nom.trim(),
       dateNaissance: values.dateNaissance.trim() || null,
       nationalite: values.nationalite.trim() || null,
       sexe: values.sexe.trim(),
       telephone: phonePreview || null,
-      numero: values.numeroMaillot.trim()
-        ? Number.parseInt(values.numeroMaillot, 10)
+      numero: isPersonnel
+        ? null
+        : values.numeroMaillot.trim()
+          ? Number.parseInt(values.numeroMaillot, 10)
+          : null,
+      poste: isPersonnel ? null : values.poste.trim() || null,
+      fonctionPersonnel: isPersonnel
+        ? values.fonctionPersonnel.trim() || null
         : null,
-      poste: values.poste.trim() || null,
       equipeId: values.equipeId,
       photo: currentPhotoUrl ?? (photoFile ? "__pending__" : ""),
     };
@@ -244,6 +294,7 @@ export function PlayerForm({
       setErrors(fieldErrors);
       if (fieldErrors.telephone) setContactOpen(true);
       if (fieldErrors.numeroMaillot || fieldErrors.poste) setSportOpen(true);
+      if (fieldErrors.fonctionPersonnel) setSportOpen(true);
       return;
     }
 
@@ -253,8 +304,12 @@ export function PlayerForm({
       photoFile
         ? "Préparation de la photo…"
         : mode === "create"
-          ? "Création du joueur…"
-          : "Mise à jour du joueur…",
+          ? isPersonnel
+            ? "Création du personnel…"
+            : "Création du joueur…"
+          : isPersonnel
+            ? "Mise à jour du personnel…"
+            : "Mise à jour du joueur…",
     );
 
     let succeeded = false;
@@ -273,7 +328,11 @@ export function PlayerForm({
       }
 
       if (!photoUrl) {
-        throw new Error("La photo du joueur est requise.");
+        throw new Error(
+          isPersonnel
+            ? "La photo du personnel est requise."
+            : "La photo du joueur est requise.",
+        );
       }
 
       const url =
@@ -304,7 +363,13 @@ export function PlayerForm({
       setSubmitMessage("Redirection…");
       showToast(
         "success",
-        mode === "create" ? "Joueur enregistré avec succès." : "Joueur mis à jour.",
+        mode === "create"
+          ? isPersonnel
+            ? "Personnel enregistré avec succès."
+            : "Joueur enregistré avec succès."
+          : isPersonnel
+            ? "Personnel mis à jour."
+            : "Joueur mis à jour.",
       );
       onSuccess(saved.id);
     } catch (err) {
@@ -341,6 +406,43 @@ export function PlayerForm({
               {errors.submit}
             </div>
           )}
+
+          <FormSection
+            title="Type de licence"
+            description="Joueur sportif ou membre du staff (encadrement, direction, médical)."
+          >
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={submitting || mode === "edit"}
+                onClick={() => setLicenseType("JOUEUR")}
+                className={`license-type-toggle ${values.licenseType === "JOUEUR" ? "license-type-toggle--active" : ""}`}
+              >
+                <UserRound size={18} aria-hidden />
+                <span>
+                  <strong>Joueur</strong>
+                  <small>Licence sportive avec dorsal et poste</small>
+                </span>
+              </button>
+              <button
+                type="button"
+                disabled={submitting || mode === "edit"}
+                onClick={() => setLicenseType("PERSONNEL")}
+                className={`license-type-toggle ${values.licenseType === "PERSONNEL" ? "license-type-toggle--active license-type-toggle--personnel" : ""}`}
+              >
+                <Briefcase size={18} aria-hidden />
+                <span>
+                  <strong>Personnel</strong>
+                  <small>Staff club · fonction et QR code</small>
+                </span>
+              </button>
+            </div>
+            {mode === "edit" && (
+              <FieldHint>
+                Le type de licence ne peut pas être modifié après création.
+              </FieldHint>
+            )}
+          </FormSection>
 
           <FormSection
             title="Identité"
@@ -431,7 +533,11 @@ export function PlayerForm({
 
           <FormSection
             title="Club"
-            description="Sélectionnez l'équipe du joueur."
+            description={
+              isPersonnel
+                ? "Sélectionnez le club auquel ce membre du staff est rattaché."
+                : "Sélectionnez l'équipe du joueur."
+            }
           >
             {teamsLoading ? (
               <p className="text-sm text-slate-500">Chargement des clubs...</p>
@@ -474,8 +580,20 @@ export function PlayerForm({
             )}
           </FormSection>
 
-          <FormSection title="Photo" description="Portrait obligatoire pour la licence.">
-            <FormInput id="photo" label="Photo du joueur" required error={errors.photo}>
+          <FormSection
+            title="Photo"
+            description={
+              isPersonnel
+                ? "Portrait obligatoire pour la carte personnel."
+                : "Portrait obligatoire pour la licence."
+            }
+          >
+            <FormInput
+              id="photo"
+              label={isPersonnel ? "Photo du personnel" : "Photo du joueur"}
+              required
+              error={errors.photo}
+            >
               <label
                 htmlFor="photo"
                 className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-8 transition hover:border-brand/40 hover:bg-brand-light/20"
@@ -556,6 +674,42 @@ export function PlayerForm({
             </FormInput>
           </CollapsibleFormSection>
 
+          {isPersonnel ? (
+            <FormSection
+              title="Fonction"
+              description="Rôle du membre du staff au sein du club."
+            >
+              <div>
+                <p className="mb-2 text-sm font-medium text-slate-700">
+                  Nature du personnel <span className="text-rose-500">*</span>
+                </p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {FONCTIONS_PERSONNEL.map((item) => {
+                    const active = values.fonctionPersonnel === item;
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() =>
+                          updateField("fonctionPersonnel", active ? "" : item)
+                        }
+                        className={`poste-pill rounded-xl px-3 py-2.5 text-left text-xs font-semibold sm:text-sm ${
+                          active ? "poste-pill-active poste-pill-active--personnel" : ""
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.fonctionPersonnel && (
+                  <p className="mt-1.5 text-xs text-rose-600">
+                    {errors.fonctionPersonnel}
+                  </p>
+                )}
+              </div>
+            </FormSection>
+          ) : (
           <CollapsibleFormSection
             title="Informations sportives"
             description="Poste et numéro de maillot (facultatifs)."
@@ -609,6 +763,7 @@ export function PlayerForm({
               )}
             </div>
           </CollapsibleFormSection>
+          )}
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
             <OutlineButton
@@ -628,7 +783,9 @@ export function PlayerForm({
               {submitting
                 ? "Enregistrement…"
                 : mode === "create"
-                  ? "Enregistrer le joueur"
+                  ? isPersonnel
+                    ? "Enregistrer le personnel"
+                    : "Enregistrer le joueur"
                   : "Enregistrer les modifications"}
             </PrimaryButton>
           </div>
@@ -644,15 +801,50 @@ export function PlayerForm({
         }`}
       >
         <div className="space-y-4">
-          <PlayerIdentityCard
-            prenom={values.prenom}
-            nom={values.nom}
-            numero={values.numeroMaillot || "—"}
-            poste={values.poste}
-            equipe={selectedTeam?.nom ?? "—"}
-            photo={displayPhoto}
-            competitionLogo={selectedTeam?.competition?.image}
-          />
+          {selectedTeam && (values.prenom.trim() || values.nom.trim()) ? (
+            <PlayerLicenseCard
+              player={{
+                id: "preview",
+                prenom: values.prenom.trim() || "Prénom",
+                nom: values.nom.trim() || "Nom",
+                numero: isPersonnel
+                  ? null
+                  : values.numeroMaillot
+                    ? Number.parseInt(values.numeroMaillot, 10)
+                    : null,
+                poste: isPersonnel ? null : values.poste.trim() || null,
+                licenseType: values.licenseType,
+                fonctionPersonnel: isPersonnel
+                  ? values.fonctionPersonnel.trim() || null
+                  : null,
+                photo: displayPhoto,
+                qrToken: "preview-token",
+                equipe: {
+                  nom: selectedTeam.nom,
+                  competition: {
+                    nom: selectedTeam.competition?.nom ?? "Compétition",
+                    image: selectedTeam.competition?.image,
+                    abbreviation: selectedTeam.competition?.abbreviation ?? "ID",
+                    fullControl: selectedTeam.competition?.fullControl ?? false,
+                  },
+                },
+              }}
+              hideActions
+              compact
+            />
+          ) : (
+            <PlayerIdentityCard
+              prenom={values.prenom}
+              nom={values.nom}
+              numero={isPersonnel ? null : values.numeroMaillot || "—"}
+              poste={isPersonnel ? null : values.poste}
+              licenseType={values.licenseType}
+              fonctionPersonnel={values.fonctionPersonnel}
+              equipe={selectedTeam?.nom ?? "—"}
+              photo={displayPhoto}
+              competitionLogo={selectedTeam?.competition?.image}
+            />
+          )}
 
           <AdminCard>
             <div className="space-y-2 text-sm">

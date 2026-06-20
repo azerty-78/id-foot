@@ -35,6 +35,8 @@ export type Player = {
   telephone: string | null;
   numero: number | null;
   poste: string | null;
+  licenseType: "JOUEUR" | "PERSONNEL";
+  fonctionPersonnel: string | null;
   photo: string;
   qrToken: string;
   equipeId: string;
@@ -47,6 +49,7 @@ type PlayerFilters = {
   nom?: string;
   equipeId?: string;
   competitionId?: string;
+  licenseType?: "JOUEUR" | "PERSONNEL";
 };
 
 async function parseErrorResponse(res: Response): Promise<string> {
@@ -73,6 +76,7 @@ export function usePlayers(filters?: PlayerFilters) {
     if (filters?.nom) params.set("nom", filters.nom);
     if (filters?.equipeId) params.set("equipeId", filters.equipeId);
     if (filters?.competitionId) params.set("competitionId", filters.competitionId);
+    if (filters?.licenseType) params.set("licenseType", filters.licenseType);
 
     const query = params.toString();
     const url = `/api/players${query ? `?${query}` : ""}`;

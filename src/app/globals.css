@@ -1220,6 +1220,76 @@ body {
   box-shadow: var(--shadow-green);
 }
 
+.poste-pill-active--personnel {
+  border-color: #b8923f;
+  background: #2a2545;
+  color: #d4a853;
+  box-shadow: 0 0 0 1px rgba(212, 168, 83, 0.25);
+}
+
+.license-type-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  padding: 14px 16px;
+  text-align: left;
+  color: var(--navy);
+  transition: all 0.15s ease;
+}
+
+.license-type-toggle strong {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.license-type-toggle small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--gray-600);
+}
+
+.license-type-toggle:hover:not(:disabled) {
+  border-color: var(--brand-ring);
+  background: var(--green-bg);
+}
+
+.license-type-toggle--active {
+  border-color: var(--green-dark);
+  background: var(--navy);
+  color: var(--white);
+  box-shadow: var(--shadow-green);
+}
+
+.license-type-toggle--active small {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.license-type-toggle--active svg {
+  color: var(--green);
+}
+
+.license-type-toggle--personnel.license-type-toggle--active {
+  border-color: #b8923f;
+  background: linear-gradient(135deg, #3d2e1f 0%, #2a2545 100%);
+  box-shadow: 0 0 0 1px rgba(212, 168, 83, 0.25);
+}
+
+.license-type-toggle--personnel.license-type-toggle--active svg {
+  color: #d4a853;
+}
+
+.license-type-toggle:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
 .pitch-pattern {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
@@ -3686,6 +3756,32 @@ body {
   box-shadow:
     0 12px 36px rgba(26, 71, 42, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.player-license-card--personnel {
+  background: linear-gradient(135deg, #3d2e1f 0%, #2a2545 55%, #0d1b2a 100%);
+  box-shadow:
+    0 4px 24px rgba(42, 37, 69, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.player-license-card--personnel:hover {
+  box-shadow:
+    0 12px 36px rgba(42, 37, 69, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.player-license-card--personnel .player-license-card-brand {
+  background: #d4a853;
+  color: #1a1208;
+}
+
+.player-license-card--personnel .player-license-card-field-value--highlight {
+  color: #d4a853;
+}
+
+.player-license-card--personnel .player-license-card-qr {
+  border-color: #d4a853;
 }
 
 .player-license-card-watermark {

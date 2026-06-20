@@ -38,4 +38,23 @@ describe("buildPlayerCardSvg", () => {
 
     assert.match(svg, /<tspan[^>]*>Jean Dupont<\/tspan>/);
   });
+
+  it("affiche la variante personnel sans dorsal", () => {
+    const { svg } = buildPlayerCardSvg(
+      {
+        ...basePlayer,
+        numero: null,
+        poste: null,
+        licenseType: "PERSONNEL",
+        fonctionPersonnel: "Coach",
+      },
+      { hasPhoto: true },
+    );
+
+    assert.match(svg, /LICENCE PERSONNEL/);
+    assert.match(svg, />FONCTION</);
+    assert.match(svg, />Coach</);
+    assert.doesNotMatch(svg, />DORSAL</);
+    assert.match(svg, />STAFF</);
+  });
 });

@@ -1,16 +1,18 @@
 import {
   CARD_COLORS,
   CARD_FONT,
+  CARD_NAME_TO_STATS_GAP,
   CARD_QR_BOX,
   CARD_QR_INNER,
-  CARD_NAME_TO_STATS_GAP,
   CARD_QR_PDF_PAD_TOP,
   CARD_QR_PDF_PAD_X,
   CARD_RENDER_HEIGHT,
   CARD_RENDER_WIDTH,
+  PERSONNEL_CARD_COLORS,
 } from "@/lib/playerCardColors";
 import { getInterFontFaceDefs } from "@/lib/playerCardFont";
 import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
+import { isPersonnelLicense, type LicenseType } from "@/types/player";
 
 export type CardRenderPlayer = {
   id: string;
@@ -18,6 +20,8 @@ export type CardRenderPlayer = {
   prenom: string;
   numero: number | null;
   poste: string | null;
+  licenseType?: LicenseType | string | null;
+  fonctionPersonnel?: string | null;
   equipe: {
     nom: string;
     competition: {
@@ -197,9 +201,17 @@ export function buildPlayerCardSvg(
   const fieldY = photoY + photoSize + 12;
 
   const fullName = `${joueur.prenom} ${joueur.nom}`;
+  const isPersonnel = isPersonnelLicense(joueur.licenseType);
   const dorsal = joueur.numero != null ? `#${joueur.numero}` : "—";
   const poste = joueur.poste?.trim() || "—";
+  const fonction = joueur.fonctionPersonnel?.trim() || "—";
   const brandLabel = getPlayerCardBrandLabel(joueur.equipe.competition);
+  const palette = isPersonnel ? PERSONNEL_CARD_COLORS : null;
+  const accent = palette?.accent ?? CARD_COLORS.green;
+  const accentText = palette?.accentText ?? CARD_COLORS.navy;
+  const qrStroke = palette?.qrStroke ?? CARD_COLORS.green;
+  const footerLabel = isPersonnel ? "LICENCE PERSONNEL" : "LICENCE JOUEUR";
+  const brandBadgeText = isPersonnel ? "STAFF" : brandLabel;
 
   const { qrBoxX, qrBoxY, qrBoxSize } = layout;
   const { svg: nameTextSvg, statsRowY: rowY } = buildNameTextSvg(
@@ -220,15 +232,33 @@ export function buildPlayerCardSvg(
 
   const fontFaceStyles = getInterFontFaceDefs();
 
+  const bgGradient = isPersonnel
+    ? `<linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${PERSONNEL_CARD_COLORS.gradientStart}"/>
+      <stop offset="55%" stop-color="${PERSONNEL_CARD_COLORS.gradientMid}"/>
+      <stop offset="100%" stop-color="${PERSONNEL_CARD_COLORS.gradientEnd}"/>
+    </linearGradient>`
+    : `<linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${CARD_COLORS.greenDark}"/>
+      <stop offset="58%" stop-color="${CARD_COLORS.navy}"/>
+      <stop offset="100%" stop-color="${CARD_COLORS.navy}"/>
+    </linearGradient>`;
+
+  const statsBlock = isPersonnel
+    ? `<line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
+  <text x="${fieldX}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">FONCTION</text>
+  <text x="${fieldX}" y="${rowY + 15}" fill="${accent}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(fonction)}</text>`
+    : `<line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
+  <text x="${fieldX}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">DORSAL</text>
+  <text x="${fieldX}" y="${rowY + 15}" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="14" font-weight="900">${escapeXml(dorsal)}</text>
+  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">POSTE</text>
+  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>`;
+
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     ${fontFaceStyles ? `<style><![CDATA[${fontFaceStyles}]]></style>` : ""}
-    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${CARD_COLORS.greenDark}"/>
-      <stop offset="58%" stop-color="${CARD_COLORS.navy}"/>
-      <stop offset="100%" stop-color="${CARD_COLORS.navy}"/>
-    </linearGradient>
+    ${bgGradient}
   </defs>
 
   <rect width="${W}" height="${H}" rx="20" fill="url(#cardBg)"/>
@@ -236,7 +266,7 @@ export function buildPlayerCardSvg(
   <line x1="0" y1="1" x2="${W}" y2="1" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
 
   ${
-    joueur.numero != null
+    !isPersonnel && joueur.numero != null
       ? `<text x="${W / 2}" y="${H / 2 + 20}" text-anchor="middle" fill="${CARD_COLORS.watermark}" font-family="${CARD_FONT}" font-size="120" font-weight="900">${joueur.numero}</text>`
       : ""
   }
@@ -244,8 +274,8 @@ export function buildPlayerCardSvg(
   <!-- Header -->
   <rect x="0" y="0" width="${W}" height="${headerH}" fill="${CARD_COLORS.headerOverlay}"/>
   <line x1="0" y1="${headerH}" x2="${W}" y2="${headerH}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
-  <rect x="${pad}" y="13" width="72" height="18" rx="9" fill="${CARD_COLORS.green}"/>
-  <text x="${pad + 36}" y="25.5" text-anchor="middle" fill="${CARD_COLORS.navy}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.2">${escapeXml(brandLabel)}</text>
+  <rect x="${pad}" y="13" width="${isPersonnel ? 56 : 72}" height="18" rx="9" fill="${accent}"/>
+  <text x="${pad + (isPersonnel ? 28 : 36)}" y="25.5" text-anchor="middle" fill="${accentText}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.2">${escapeXml(brandBadgeText)}</text>
   <text x="${W - pad}" y="25" text-anchor="end" fill="${CARD_COLORS.labelBright}" font-family="${CARD_FONT}" font-size="10" font-weight="700" letter-spacing="0.8">${escapeXml(joueur.equipe.competition.nom.toUpperCase())}</text>
 
   <!-- Séparateur colonnes -->
@@ -261,22 +291,18 @@ export function buildPlayerCardSvg(
   <text x="${fieldX}" y="${fieldY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">NOM</text>
   ${nameTextSvg}
 
-  <!-- Dorsal / Poste -->
-  <line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
-  <text x="${fieldX}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">DORSAL</text>
-  <text x="${fieldX}" y="${rowY + 15}" fill="${CARD_COLORS.green}" font-family="${CARD_FONT}" font-size="14" font-weight="900">${escapeXml(dorsal)}</text>
-  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">POSTE</text>
-  <text x="${fieldX + fieldW / 2 + 4}" y="${rowY + 15}" fill="${CARD_COLORS.white}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(poste)}</text>
+  <!-- Stats -->
+  ${statsBlock}
 
   <!-- QR (cadre blanc — image composée ensuite) -->
   <g>
-    <rect x="${qrBoxX}" y="${qrBoxY}" width="${qrBoxSize}" height="${qrBoxSize}" rx="10" fill="${CARD_COLORS.white}" stroke="${CARD_COLORS.green}" stroke-width="2"/>
+    <rect x="${qrBoxX}" y="${qrBoxY}" width="${qrBoxSize}" height="${qrBoxSize}" rx="10" fill="${CARD_COLORS.white}" stroke="${qrStroke}" stroke-width="2"/>
   </g>
 
   <!-- Footer -->
   <rect x="0" y="${H - footerH}" width="${W}" height="${footerH}" fill="${CARD_COLORS.footerOverlay}"/>
   <line x1="0" y1="${H - footerH}" x2="${W}" y2="${H - footerH}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
-  <text x="${pad}" y="${H - footerH / 2 + 4}" fill="${CARD_COLORS.footerText}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.4">LICENCE JOUEUR</text>
+  <text x="${pad}" y="${H - footerH / 2 + 4}" fill="${CARD_COLORS.footerText}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.4">${footerLabel}</text>
   <text x="${W - pad}" y="${H - footerH / 2 + 4}" text-anchor="end" fill="${CARD_COLORS.labelBright}" font-family="${CARD_FONT}" font-size="10" font-weight="700">${escapeXml(joueur.equipe.nom)}</text>
 </svg>`;
 

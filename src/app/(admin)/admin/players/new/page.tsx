@@ -10,8 +10,8 @@ export default function NewPlayerPage() {
   return (
     <div>
       <PageHeader
-        title="Ajouter un joueur"
-        description="Renseignez les informations du joueur. Seuls le nom, prénom, date de naissance, numéro de maillot, poste et club sont obligatoires."
+        title="Ajouter une licence"
+        description="Créez un joueur ou un membre du personnel (staff). Photo et club obligatoires. Le personnel reçoit une carte distincte avec QR code, sans numéro de maillot."
       />
 
       <PlayerForm

@@ -12,6 +12,11 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum LicenseType {
+  JOUEUR
+  PERSONNEL
+}
+
 model User {
   id            String       @id @default(uuid())
   nom           String
@@ -50,19 +55,21 @@ model Equipe {
 }
 
 model Joueur {
-  id            String    @id @default(uuid())
-  nom           String
-  prenom        String
-  dateNaissance DateTime?
-  nationalite   String?
-  sexe          String?
-  telephone     String?
-  numero        Int?
-  poste         String?
-  photo         String
-  qrToken       String    @unique @default(uuid())
-  equipeId      String
-  equipe        Equipe    @relation(fields: [equipeId], references: [id], onDelete: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String      @id @default(uuid())
+  nom               String
+  prenom            String
+  dateNaissance     DateTime?
+  nationalite       String?
+  sexe              String?
+  telephone         String?
+  numero            Int?
+  poste             String?
+  licenseType       LicenseType @default(JOUEUR)
+  fonctionPersonnel String?
+  photo             String
+  qrToken           String      @unique @default(uuid())
+  equipeId          String
+  equipe            Equipe      @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }

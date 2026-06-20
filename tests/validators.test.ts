@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   validateAdminPasswordReset,
+  validateJoueur,
   validateManagerUser,
   validateManagerUserUpdate,
   validatePasswordChange,
@@ -110,6 +111,49 @@ describe("validateManagerUserUpdate", () => {
       nom: "Manager Test",
       email: "manager@test.com",
       scanOnly: 1,
+    });
+    assert.equal(result.valid, false);
+  });
+});
+
+describe("validateJoueur", () => {
+  const baseJoueur = {
+    nom: "Dupont",
+    prenom: "Jean",
+    equipeId: "550e8400-e29b-41d4-a716-446655440000",
+    sexe: "Masculin",
+    photo: "/uploads/photos/test.jpg",
+  };
+
+  it("accepte un joueur valide", () => {
+    const result = validateJoueur(baseJoueur);
+    assert.equal(result.valid, true);
+  });
+
+  it("accepte un personnel valide", () => {
+    const result = validateJoueur({
+      ...baseJoueur,
+      licenseType: "PERSONNEL",
+      fonctionPersonnel: "Coach",
+    });
+    assert.equal(result.valid, true);
+  });
+
+  it("refuse un personnel sans fonction", () => {
+    const result = validateJoueur({
+      ...baseJoueur,
+      licenseType: "PERSONNEL",
+    });
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.some((e) => e.includes("fonction")));
+  });
+
+  it("refuse un numéro de maillot pour le personnel", () => {
+    const result = validateJoueur({
+      ...baseJoueur,
+      licenseType: "PERSONNEL",
+      fonctionPersonnel: "Coach",
+      numero: 10,
     });
     assert.equal(result.valid, false);
   });

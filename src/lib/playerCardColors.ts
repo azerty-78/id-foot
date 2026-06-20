@@ -32,3 +32,13 @@ export const CARD_QR_INNER =
 export const CARD_NAME_TO_STATS_GAP = 14;
 
 export const CARD_FONT = "'DejaVu Sans', sans-serif";
+
+/** Palette carte personnel (staff) — distincte des joueurs */
+export const PERSONNEL_CARD_COLORS = {
+  gradientStart: "#3d2e1f",
+  gradientMid: "#2a2545",
+  gradientEnd: "#0d1b2a",
+  accent: "#d4a853",
+  accentText: "#1a1208",
+  qrStroke: "#d4a853",
+} as const;

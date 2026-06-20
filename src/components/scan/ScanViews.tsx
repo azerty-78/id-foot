@@ -81,6 +81,8 @@ type ScanPlayerResultProps = {
     nom: string;
     numero: number | null;
     poste: string | null;
+    licenseType?: "JOUEUR" | "PERSONNEL";
+    fonctionPersonnel?: string | null;
     photo: string;
     equipe: {
       nom: string;
@@ -95,6 +97,10 @@ type ScanPlayerResultProps = {
 };
 
 export function ScanPlayerResult({ player }: ScanPlayerResultProps) {
+  const isPersonnel = player.licenseType === "PERSONNEL";
+  const metaLine = isPersonnel
+    ? player.fonctionPersonnel ?? "Personnel"
+    : `${player.numero != null ? `#${player.numero}` : "—"}${player.poste ? ` · ${player.poste}` : ""}`;
   const competitionLine = [
     player.equipe.competition.nom,
     String(player.equipe.competition.annee),
@@ -115,9 +121,13 @@ export function ScanPlayerResult({ player }: ScanPlayerResultProps) {
             <BadgeCheck size={24} strokeWidth={2} />
           </span>
           <div>
-            <p className="scan-gate-success-title">Licence valide</p>
+            <p className="scan-gate-success-title">
+              {isPersonnel ? "Personnel identifié" : "Licence valide"}
+            </p>
             <p className="scan-gate-success-subtitle">
-              Joueur autorisé · participation confirmée
+              {isPersonnel
+                ? "Membre du staff autorisé"
+                : "Joueur autorisé · participation confirmée"}
             </p>
           </div>
         </div>
@@ -136,10 +146,7 @@ export function ScanPlayerResult({ player }: ScanPlayerResultProps) {
             <p className="scan-gate-player-name">
               {player.prenom} {player.nom}
             </p>
-            <p className="scan-gate-player-meta">
-              {player.numero != null ? `#${player.numero}` : "—"}
-              {player.poste ? ` · ${player.poste}` : ""}
-            </p>
+            <p className="scan-gate-player-meta">{metaLine}</p>
             <p className="scan-gate-player-team">{player.equipe.nom}</p>
             <p className="scan-gate-player-competition">{competitionLine}</p>
           </div>

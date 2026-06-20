@@ -1,5 +1,5 @@
 import { resolveCompetitionAbbreviation } from "@/lib/competitionSlug";
-import { POSTES } from "@/types/player";
+import { FONCTIONS_PERSONNEL, POSTES } from "@/types/player";
 
 type ValidationResult = {
   valid: boolean;
@@ -87,8 +87,12 @@ export function validateJoueur(data: unknown): ValidationResult {
     errors.push("Le numéro de téléphone semble invalide (8 à 20 caractères).");
   }
 
+  const licenseType = data.licenseType === "PERSONNEL" ? "PERSONNEL" : "JOUEUR";
+  const isPersonnel = licenseType === "PERSONNEL";
+
   const numeroRaw = data.numero;
   if (
+    !isPersonnel &&
     numeroRaw !== null &&
     numeroRaw !== undefined &&
     numeroRaw !== ""
@@ -105,9 +109,31 @@ export function validateJoueur(data: unknown): ValidationResult {
     }
   }
 
+  if (isPersonnel && numeroRaw !== null && numeroRaw !== undefined && numeroRaw !== "") {
+    errors.push("Le numéro de maillot ne s'applique pas au personnel.");
+  }
+
   const poste = getString(data.poste);
-  if (poste && !POSTES.includes(poste as (typeof POSTES)[number])) {
+  if (!isPersonnel && poste && !POSTES.includes(poste as (typeof POSTES)[number])) {
     errors.push("Le poste sélectionné n'est pas valide.");
+  }
+
+  if (isPersonnel && poste) {
+    errors.push("Le poste ne s'applique pas au personnel.");
+  }
+
+  const fonctionPersonnel = getString(data.fonctionPersonnel);
+  if (isPersonnel) {
+    if (
+      !fonctionPersonnel ||
+      !FONCTIONS_PERSONNEL.includes(
+        fonctionPersonnel as (typeof FONCTIONS_PERSONNEL)[number],
+      )
+    ) {
+      errors.push("Veuillez sélectionner une fonction pour le personnel.");
+    }
+  } else if (fonctionPersonnel) {
+    errors.push("La fonction personnel ne s'applique qu'aux membres du staff.");
   }
 
   const sexe = getString(data.sexe);
@@ -117,7 +143,11 @@ export function validateJoueur(data: unknown): ValidationResult {
 
   const photo = getString(data.photo);
   if (!photo) {
-    errors.push("La photo du joueur est requise.");
+    errors.push(
+      isPersonnel
+        ? "La photo du personnel est requise."
+        : "La photo du joueur est requise.",
+    );
   }
 
   return { valid: errors.length === 0, errors };
@@ -391,9 +421,14 @@ export function toJoueurDbFields(input: {
   telephone?: string | null;
   numero?: number | string | null;
   poste?: string | null;
+  licenseType?: string | null;
+  fonctionPersonnel?: string | null;
   photo: string;
   equipeId: string;
 }) {
+  const licenseType = input.licenseType === "PERSONNEL" ? "PERSONNEL" : "JOUEUR";
+  const isPersonnel = licenseType === "PERSONNEL";
+
   return {
     nom: input.nom,
     prenom: input.prenom,
@@ -401,8 +436,12 @@ export function toJoueurDbFields(input: {
     nationalite: input.nationalite ?? null,
     sexe: input.sexe ?? null,
     telephone: input.telephone ?? null,
-    numero: parseOptionalNumero(input.numero),
-    poste: input.poste?.trim() || null,
+    numero: isPersonnel ? null : parseOptionalNumero(input.numero),
+    poste: isPersonnel ? null : input.poste?.trim() || null,
+    licenseType: licenseType as "JOUEUR" | "PERSONNEL",
+    fonctionPersonnel: isPersonnel
+      ? input.fonctionPersonnel?.trim() || null
+      : null,
     photo: input.photo.trim(),
     equipeId: input.equipeId,
   };
