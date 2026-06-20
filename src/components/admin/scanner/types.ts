@@ -35,6 +35,8 @@ export type QrPlayerResponse = {
   prenom: string;
   numero: number | null;
   poste: string | null;
+  licenseType?: "JOUEUR" | "PERSONNEL";
+  fonctionPersonnel?: string | null;
   photo: string | null;
   qrToken: string;
   valid?: boolean;
@@ -55,6 +57,8 @@ export function mapQrResponseToValidatedPlayer(data: QrPlayerResponse): Validate
     prenom: data.prenom,
     numero: data.numero,
     poste: data.poste,
+    licenseType: data.licenseType ?? "JOUEUR",
+    fonctionPersonnel: data.fonctionPersonnel ?? null,
     photo: data.photo,
     qrToken: data.qrToken,
     equipe: {
@@ -81,6 +85,8 @@ export function mapPlayerToValidatedPlayer(player: Player): ValidatedPlayer {
     prenom: player.prenom,
     numero: player.numero,
     poste: player.poste,
+    licenseType: player.licenseType,
+    fonctionPersonnel: player.fonctionPersonnel,
     photo: player.photo,
     qrToken: player.qrToken,
     equipe: {

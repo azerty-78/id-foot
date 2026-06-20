@@ -25,6 +25,9 @@ export default function PlayersPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [equipeId, setEquipeId] = useState("");
+  const [licenseTypeFilter, setLicenseTypeFilter] = useState<
+    "" | "JOUEUR" | "PERSONNEL"
+  >("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,8 +41,9 @@ export default function PlayersPage() {
     () => ({
       nom: debouncedSearch || undefined,
       equipeId: equipeId || undefined,
+      licenseType: licenseTypeFilter || undefined,
     }),
-    [debouncedSearch, equipeId]
+    [debouncedSearch, equipeId, licenseTypeFilter],
   );
 
   const { players, loading, error, refetch } = usePlayers(filters);
@@ -108,23 +112,52 @@ export default function PlayersPage() {
       />
 
       <AdminCard className="mb-6 p-4">
-        <label htmlFor="equipe-filter" className="field-label">
-          Filtrer par équipe
-        </label>
-        <select
-          id="equipe-filter"
-          value={equipeId}
-          onChange={(e) => setEquipeId(e.target.value)}
-          disabled={teamsLoading}
-          className="admin-select sm:max-w-xs"
-        >
-          <option value="">Toutes les équipes</option>
-          {teams.map((team) => (
-            <option key={team.id} value={team.id}>
-              {team.nom}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["", "Tous"],
+                ["JOUEUR", "Joueurs"],
+                ["PERSONNEL", "Personnel"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value || "all"}
+                type="button"
+                onClick={() => setLicenseTypeFilter(value)}
+                className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                  licenseTypeFilter === value
+                    ? value === "PERSONNEL"
+                      ? "bg-[#2a2545] text-[#d4a853]"
+                      : "bg-navy text-green"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-full lg:max-w-xs">
+            <label htmlFor="equipe-filter" className="field-label">
+              Filtrer par équipe
+            </label>
+            <select
+              id="equipe-filter"
+              value={equipeId}
+              onChange={(e) => setEquipeId(e.target.value)}
+              disabled={teamsLoading}
+              className="admin-select w-full"
+            >
+              <option value="">Toutes les équipes</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </AdminCard>
 
       {error && (
@@ -156,11 +189,19 @@ export default function PlayersPage() {
                       {player.equipe.nom} · {player.equipe.competition.nom}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {player.numero != null && (
-                        <StatusBadge tone="navy">#{player.numero}</StatusBadge>
-                      )}
-                      {player.poste && (
-                        <StatusBadge tone="navy">{player.poste}</StatusBadge>
+                      {player.licenseType === "PERSONNEL" ? (
+                        <StatusBadge tone="warning">
+                          {player.fonctionPersonnel ?? "Personnel"}
+                        </StatusBadge>
+                      ) : (
+                        <>
+                          {player.numero != null && (
+                            <StatusBadge tone="navy">#{player.numero}</StatusBadge>
+                          )}
+                          {player.poste && (
+                            <StatusBadge tone="navy">{player.poste}</StatusBadge>
+                          )}
+                        </>
                       )}
                     </div>
                     {player.telephone && (
@@ -201,9 +242,9 @@ export default function PlayersPage() {
                 <tr>
                   <th>Photo</th>
                   <th>Nom complet</th>
-                  <th>Maillot</th>
+                  <th>Type</th>
+                  <th>Détail</th>
                   <th>Téléphone</th>
-                  <th>Poste</th>
                   <th>Équipe</th>
                   <th>Compétition</th>
                   <th className="text-right">Actions</th>
@@ -223,20 +264,23 @@ export default function PlayersPage() {
                       {player.prenom} {player.nom}
                     </td>
                     <td>
-                      {player.numero != null ? (
-                        <StatusBadge tone="navy">#{player.numero}</StatusBadge>
+                      {player.licenseType === "PERSONNEL" ? (
+                        <StatusBadge tone="warning">Personnel</StatusBadge>
                       ) : (
-                        "—"
+                        <StatusBadge tone="success">Joueur</StatusBadge>
+                      )}
+                    </td>
+                    <td>
+                      {player.licenseType === "PERSONNEL" ? (
+                        player.fonctionPersonnel ?? "—"
+                      ) : (
+                        <>
+                          {player.numero != null ? `#${player.numero}` : "—"}
+                          {player.poste ? ` · ${player.poste}` : ""}
+                        </>
                       )}
                     </td>
                     <td>{player.telephone ?? "—"}</td>
-                    <td>
-                      {player.poste ? (
-                        <StatusBadge tone="navy">{player.poste}</StatusBadge>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
                     <td>{player.equipe.nom}</td>
                     <td>{player.equipe.competition.nom}</td>
                     <td>

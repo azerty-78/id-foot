@@ -8,6 +8,8 @@ export const qrPlayerSelect = {
   nationalite: true,
   numero: true,
   poste: true,
+  licenseType: true,
+  fonctionPersonnel: true,
   photo: true,
   qrToken: true,
   createdAt: true,

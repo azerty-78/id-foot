@@ -25,6 +25,11 @@ export async function GET(req: NextRequest) {
     const equipeId = searchParams.get("equipeId") ?? undefined;
     const requestedCompetitionId = searchParams.get("competitionId");
     const q = searchParams.get("q") ?? searchParams.get("nom");
+    const licenseTypeParam = searchParams.get("licenseType");
+    const licenseType =
+      licenseTypeParam === "PERSONNEL" || licenseTypeParam === "JOUEUR"
+        ? licenseTypeParam
+        : undefined;
     const competitionId = scopedCompetitionId(user, requestedCompetitionId);
 
     const joueurs = await prisma.joueur.findMany({
@@ -32,6 +37,7 @@ export async function GET(req: NextRequest) {
         equipeId,
         competitionId,
         nom: q ?? undefined,
+        licenseType,
       }),
       include: joueurInclude,
       orderBy: [{ nom: "asc" }, { prenom: "asc" }],

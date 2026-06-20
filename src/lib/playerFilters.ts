@@ -32,6 +32,7 @@ export function buildPlayerListWhere(options?: {
   equipeId?: string;
   competitionId?: string;
   nom?: string;
+  licenseType?: "JOUEUR" | "PERSONNEL";
 }): Prisma.JoueurWhereInput {
   const nameFilter = buildPlayerNameFilter(options?.nom);
 
@@ -40,6 +41,7 @@ export function buildPlayerListWhere(options?: {
     ...(options?.competitionId && {
       equipe: { competitionId: options.competitionId },
     }),
+    ...(options?.licenseType && { licenseType: options.licenseType }),
     ...(nameFilter && nameFilter),
   };
 }

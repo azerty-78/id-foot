@@ -14,6 +14,8 @@ export type PlayerLicenseCardSource = {
   prenom: string;
   numero: number | null;
   poste: string | null;
+  licenseType?: string | null;
+  fonctionPersonnel?: string | null;
   photo: string | null;
   qrToken: string;
   equipe: {
@@ -44,6 +46,8 @@ export function toPlayerLicenseCardPlayer(
     prenom: player.prenom,
     numero: player.numero,
     poste: player.poste,
+    licenseType: player.licenseType ?? "JOUEUR",
+    fonctionPersonnel: player.fonctionPersonnel ?? null,
     photo: player.photo,
     qrToken: player.qrToken,
     equipe: {

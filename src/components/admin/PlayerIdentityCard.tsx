@@ -1,11 +1,14 @@
 import Image from "next/image";
 import { BrandedQrCode } from "@/components/qr/BrandedQrCode";
+import { isPersonnelLicense } from "@/types/player";
 
 type PlayerIdentityCardProps = {
   prenom: string;
   nom: string;
   numero: number | string | null;
   poste: string | null;
+  licenseType?: string | null;
+  fonctionPersonnel?: string | null;
   equipe: string;
   photo?: string | null;
   qrValue?: string;
@@ -24,6 +27,8 @@ export function PlayerIdentityCard({
   nom,
   numero,
   poste,
+  licenseType,
+  fonctionPersonnel,
   equipe,
   photo,
   qrValue,
@@ -33,15 +38,20 @@ export function PlayerIdentityCard({
   className = "",
 }: PlayerIdentityCardProps) {
   const displayName = [prenom, nom].filter(Boolean).join(" ").trim() || "Joueur";
-  const numeroStr = numero != null && numero !== "" ? String(numero) : "";
+  const isPersonnel = isPersonnelLicense(licenseType);
+  const numeroStr = !isPersonnel && numero != null && numero !== "" ? String(numero) : "";
+  const roleLine = isPersonnel
+    ? fonctionPersonnel?.trim() || "Personnel"
+    : `${poste || "—"}${numeroStr ? ` · #${numeroStr}` : ""}`;
   const isColumn = layout === "column";
 
   return (
     <div
       className={`card-navy relative overflow-hidden ${
-        isColumn ? "player-identity-card--column" : ""
-      } ${className}`}
+        isPersonnel ? "player-identity-card--personnel" : ""
+      } ${isColumn ? "player-identity-card--column" : ""} ${className}`}
     >
+      {numeroStr ? (
       <span
         aria-hidden
         className={`pointer-events-none absolute select-none font-bold leading-none text-white opacity-[0.06] ${
@@ -52,6 +62,7 @@ export function PlayerIdentityCard({
       >
         {numeroStr.padStart(2, "0")}
       </span>
+      ) : null}
 
       <span
         aria-hidden
@@ -94,9 +105,8 @@ export function PlayerIdentityCard({
           >
             {displayName}
           </p>
-          <p className={`font-medium text-green ${isColumn ? "mt-2 text-sm" : "mt-1 text-[12px]"}`}>
-            {poste || "—"}
-            {numeroStr ? ` · #${numeroStr}` : ""}
+          <p className={`font-medium ${isPersonnel ? "text-[#d4a853]" : "text-green"} ${isColumn ? "mt-2 text-sm" : "mt-1 text-[12px]"}`}>
+            {roleLine}
           </p>
           <p
             className={`text-[rgba(255,255,255,0.45)] ${

@@ -5,6 +5,7 @@ import { Download, Eye } from "lucide-react";
 import { PlayerCardQr } from "@/app/player-card/[id]/PlayerCardQr";
 import { GhostLink, OutlineButton } from "@/components/admin/ui";
 import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
+import { isPersonnelLicense, type LicenseType } from "@/types/player";
 
 export type PlayerLicenseCardPlayer = {
   id: string;
@@ -12,6 +13,8 @@ export type PlayerLicenseCardPlayer = {
   prenom: string;
   numero: number | null;
   poste: string | null;
+  licenseType?: LicenseType | string | null;
+  fonctionPersonnel?: string | null;
   photo: string | null;
   qrToken: string;
   equipe: {
@@ -82,12 +85,16 @@ export function PlayerLicenseCard({
 }: PlayerLicenseCardProps) {
   const qrInnerPx = QR_INNER_PX[compact ? "compact" : "default"];
   const fullName = `${player.prenom} ${player.nom}`;
+  const isPersonnel = isPersonnelLicense(player.licenseType);
+  const brandLabel = isPersonnel
+    ? "STAFF"
+    : getPlayerCardBrandLabel(player.equipe.competition);
 
   return (
     <article
-      className={`player-license-card ${compact ? "player-license-card--compact" : ""} ${className}`.trim()}
+      className={`player-license-card ${isPersonnel ? "player-license-card--personnel" : ""} ${compact ? "player-license-card--compact" : ""} ${className}`.trim()}
     >
-      {player.numero != null && (
+      {!isPersonnel && player.numero != null && (
         <span className="player-license-card-watermark" aria-hidden>
           {player.numero}
         </span>
@@ -95,7 +102,7 @@ export function PlayerLicenseCard({
 
       <header className="player-license-card-header">
         <span className="player-license-card-brand">
-          {getPlayerCardBrandLabel(player.equipe.competition)}
+          {brandLabel}
         </span>
         <p className="player-license-card-competition">
           {player.equipe.competition.nom}
@@ -121,19 +128,28 @@ export function PlayerLicenseCard({
 
           <dl className="player-license-card-fields">
             <LicenseField label="Nom" value={fullName} variant="name" />
-            <div className="player-license-card-field-row">
+            {isPersonnel ? (
               <LicenseField
-                label="Dorsal"
-                value={player.numero != null ? `#${player.numero}` : "—"}
-                highlight={player.numero != null}
+                label="Fonction"
+                value={player.fonctionPersonnel?.trim() || "—"}
+                highlight
                 valueOnly
               />
-              <LicenseField
-                label="Poste"
-                value={player.poste?.trim() || "—"}
-                valueOnly
-              />
-            </div>
+            ) : (
+              <div className="player-license-card-field-row">
+                <LicenseField
+                  label="Dorsal"
+                  value={player.numero != null ? `#${player.numero}` : "—"}
+                  highlight={player.numero != null}
+                  valueOnly
+                />
+                <LicenseField
+                  label="Poste"
+                  value={player.poste?.trim() || "—"}
+                  valueOnly
+                />
+              </div>
+            )}
           </dl>
         </div>
 
@@ -150,7 +166,9 @@ export function PlayerLicenseCard({
       </div>
 
       <footer className="player-license-card-footer">
-        <span className="player-license-card-licence">Licence joueur</span>
+        <span className="player-license-card-licence">
+          {isPersonnel ? "Licence personnel" : "Licence joueur"}
+        </span>
         <span className="player-license-card-club">{player.equipe.nom}</span>
       </footer>
 

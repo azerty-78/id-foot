@@ -33,6 +33,29 @@ export const POSTES = [
   "Polyvalent",
 ] as const;
 
+export const FONCTIONS_PERSONNEL = [
+  "Président du Club",
+  "Vice Président du Club",
+  "Coach",
+  "Vice Coach",
+  "Staff Médical 1",
+  "Staff Médical 2",
+  "Staff Médical 3",
+  "Délégué",
+  "Intendant",
+] as const;
+
+export const LICENSE_TYPES = ["JOUEUR", "PERSONNEL"] as const;
+
+export type LicenseType = (typeof LICENSE_TYPES)[number];
+export type FonctionPersonnel = (typeof FONCTIONS_PERSONNEL)[number];
+
+export function isPersonnelLicense(
+  licenseType: LicenseType | string | null | undefined,
+): boolean {
+  return licenseType === "PERSONNEL";
+}
+
 export const SEXES = ["Masculin", "Féminin"] as const;
 
 export const DEFAULT_SEXE = "Masculin";
@@ -49,6 +72,8 @@ export type CreateJoueurInput = {
   telephone?: string | null;
   numero?: number | string | null;
   poste?: string | null;
+  licenseType?: LicenseType | string | null;
+  fonctionPersonnel?: string | null;
   photo: string;
   equipeId: string;
 };
@@ -72,6 +97,11 @@ export function parseCreateJoueurInput(body: unknown): CreateJoueurInput | null 
   const posteRaw = data.poste;
   const sexeRaw = data.sexe;
   const telephoneRaw = data.telephone;
+  const licenseTypeRaw = data.licenseType;
+  const fonctionRaw = data.fonctionPersonnel;
+
+  const licenseType =
+    licenseTypeRaw === "PERSONNEL" ? "PERSONNEL" : "JOUEUR";
 
   return {
     nom: nom.trim(),
@@ -89,11 +119,24 @@ export function parseCreateJoueurInput(body: unknown): CreateJoueurInput | null 
         ? telephoneRaw.trim()
         : null,
     numero:
-      typeof numeroRaw === "number" || typeof numeroRaw === "string"
-        ? numeroRaw
-        : null,
+      licenseType === "PERSONNEL"
+        ? null
+        : typeof numeroRaw === "number" || typeof numeroRaw === "string"
+          ? numeroRaw
+          : null,
     poste:
-      typeof posteRaw === "string" && posteRaw.trim() ? posteRaw.trim() : null,
+      licenseType === "PERSONNEL"
+        ? null
+        : typeof posteRaw === "string" && posteRaw.trim()
+          ? posteRaw.trim()
+          : null,
+    licenseType,
+    fonctionPersonnel:
+      licenseType === "PERSONNEL" &&
+      typeof fonctionRaw === "string" &&
+      fonctionRaw.trim()
+        ? fonctionRaw.trim()
+        : null,
     photo:
       typeof data.photo === "string" && data.photo.trim()
         ? data.photo.trim()
