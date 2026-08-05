@@ -1227,6 +1227,13 @@ body {
   box-shadow: 0 0 0 1px rgba(212, 168, 83, 0.25);
 }
 
+.poste-pill-active--commission {
+  border-color: #3d7eab;
+  background: #123048;
+  color: #5ba3d9;
+  box-shadow: 0 0 0 1px rgba(91, 163, 217, 0.25);
+}
+
 .license-type-toggle {
   display: flex;
   align-items: flex-start;
@@ -1283,6 +1290,16 @@ body {
 
 .license-type-toggle--personnel.license-type-toggle--active svg {
   color: #d4a853;
+}
+
+.license-type-toggle--commission.license-type-toggle--active {
+  border-color: #3d7eab;
+  background: linear-gradient(135deg, #1a3a4a 0%, #123048 100%);
+  box-shadow: 0 0 0 1px rgba(91, 163, 217, 0.25);
+}
+
+.license-type-toggle--commission.license-type-toggle--active svg {
+  color: #5ba3d9;
 }
 
 .license-type-toggle:disabled {
@@ -3782,6 +3799,32 @@ body {
 
 .player-license-card--personnel .player-license-card-qr {
   border-color: #d4a853;
+}
+
+.player-license-card--commission {
+  background: linear-gradient(135deg, #1a3a4a 0%, #123048 55%, #0d1b2a 100%);
+  box-shadow:
+    0 4px 24px rgba(18, 48, 72, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.player-license-card--commission:hover {
+  box-shadow:
+    0 12px 36px rgba(18, 48, 72, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.player-license-card--commission .player-license-card-brand {
+  background: #5ba3d9;
+  color: #0a1620;
+}
+
+.player-license-card--commission .player-license-card-field-value--highlight {
+  color: #5ba3d9;
+}
+
+.player-license-card--commission .player-license-card-qr {
+  border-color: #5ba3d9;
 }
 
 .player-license-card-watermark {

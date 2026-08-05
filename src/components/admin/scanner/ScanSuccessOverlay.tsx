@@ -12,7 +12,7 @@ import { PlayerIdentityCard } from "@/components/admin/PlayerIdentityCard";
 import { PlayerLicenseCard } from "@/components/admin/PlayerLicenseCard";
 import { GhostButton, OutlineLink, PrimaryButton } from "@/components/admin/ui";
 import { toPlayerLicenseCardPlayer } from "@/lib/playerLicenseCardPlayer";
-import { isPersonnelLicense } from "@/types/player";
+import { isPersonnelLicense, isRoleBasedLicense } from "@/types/player";
 import { ScanSuccessMinimalOverlay } from "./ScanSuccessMinimalOverlay";
 import type { ValidatedPlayer } from "./types";
 
@@ -32,6 +32,7 @@ export function ScanSuccessOverlay({
   const [cardViewPlayerId, setCardViewPlayerId] = useState<string | null>(null);
   const showCard = cardViewPlayerId === player.id;
   const isPersonnel = isPersonnelLicense(player.licenseType);
+  const roleBased = isRoleBasedLicense(player.licenseType);
 
   useEffect(() => {
     if (scanOnly) return;
@@ -65,10 +66,19 @@ export function ScanSuccessOverlay({
           </span>
           <div>
             <p id="scan-success-title" className="scan-success-title">
-              {isPersonnel ? "Accès personnel autorisé" : "Accès au joueur autorisée"}
+              {isPersonnel
+                ? "Accès personnel autorisé"
+                : roleBased
+                  ? "Accès commission autorisé"
+                  : "Accès au joueur autorisée"}
             </p>
             <p className="scan-success-subtitle">
-              Licence valide · {isPersonnel ? "staff identifié" : "participation confirmée"}
+              Licence valide ·{" "}
+              {isPersonnel
+                ? "staff identifié"
+                : roleBased
+                  ? "commission identifiée"
+                  : "participation confirmée"}
             </p>
           </div>
         </div>

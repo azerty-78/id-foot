@@ -35,7 +35,7 @@ export type QrPlayerResponse = {
   prenom: string;
   numero: number | null;
   poste: string | null;
-  licenseType?: "JOUEUR" | "PERSONNEL";
+  licenseType?: "JOUEUR" | "PERSONNEL" | "COMMISSION";
   fonctionPersonnel?: string | null;
   photo: string | null;
   qrToken: string;

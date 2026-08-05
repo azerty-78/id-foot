@@ -26,7 +26,7 @@ export default function PlayersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [equipeId, setEquipeId] = useState("");
   const [licenseTypeFilter, setLicenseTypeFilter] = useState<
-    "" | "JOUEUR" | "PERSONNEL"
+    "" | "JOUEUR" | "PERSONNEL" | "COMMISSION"
   >("");
 
   useEffect(() => {
@@ -119,6 +119,7 @@ export default function PlayersPage() {
                 ["", "Tous"],
                 ["JOUEUR", "Joueurs"],
                 ["PERSONNEL", "Personnel"],
+                ["COMMISSION", "Commission"],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -129,7 +130,9 @@ export default function PlayersPage() {
                   licenseTypeFilter === value
                     ? value === "PERSONNEL"
                       ? "bg-[#2a2545] text-[#d4a853]"
-                      : "bg-navy text-green"
+                      : value === "COMMISSION"
+                        ? "bg-[#123048] text-[#5ba3d9]"
+                        : "bg-navy text-green"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -189,9 +192,19 @@ export default function PlayersPage() {
                       {player.equipe.nom} · {player.equipe.competition.nom}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {player.licenseType === "PERSONNEL" ? (
-                        <StatusBadge tone="warning">
-                          {player.fonctionPersonnel ?? "Personnel"}
+                      {player.licenseType === "PERSONNEL" ||
+                      player.licenseType === "COMMISSION" ? (
+                        <StatusBadge
+                          tone={
+                            player.licenseType === "COMMISSION"
+                              ? "navy"
+                              : "warning"
+                          }
+                        >
+                          {player.fonctionPersonnel ??
+                            (player.licenseType === "COMMISSION"
+                              ? "Commission"
+                              : "Personnel")}
                         </StatusBadge>
                       ) : (
                         <>
@@ -266,12 +279,15 @@ export default function PlayersPage() {
                     <td>
                       {player.licenseType === "PERSONNEL" ? (
                         <StatusBadge tone="warning">Personnel</StatusBadge>
+                      ) : player.licenseType === "COMMISSION" ? (
+                        <StatusBadge tone="navy">Commission</StatusBadge>
                       ) : (
                         <StatusBadge tone="success">Joueur</StatusBadge>
                       )}
                     </td>
                     <td>
-                      {player.licenseType === "PERSONNEL" ? (
+                      {player.licenseType === "PERSONNEL" ||
+                      player.licenseType === "COMMISSION" ? (
                         player.fonctionPersonnel ?? "—"
                       ) : (
                         <>

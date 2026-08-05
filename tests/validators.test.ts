@@ -139,6 +139,24 @@ describe("validateJoueur", () => {
     assert.equal(result.valid, true);
   });
 
+  it("accepte une commission valide", () => {
+    const result = validateJoueur({
+      ...baseJoueur,
+      licenseType: "COMMISSION",
+      fonctionPersonnel: "Trésorier Général",
+    });
+    assert.equal(result.valid, true);
+  });
+
+  it("refuse un rôle commission pour le personnel", () => {
+    const result = validateJoueur({
+      ...baseJoueur,
+      licenseType: "PERSONNEL",
+      fonctionPersonnel: "Trésorier Général",
+    });
+    assert.equal(result.valid, false);
+  });
+
   it("refuse un personnel sans fonction", () => {
     const result = validateJoueur({
       ...baseJoueur,
@@ -153,6 +171,16 @@ describe("validateJoueur", () => {
       ...baseJoueur,
       licenseType: "PERSONNEL",
       fonctionPersonnel: "Coach",
+      numero: 10,
+    });
+    assert.equal(result.valid, false);
+  });
+
+  it("refuse un numéro de maillot pour la commission", () => {
+    const result = validateJoueur({
+      ...baseJoueur,
+      licenseType: "COMMISSION",
+      fonctionPersonnel: "Photographe",
       numero: 10,
     });
     assert.equal(result.valid, false);

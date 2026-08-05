@@ -1,6 +1,11 @@
 import Image from "next/image";
 import { BrandedQrCode } from "@/components/qr/BrandedQrCode";
-import { isPersonnelLicense } from "@/types/player";
+import {
+  getLicenseTypeLabel,
+  isCommissionLicense,
+  isPersonnelLicense,
+  isRoleBasedLicense,
+} from "@/types/player";
 
 type PlayerIdentityCardProps = {
   prenom: string;
@@ -39,17 +44,24 @@ export function PlayerIdentityCard({
 }: PlayerIdentityCardProps) {
   const displayName = [prenom, nom].filter(Boolean).join(" ").trim() || "Joueur";
   const isPersonnel = isPersonnelLicense(licenseType);
-  const numeroStr = !isPersonnel && numero != null && numero !== "" ? String(numero) : "";
-  const roleLine = isPersonnel
-    ? fonctionPersonnel?.trim() || "Personnel"
+  const isCommission = isCommissionLicense(licenseType);
+  const roleBased = isRoleBasedLicense(licenseType);
+  const numeroStr = !roleBased && numero != null && numero !== "" ? String(numero) : "";
+  const roleLine = roleBased
+    ? fonctionPersonnel?.trim() || getLicenseTypeLabel(licenseType)
     : `${poste || "—"}${numeroStr ? ` · #${numeroStr}` : ""}`;
   const isColumn = layout === "column";
+  const roleColorClass = isPersonnel
+    ? "text-[#d4a853]"
+    : isCommission
+      ? "text-[#5ba3d9]"
+      : "text-green";
 
   return (
     <div
       className={`card-navy relative overflow-hidden ${
         isPersonnel ? "player-identity-card--personnel" : ""
-      } ${isColumn ? "player-identity-card--column" : ""} ${className}`}
+      } ${isCommission ? "player-identity-card--commission" : ""} ${isColumn ? "player-identity-card--column" : ""} ${className}`}
     >
       {numeroStr ? (
       <span
@@ -105,7 +117,7 @@ export function PlayerIdentityCard({
           >
             {displayName}
           </p>
-          <p className={`font-medium ${isPersonnel ? "text-[#d4a853]" : "text-green"} ${isColumn ? "mt-2 text-sm" : "mt-1 text-[12px]"}`}>
+          <p className={`font-medium ${roleColorClass} ${isColumn ? "mt-2 text-sm" : "mt-1 text-[12px]"}`}>
             {roleLine}
           </p>
           <p

@@ -1,5 +1,11 @@
 import { resolveCompetitionAbbreviation } from "@/lib/competitionSlug";
-import { FONCTIONS_PERSONNEL, POSTES } from "@/types/player";
+import {
+  FONCTIONS_COMMISSION,
+  FONCTIONS_PERSONNEL,
+  POSTES,
+  isRoleBasedLicense,
+  parseLicenseType,
+} from "@/types/player";
 
 type ValidationResult = {
   valid: boolean;
@@ -87,12 +93,14 @@ export function validateJoueur(data: unknown): ValidationResult {
     errors.push("Le numéro de téléphone semble invalide (8 à 20 caractères).");
   }
 
-  const licenseType = data.licenseType === "PERSONNEL" ? "PERSONNEL" : "JOUEUR";
+  const licenseType = parseLicenseType(data.licenseType);
+  const roleBased = isRoleBasedLicense(licenseType);
   const isPersonnel = licenseType === "PERSONNEL";
+  const isCommission = licenseType === "COMMISSION";
 
   const numeroRaw = data.numero;
   if (
-    !isPersonnel &&
+    !roleBased &&
     numeroRaw !== null &&
     numeroRaw !== undefined &&
     numeroRaw !== ""
@@ -109,17 +117,25 @@ export function validateJoueur(data: unknown): ValidationResult {
     }
   }
 
-  if (isPersonnel && numeroRaw !== null && numeroRaw !== undefined && numeroRaw !== "") {
-    errors.push("Le numéro de maillot ne s'applique pas au personnel.");
+  if (roleBased && numeroRaw !== null && numeroRaw !== undefined && numeroRaw !== "") {
+    errors.push(
+      isCommission
+        ? "Le numéro de maillot ne s'applique pas à la commission."
+        : "Le numéro de maillot ne s'applique pas au personnel.",
+    );
   }
 
   const poste = getString(data.poste);
-  if (!isPersonnel && poste && !POSTES.includes(poste as (typeof POSTES)[number])) {
+  if (!roleBased && poste && !POSTES.includes(poste as (typeof POSTES)[number])) {
     errors.push("Le poste sélectionné n'est pas valide.");
   }
 
-  if (isPersonnel && poste) {
-    errors.push("Le poste ne s'applique pas au personnel.");
+  if (roleBased && poste) {
+    errors.push(
+      isCommission
+        ? "Le poste ne s'applique pas à la commission."
+        : "Le poste ne s'applique pas au personnel.",
+    );
   }
 
   const fonctionPersonnel = getString(data.fonctionPersonnel);
@@ -132,8 +148,19 @@ export function validateJoueur(data: unknown): ValidationResult {
     ) {
       errors.push("Veuillez sélectionner une fonction pour le personnel.");
     }
+  } else if (isCommission) {
+    if (
+      !fonctionPersonnel ||
+      !FONCTIONS_COMMISSION.includes(
+        fonctionPersonnel as (typeof FONCTIONS_COMMISSION)[number],
+      )
+    ) {
+      errors.push("Veuillez sélectionner une fonction pour la commission.");
+    }
   } else if (fonctionPersonnel) {
-    errors.push("La fonction personnel ne s'applique qu'aux membres du staff.");
+    errors.push(
+      "La fonction ne s'applique qu'au personnel ou à la commission d'organisation.",
+    );
   }
 
   const sexe = getString(data.sexe);
@@ -146,7 +173,9 @@ export function validateJoueur(data: unknown): ValidationResult {
     errors.push(
       isPersonnel
         ? "La photo du personnel est requise."
-        : "La photo du joueur est requise.",
+        : isCommission
+          ? "La photo du membre de la commission est requise."
+          : "La photo du joueur est requise.",
     );
   }
 
@@ -426,8 +455,8 @@ export function toJoueurDbFields(input: {
   photo: string;
   equipeId: string;
 }) {
-  const licenseType = input.licenseType === "PERSONNEL" ? "PERSONNEL" : "JOUEUR";
-  const isPersonnel = licenseType === "PERSONNEL";
+  const licenseType = parseLicenseType(input.licenseType);
+  const roleBased = isRoleBasedLicense(licenseType);
 
   return {
     nom: input.nom,
@@ -436,10 +465,10 @@ export function toJoueurDbFields(input: {
     nationalite: input.nationalite ?? null,
     sexe: input.sexe ?? null,
     telephone: input.telephone ?? null,
-    numero: isPersonnel ? null : parseOptionalNumero(input.numero),
-    poste: isPersonnel ? null : input.poste?.trim() || null,
-    licenseType: licenseType as "JOUEUR" | "PERSONNEL",
-    fonctionPersonnel: isPersonnel
+    numero: roleBased ? null : parseOptionalNumero(input.numero),
+    poste: roleBased ? null : input.poste?.trim() || null,
+    licenseType,
+    fonctionPersonnel: roleBased
       ? input.fonctionPersonnel?.trim() || null
       : null,
     photo: input.photo.trim(),

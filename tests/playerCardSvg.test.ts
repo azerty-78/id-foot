@@ -57,4 +57,23 @@ describe("buildPlayerCardSvg", () => {
     assert.doesNotMatch(svg, />DORSAL</);
     assert.match(svg, />STAFF</);
   });
+
+  it("affiche la variante commission sans dorsal", () => {
+    const { svg } = buildPlayerCardSvg(
+      {
+        ...basePlayer,
+        numero: null,
+        poste: null,
+        licenseType: "COMMISSION",
+        fonctionPersonnel: "Secrétaire Général",
+      },
+      { hasPhoto: true },
+    );
+
+    assert.match(svg, /LICENCE COMMISSION/);
+    assert.match(svg, />FONCTION</);
+    assert.match(svg, /Secr[ée]taire G[ée]n[ée]ral/);
+    assert.doesNotMatch(svg, />DORSAL</);
+    assert.match(svg, />ORGA</);
+  });
 });

@@ -8,11 +8,17 @@ import {
   CARD_QR_PDF_PAD_X,
   CARD_RENDER_HEIGHT,
   CARD_RENDER_WIDTH,
+  COMMISSION_CARD_COLORS,
   PERSONNEL_CARD_COLORS,
 } from "@/lib/playerCardColors";
 import { getInterFontFaceDefs } from "@/lib/playerCardFont";
 import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
-import { isPersonnelLicense, type LicenseType } from "@/types/player";
+import {
+  isCommissionLicense,
+  isPersonnelLicense,
+  isRoleBasedLicense,
+  type LicenseType,
+} from "@/types/player";
 
 export type CardRenderPlayer = {
   id: string;
@@ -202,16 +208,30 @@ export function buildPlayerCardSvg(
 
   const fullName = `${joueur.prenom} ${joueur.nom}`;
   const isPersonnel = isPersonnelLicense(joueur.licenseType);
+  const isCommission = isCommissionLicense(joueur.licenseType);
+  const roleBased = isRoleBasedLicense(joueur.licenseType);
   const dorsal = joueur.numero != null ? `#${joueur.numero}` : "—";
   const poste = joueur.poste?.trim() || "—";
   const fonction = joueur.fonctionPersonnel?.trim() || "—";
   const brandLabel = getPlayerCardBrandLabel(joueur.equipe.competition);
-  const palette = isPersonnel ? PERSONNEL_CARD_COLORS : null;
+  const palette = isPersonnel
+    ? PERSONNEL_CARD_COLORS
+    : isCommission
+      ? COMMISSION_CARD_COLORS
+      : null;
   const accent = palette?.accent ?? CARD_COLORS.green;
   const accentText = palette?.accentText ?? CARD_COLORS.navy;
   const qrStroke = palette?.qrStroke ?? CARD_COLORS.green;
-  const footerLabel = isPersonnel ? "LICENCE PERSONNEL" : "LICENCE JOUEUR";
-  const brandBadgeText = isPersonnel ? "STAFF" : brandLabel;
+  const footerLabel = isPersonnel
+    ? "LICENCE PERSONNEL"
+    : isCommission
+      ? "LICENCE COMMISSION"
+      : "LICENCE JOUEUR";
+  const brandBadgeText = isPersonnel
+    ? "STAFF"
+    : isCommission
+      ? "ORGA"
+      : brandLabel;
 
   const { qrBoxX, qrBoxY, qrBoxSize } = layout;
   const { svg: nameTextSvg, statsRowY: rowY } = buildNameTextSvg(
@@ -238,13 +258,19 @@ export function buildPlayerCardSvg(
       <stop offset="55%" stop-color="${PERSONNEL_CARD_COLORS.gradientMid}"/>
       <stop offset="100%" stop-color="${PERSONNEL_CARD_COLORS.gradientEnd}"/>
     </linearGradient>`
+    : isCommission
+      ? `<linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${COMMISSION_CARD_COLORS.gradientStart}"/>
+      <stop offset="55%" stop-color="${COMMISSION_CARD_COLORS.gradientMid}"/>
+      <stop offset="100%" stop-color="${COMMISSION_CARD_COLORS.gradientEnd}"/>
+    </linearGradient>`
     : `<linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${CARD_COLORS.greenDark}"/>
       <stop offset="58%" stop-color="${CARD_COLORS.navy}"/>
       <stop offset="100%" stop-color="${CARD_COLORS.navy}"/>
     </linearGradient>`;
 
-  const statsBlock = isPersonnel
+  const statsBlock = roleBased
     ? `<line x1="${fieldX}" y1="${rowY - 8}" x2="${fieldX + fieldW}" y2="${rowY - 8}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
   <text x="${fieldX}" y="${rowY}" fill="${CARD_COLORS.label}" font-family="${CARD_FONT}" font-size="8" font-weight="700" letter-spacing="1.1">FONCTION</text>
   <text x="${fieldX}" y="${rowY + 15}" fill="${accent}" font-family="${CARD_FONT}" font-size="12" font-weight="700">${escapeXml(fonction)}</text>`
@@ -266,7 +292,7 @@ export function buildPlayerCardSvg(
   <line x1="0" y1="1" x2="${W}" y2="1" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
 
   ${
-    !isPersonnel && joueur.numero != null
+    !roleBased && joueur.numero != null
       ? `<text x="${W / 2}" y="${H / 2 + 20}" text-anchor="middle" fill="${CARD_COLORS.watermark}" font-family="${CARD_FONT}" font-size="120" font-weight="900">${joueur.numero}</text>`
       : ""
   }
@@ -274,8 +300,8 @@ export function buildPlayerCardSvg(
   <!-- Header -->
   <rect x="0" y="0" width="${W}" height="${headerH}" fill="${CARD_COLORS.headerOverlay}"/>
   <line x1="0" y1="${headerH}" x2="${W}" y2="${headerH}" stroke="${CARD_COLORS.dividerSoft}" stroke-width="1"/>
-  <rect x="${pad}" y="13" width="${isPersonnel ? 56 : 72}" height="18" rx="9" fill="${accent}"/>
-  <text x="${pad + (isPersonnel ? 28 : 36)}" y="25.5" text-anchor="middle" fill="${accentText}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.2">${escapeXml(brandBadgeText)}</text>
+  <rect x="${pad}" y="13" width="${roleBased ? 56 : 72}" height="18" rx="9" fill="${accent}"/>
+  <text x="${pad + (roleBased ? 28 : 36)}" y="25.5" text-anchor="middle" fill="${accentText}" font-family="${CARD_FONT}" font-size="9" font-weight="800" letter-spacing="1.2">${escapeXml(brandBadgeText)}</text>
   <text x="${W - pad}" y="25" text-anchor="end" fill="${CARD_COLORS.labelBright}" font-family="${CARD_FONT}" font-size="10" font-weight="700" letter-spacing="0.8">${escapeXml(joueur.equipe.competition.nom.toUpperCase())}</text>
 
   <!-- Séparateur colonnes -->

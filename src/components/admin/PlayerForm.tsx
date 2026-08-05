@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, Save, Shield, UserRound, X } from "lucide-react";
+import { Briefcase, Landmark, Save, Shield, UserRound, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type FormEvent } from "react";
@@ -33,8 +33,12 @@ import {
 } from "@/lib/phoneCountries";
 import {
   DEFAULT_SEXE,
-  FONCTIONS_PERSONNEL,
+  getFonctionsForLicense,
+  getLicenseTypeLabel,
+  isCommissionLicense,
   isPersonnelLicense,
+  isRoleBasedLicense,
+  parseLicenseType,
   POSTES,
   SEXES,
   type LicenseType,
@@ -117,9 +121,7 @@ function createFormState(initialPlayer?: Player) {
 
   return {
     values: {
-      licenseType: (initialPlayer.licenseType === "PERSONNEL"
-        ? "PERSONNEL"
-        : "JOUEUR") as LicenseType,
+      licenseType: parseLicenseType(initialPlayer.licenseType),
       prenom: initialPlayer.prenom,
       nom: initialPlayer.nom,
       dateNaissance: initialPlayer.dateNaissance
@@ -138,7 +140,7 @@ function createFormState(initialPlayer?: Player) {
     currentPhotoUrl: initialPlayer.photo,
     contactOpen: Boolean(initialPlayer.telephone?.trim()),
     sportOpen: Boolean(
-      initialPlayer.licenseType !== "PERSONNEL" &&
+      !isRoleBasedLicense(initialPlayer.licenseType) &&
         (initialPlayer.numero != null ||
           (initialPlayer.poste && initialPlayer.poste.trim())),
     ),
@@ -198,16 +200,27 @@ export function PlayerForm({
   const phonePreview = composePhoneNumber(values.phoneDial, values.phoneLocal);
   const phoneCountry = getPhoneCountry(values.phoneDial);
   const isPersonnel = isPersonnelLicense(values.licenseType);
+  const isCommission = isCommissionLicense(values.licenseType);
+  const roleBased = isRoleBasedLicense(values.licenseType);
+  const fonctions = getFonctionsForLicense(values.licenseType);
 
   function setLicenseType(next: LicenseType) {
     if (mode === "edit") return;
-    setValues((current) => ({
-      ...current,
-      licenseType: next,
-      numeroMaillot: next === "PERSONNEL" ? "" : current.numeroMaillot,
-      poste: next === "PERSONNEL" ? "" : current.poste,
-      fonctionPersonnel: next === "JOUEUR" ? "" : current.fonctionPersonnel,
-    }));
+    setValues((current) => {
+      const nextFonctions = getFonctionsForLicense(next);
+      const keepFonction =
+        next !== "JOUEUR" &&
+        current.fonctionPersonnel &&
+        nextFonctions.includes(current.fonctionPersonnel);
+
+      return {
+        ...current,
+        licenseType: next,
+        numeroMaillot: isRoleBasedLicense(next) ? "" : current.numeroMaillot,
+        poste: isRoleBasedLicense(next) ? "" : current.poste,
+        fonctionPersonnel: keepFonction ? current.fonctionPersonnel : "",
+      };
+    });
     setErrors((current) => ({
       ...current,
       numeroMaillot: undefined,
@@ -262,7 +275,9 @@ export function PlayerForm({
       setErrors({
         photo: isPersonnel
           ? "La photo du personnel est requise."
-          : "La photo du joueur est requise.",
+          : isCommission
+            ? "La photo du membre de la commission est requise."
+            : "La photo du joueur est requise.",
       });
       return;
     }
@@ -275,13 +290,13 @@ export function PlayerForm({
       nationalite: values.nationalite.trim() || null,
       sexe: values.sexe.trim(),
       telephone: phonePreview || null,
-      numero: isPersonnel
+      numero: roleBased
         ? null
         : values.numeroMaillot.trim()
           ? Number.parseInt(values.numeroMaillot, 10)
           : null,
-      poste: isPersonnel ? null : values.poste.trim() || null,
-      fonctionPersonnel: isPersonnel
+      poste: roleBased ? null : values.poste.trim() || null,
+      fonctionPersonnel: roleBased
         ? values.fonctionPersonnel.trim() || null
         : null,
       equipeId: values.equipeId,
@@ -304,12 +319,8 @@ export function PlayerForm({
       photoFile
         ? "Préparation de la photo…"
         : mode === "create"
-          ? isPersonnel
-            ? "Création du personnel…"
-            : "Création du joueur…"
-          : isPersonnel
-            ? "Mise à jour du personnel…"
-            : "Mise à jour du joueur…",
+          ? `Création — ${getLicenseTypeLabel(values.licenseType)}…`
+          : `Mise à jour — ${getLicenseTypeLabel(values.licenseType)}…`,
     );
 
     let succeeded = false;
@@ -331,7 +342,9 @@ export function PlayerForm({
         throw new Error(
           isPersonnel
             ? "La photo du personnel est requise."
-            : "La photo du joueur est requise.",
+            : isCommission
+              ? "La photo du membre de la commission est requise."
+              : "La photo du joueur est requise.",
         );
       }
 
@@ -364,12 +377,8 @@ export function PlayerForm({
       showToast(
         "success",
         mode === "create"
-          ? isPersonnel
-            ? "Personnel enregistré avec succès."
-            : "Joueur enregistré avec succès."
-          : isPersonnel
-            ? "Personnel mis à jour."
-            : "Joueur mis à jour.",
+          ? `${getLicenseTypeLabel(values.licenseType)} enregistré avec succès.`
+          : `${getLicenseTypeLabel(values.licenseType)} mis à jour.`,
       );
       onSuccess(saved.id);
     } catch (err) {
@@ -409,9 +418,9 @@ export function PlayerForm({
 
           <FormSection
             title="Type de licence"
-            description="Joueur sportif ou membre du staff (encadrement, direction, médical)."
+            description="Joueur, personnel du club, ou membre de la commission d'organisation."
           >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <button
                 type="button"
                 disabled={submitting || mode === "edit"}
@@ -434,6 +443,18 @@ export function PlayerForm({
                 <span>
                   <strong>Personnel</strong>
                   <small>Staff club · fonction et QR code</small>
+                </span>
+              </button>
+              <button
+                type="button"
+                disabled={submitting || mode === "edit"}
+                onClick={() => setLicenseType("COMMISSION")}
+                className={`license-type-toggle ${values.licenseType === "COMMISSION" ? "license-type-toggle--active license-type-toggle--commission" : ""}`}
+              >
+                <Landmark size={18} aria-hidden />
+                <span>
+                  <strong>Commission d&apos;organisation</strong>
+                  <small>Bureau · rôles d&apos;organisation</small>
                 </span>
               </button>
             </div>
@@ -534,8 +555,8 @@ export function PlayerForm({
           <FormSection
             title="Club"
             description={
-              isPersonnel
-                ? "Sélectionnez le club auquel ce membre du staff est rattaché."
+              roleBased
+                ? `Sélectionnez le club auquel ce membre (${getLicenseTypeLabel(values.licenseType).toLowerCase()}) est rattaché.`
                 : "Sélectionnez l'équipe du joueur."
             }
           >
@@ -585,12 +606,20 @@ export function PlayerForm({
             description={
               isPersonnel
                 ? "Portrait obligatoire pour la carte personnel."
-                : "Portrait obligatoire pour la licence."
+                : isCommission
+                  ? "Portrait obligatoire pour la carte commission."
+                  : "Portrait obligatoire pour la licence."
             }
           >
             <FormInput
               id="photo"
-              label={isPersonnel ? "Photo du personnel" : "Photo du joueur"}
+              label={
+                isPersonnel
+                  ? "Photo du personnel"
+                  : isCommission
+                    ? "Photo du membre"
+                    : "Photo du joueur"
+              }
               required
               error={errors.photo}
             >
@@ -674,17 +703,24 @@ export function PlayerForm({
             </FormInput>
           </CollapsibleFormSection>
 
-          {isPersonnel ? (
+          {roleBased ? (
             <FormSection
               title="Fonction"
-              description="Rôle du membre du staff au sein du club."
+              description={
+                isCommission
+                  ? "Rôle au sein de la commission d'organisation."
+                  : "Rôle du membre du staff au sein du club."
+              }
             >
               <div>
                 <p className="mb-2 text-sm font-medium text-slate-700">
-                  Nature du personnel <span className="text-rose-500">*</span>
+                  {isCommission
+                    ? "Fonction dans la commission"
+                    : "Nature du personnel"}{" "}
+                  <span className="text-rose-500">*</span>
                 </p>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {FONCTIONS_PERSONNEL.map((item) => {
+                  {fonctions.map((item) => {
                     const active = values.fonctionPersonnel === item;
                     return (
                       <button
@@ -694,7 +730,11 @@ export function PlayerForm({
                           updateField("fonctionPersonnel", active ? "" : item)
                         }
                         className={`poste-pill rounded-xl px-3 py-2.5 text-left text-xs font-semibold sm:text-sm ${
-                          active ? "poste-pill-active poste-pill-active--personnel" : ""
+                          active
+                            ? isCommission
+                              ? "poste-pill-active poste-pill-active--commission"
+                              : "poste-pill-active poste-pill-active--personnel"
+                            : ""
                         }`}
                       >
                         {item}
@@ -783,9 +823,7 @@ export function PlayerForm({
               {submitting
                 ? "Enregistrement…"
                 : mode === "create"
-                  ? isPersonnel
-                    ? "Enregistrer le personnel"
-                    : "Enregistrer le joueur"
+                  ? `Enregistrer — ${getLicenseTypeLabel(values.licenseType)}`
                   : "Enregistrer les modifications"}
             </PrimaryButton>
           </div>
@@ -807,14 +845,14 @@ export function PlayerForm({
                 id: "preview",
                 prenom: values.prenom.trim() || "Prénom",
                 nom: values.nom.trim() || "Nom",
-                numero: isPersonnel
+                numero: roleBased
                   ? null
                   : values.numeroMaillot
                     ? Number.parseInt(values.numeroMaillot, 10)
                     : null,
-                poste: isPersonnel ? null : values.poste.trim() || null,
+                poste: roleBased ? null : values.poste.trim() || null,
                 licenseType: values.licenseType,
-                fonctionPersonnel: isPersonnel
+                fonctionPersonnel: roleBased
                   ? values.fonctionPersonnel.trim() || null
                   : null,
                 photo: displayPhoto,
@@ -836,8 +874,8 @@ export function PlayerForm({
             <PlayerIdentityCard
               prenom={values.prenom}
               nom={values.nom}
-              numero={isPersonnel ? null : values.numeroMaillot || "—"}
-              poste={isPersonnel ? null : values.poste}
+              numero={roleBased ? null : values.numeroMaillot || "—"}
+              poste={roleBased ? null : values.poste}
               licenseType={values.licenseType}
               fonctionPersonnel={values.fonctionPersonnel}
               equipe={selectedTeam?.nom ?? "—"}

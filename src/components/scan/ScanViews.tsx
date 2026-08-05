@@ -81,7 +81,7 @@ type ScanPlayerResultProps = {
     nom: string;
     numero: number | null;
     poste: string | null;
-    licenseType?: "JOUEUR" | "PERSONNEL";
+    licenseType?: "JOUEUR" | "PERSONNEL" | "COMMISSION";
     fonctionPersonnel?: string | null;
     photo: string;
     equipe: {
@@ -98,8 +98,11 @@ type ScanPlayerResultProps = {
 
 export function ScanPlayerResult({ player }: ScanPlayerResultProps) {
   const isPersonnel = player.licenseType === "PERSONNEL";
-  const metaLine = isPersonnel
-    ? player.fonctionPersonnel ?? "Personnel"
+  const isCommission = player.licenseType === "COMMISSION";
+  const roleBased = isPersonnel || isCommission;
+  const metaLine = roleBased
+    ? player.fonctionPersonnel ??
+      (isCommission ? "Commission" : "Personnel")
     : `${player.numero != null ? `#${player.numero}` : "—"}${player.poste ? ` · ${player.poste}` : ""}`;
   const competitionLine = [
     player.equipe.competition.nom,
@@ -122,12 +125,18 @@ export function ScanPlayerResult({ player }: ScanPlayerResultProps) {
           </span>
           <div>
             <p className="scan-gate-success-title">
-              {isPersonnel ? "Personnel identifié" : "Licence valide"}
+              {isPersonnel
+                ? "Personnel identifié"
+                : isCommission
+                  ? "Commission identifiée"
+                  : "Licence valide"}
             </p>
             <p className="scan-gate-success-subtitle">
               {isPersonnel
                 ? "Membre du staff autorisé"
-                : "Joueur autorisé · participation confirmée"}
+                : isCommission
+                  ? "Membre de la commission autorisé"
+                  : "Joueur autorisé · participation confirmée"}
             </p>
           </div>
         </div>

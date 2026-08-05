@@ -42,3 +42,13 @@ export const PERSONNEL_CARD_COLORS = {
   accentText: "#1a1208",
   qrStroke: "#d4a853",
 } as const;
+
+/** Palette carte commission d'organisation */
+export const COMMISSION_CARD_COLORS = {
+  gradientStart: "#1a3a4a",
+  gradientMid: "#123048",
+  gradientEnd: "#0d1b2a",
+  accent: "#5ba3d9",
+  accentText: "#0a1620",
+  qrStroke: "#5ba3d9",
+} as const;

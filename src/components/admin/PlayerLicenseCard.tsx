@@ -5,7 +5,13 @@ import { Download, Eye } from "lucide-react";
 import { PlayerCardQr } from "@/app/player-card/[id]/PlayerCardQr";
 import { GhostLink, OutlineButton } from "@/components/admin/ui";
 import { getPlayerCardBrandLabel } from "@/lib/playerCardBrand";
-import { isPersonnelLicense, type LicenseType } from "@/types/player";
+import {
+  getLicenseCardFooterLabel,
+  isCommissionLicense,
+  isPersonnelLicense,
+  isRoleBasedLicense,
+  type LicenseType,
+} from "@/types/player";
 
 export type PlayerLicenseCardPlayer = {
   id: string;
@@ -86,15 +92,19 @@ export function PlayerLicenseCard({
   const qrInnerPx = QR_INNER_PX[compact ? "compact" : "default"];
   const fullName = `${player.prenom} ${player.nom}`;
   const isPersonnel = isPersonnelLicense(player.licenseType);
+  const isCommission = isCommissionLicense(player.licenseType);
+  const roleBased = isRoleBasedLicense(player.licenseType);
   const brandLabel = isPersonnel
     ? "STAFF"
-    : getPlayerCardBrandLabel(player.equipe.competition);
+    : isCommission
+      ? "ORGA"
+      : getPlayerCardBrandLabel(player.equipe.competition);
 
   return (
     <article
-      className={`player-license-card ${isPersonnel ? "player-license-card--personnel" : ""} ${compact ? "player-license-card--compact" : ""} ${className}`.trim()}
+      className={`player-license-card ${isPersonnel ? "player-license-card--personnel" : ""} ${isCommission ? "player-license-card--commission" : ""} ${compact ? "player-license-card--compact" : ""} ${className}`.trim()}
     >
-      {!isPersonnel && player.numero != null && (
+      {!roleBased && player.numero != null && (
         <span className="player-license-card-watermark" aria-hidden>
           {player.numero}
         </span>
@@ -128,7 +138,7 @@ export function PlayerLicenseCard({
 
           <dl className="player-license-card-fields">
             <LicenseField label="Nom" value={fullName} variant="name" />
-            {isPersonnel ? (
+            {roleBased ? (
               <LicenseField
                 label="Fonction"
                 value={player.fonctionPersonnel?.trim() || "—"}
@@ -167,7 +177,7 @@ export function PlayerLicenseCard({
 
       <footer className="player-license-card-footer">
         <span className="player-license-card-licence">
-          {isPersonnel ? "Licence personnel" : "Licence joueur"}
+          {getLicenseCardFooterLabel(player.licenseType)}
         </span>
         <span className="player-license-card-club">{player.equipe.nom}</span>
       </footer>

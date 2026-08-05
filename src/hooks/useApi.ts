@@ -35,7 +35,7 @@ export type Player = {
   telephone: string | null;
   numero: number | null;
   poste: string | null;
-  licenseType: "JOUEUR" | "PERSONNEL";
+  licenseType: "JOUEUR" | "PERSONNEL" | "COMMISSION";
   fonctionPersonnel: string | null;
   photo: string;
   qrToken: string;
@@ -49,7 +49,7 @@ type PlayerFilters = {
   nom?: string;
   equipeId?: string;
   competitionId?: string;
-  licenseType?: "JOUEUR" | "PERSONNEL";
+  licenseType?: "JOUEUR" | "PERSONNEL" | "COMMISSION";
 };
 
 async function parseErrorResponse(res: Response): Promise<string> {

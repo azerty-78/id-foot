@@ -27,7 +27,9 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get("q") ?? searchParams.get("nom");
     const licenseTypeParam = searchParams.get("licenseType");
     const licenseType =
-      licenseTypeParam === "PERSONNEL" || licenseTypeParam === "JOUEUR"
+      licenseTypeParam === "PERSONNEL" ||
+      licenseTypeParam === "JOUEUR" ||
+      licenseTypeParam === "COMMISSION"
         ? licenseTypeParam
         : undefined;
     const competitionId = scopedCompetitionId(user, requestedCompetitionId);
