@@ -36,6 +36,14 @@ export const POSTES = [
 export const FONCTIONS_PERSONNEL = [
   "Président du Club",
   "Vice Président du Club",
+  "Conseiller 1",
+  "Conseiller 2",
+  "Conseiller 3",
+  "Trésorier Général",
+  "Vice Trésorier",
+  "Commissaire au Compte",
+  "Secrétaire Général",
+  "Vice Secrétaire",
   "Coach",
   "Vice Coach",
   "Staff Médical 1",
@@ -43,6 +51,10 @@ export const FONCTIONS_PERSONNEL = [
   "Staff Médical 3",
   "Délégué",
   "Intendant",
+  "Photographe",
+  "Journaliste 1",
+  "Journaliste 2",
+  "Journaliste 3",
 ] as const;
 
 export const LICENSE_TYPES = ["JOUEUR", "PERSONNEL"] as const;
