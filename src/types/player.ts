@@ -48,6 +48,8 @@ export const FONCTIONS_PERSONNEL = [
 
 /** Commission d'organisation */
 export const FONCTIONS_COMMISSION = [
+  "Président",
+  "Vice Président",
   "Conseiller 1",
   "Conseiller 2",
   "Conseiller 3",

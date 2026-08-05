@@ -126,7 +126,7 @@ export default function PlayersPage() {
                 key={value || "all"}
                 type="button"
                 onClick={() => setLicenseTypeFilter(value)}
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium transition ${
                   licenseTypeFilter === value
                     ? value === "PERSONNEL"
                       ? "bg-[#2a2545] text-[#d4a853]"

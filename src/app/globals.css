@@ -334,6 +334,7 @@ body {
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
+  cursor: pointer;
 }
 
 .admin-textarea {
@@ -1205,6 +1206,7 @@ body {
   border: 1px solid var(--gray-200);
   background: var(--white);
   color: var(--navy);
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
@@ -1245,6 +1247,7 @@ body {
   padding: 14px 16px;
   text-align: left;
   color: var(--navy);
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
