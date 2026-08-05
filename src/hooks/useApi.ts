@@ -110,7 +110,13 @@ export function usePlayers(filters?: PlayerFilters) {
     return () => {
       cancelled = true;
     };
-  }, [filters?.nom, filters?.equipeId, filters?.competitionId, refreshKey]);
+  }, [
+    filters?.nom,
+    filters?.equipeId,
+    filters?.competitionId,
+    filters?.licenseType,
+    refreshKey,
+  ]);
 
   return { players, loading, error, refetch };
 }
