@@ -30,6 +30,10 @@ import { downloadPdfFromApi } from "@/lib/downloadPdfClient";
 import { buildPlayerCardFilename } from "@/lib/playerCardFilename";
 import { toPlayerLicenseCardPlayer } from "@/lib/playerLicenseCardPlayer";
 import { buildQrScanUrl } from "@/lib/qrScanUrl";
+import {
+  getLicenseTypeLabel,
+  isRoleBasedLicense,
+} from "@/types/player";
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -119,17 +123,26 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
   const qrValue = buildQrScanUrl(player.qrToken);
 
   const licensePlayer = toPlayerLicenseCardPlayer(player);
+  const roleBased = isRoleBasedLicense(player.licenseType);
 
   const details = [
     { label: "ID", value: player.id },
+    { label: "Type de licence", value: getLicenseTypeLabel(player.licenseType) },
     { label: "Prénom", value: player.prenom },
     { label: "Nom", value: player.nom },
     { label: "Date de naissance", value: formatDate(player.dateNaissance) },
     { label: "Nationalité", value: player.nationalite ?? "—" },
     { label: "Sexe", value: player.sexe ?? "—" },
     { label: "Téléphone", value: player.telephone ?? "—" },
-    { label: "Numéro de maillot", value: player.numero != null ? String(player.numero) : "—" },
-    { label: "Poste", value: player.poste ?? "—" },
+    ...(roleBased
+      ? [{ label: "Fonction", value: player.fonctionPersonnel ?? "—" }]
+      : [
+          {
+            label: "Numéro de maillot",
+            value: player.numero != null ? String(player.numero) : "—",
+          },
+          { label: "Poste", value: player.poste ?? "—" },
+        ]),
     { label: "Photo", value: player.photo ?? "—" },
     { label: "QR Token", value: player.qrToken },
     { label: "Équipe", value: player.equipe.nom },
@@ -149,6 +162,8 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
             nom={player.nom}
             numero={player.numero ?? ""}
             poste={player.poste ?? ""}
+            licenseType={player.licenseType}
+            fonctionPersonnel={player.fonctionPersonnel}
             equipe={player.equipe.nom}
             photo={player.photo}
             qrValue={qrValue}
@@ -188,7 +203,7 @@ export function PlayerDetailView({ id }: PlayerDetailViewProps) {
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/60">
-                Fiche joueur
+                Fiche {getLicenseTypeLabel(player.licenseType).toLowerCase()}
               </p>
               <h2 className="mt-1 text-xl font-bold text-slate-900">
                 Informations détaillées

@@ -200,8 +200,8 @@ export default function PlayerCardsPage() {
           </div>
 
           <p className="text-sm leading-6 text-slate-500 lg:max-w-md">
-            Chaque carte affiche le nom, le club, le poste et le QR code unique.
-            Au scan, les informations du joueur s&apos;affichent dans le
+            Chaque carte affiche le nom, le club, le poste ou la fonction, et le
+            QR code unique. Au scan, les informations s&apos;affichent dans le
             contrôle d&apos;accès.
           </p>
         </div>
